@@ -1,9 +1,10 @@
----
-title: "Brazilian Soil Dataset 2020"
-subtitle: A Comprehensive Dataset of Soil Properties for Brazil
-author: "Alessandro Samuel-Rosa"
-date: "2020-01-17"
----
+# Brazilian Soil Dataset 2020
+
+_A Comprehensive Dataset of Soil Properties for Brazil_
+
+Alessandro Samuel-Rosa
+
+2020-01-17
 
 Processing of soil data from datasets published in the Brazilian Soil Data Repository
 (FEBR, https://www.pedometria.org/febr/) until the end of 2019. The data undergoes cleaning,
