@@ -3,16 +3,27 @@
 # author: "Alessandro Samuel-Rosa"
 # date: "2020-01-17"
 
+# Summary
+# R script that processes the 'identification' table from datasets published in the Brazilian Soil
+# Data Repository (FEBR). It selectively extracts specific rows such as 'dataset_id',
+# 'dataset_titulo', and 'dataset_licenca' among others, and splits multiple entries in
+# 'area_conhecimento', 'autor_nome', and 'organizacao_nome' fields, retaining only the first entry.
+# The goal is to streamline and standardize the dataset for subsequent analysis.
+
+# Load packages
 library(febr)
 # library(dplyr)
 # library(magrittr)
 
-## Tabelas "identificacao"
+# Read the identification table from the Brazilian Soil Data Repository
 identificacao <- febr::identification(dataset = "all", febr.repo = "~/ownCloud/febr-repo/publico")
 dataset <- febr::dataset(dataset = 'all')
 # str(dataset, 1)
 # sapply(dataset, colnames)
 
+# Selectively extract specific rows from the identification table
+# and split multiple entries in 'area_conhecimento', 'autor_nome', and 'organizacao_nome' fields,
+# retaining only the first entry.
 dts_rows <- c(
   "dataset_id", "dataset_titulo", "dataset_licenca", "dataset_versao",
   "publicacao_data", "palavras_chave"
@@ -36,9 +47,10 @@ dataset <-
 dataset <- t(dataset) %>% data.frame()
 colnames(dataset) <- c(dts_rows, "area_conhecimento", "autor_nome", "organizacao_nome")
 
-# remover espaços duplos no título
+# Remove double spaces in the title
 dataset$dataset_titulo <- gsub(pattern = '  ', replacement = ' ', x = dataset$dataset_titulo)
 
+# Set the order of columns
 col_order <- c(
   "dataset_id", "dataset_titulo", "autor_nome", "organizacao_nome", "dataset_licenca",
   "dataset_versao", "publicacao_data", "palavras_chave", "area_conhecimento"
@@ -55,9 +67,7 @@ dataset <- dataset[col_order]
 #   ) %>%
 #   select(-tmp)
 
-### Salvar dados
-
-# Salvar os dados no formato TXT.
+# Save the dataset in TXT format
 write.table(dataset,
   file = glue::glue("../data/febr-dataset.txt"), sep = ";", dec = ",",
   row.names = FALSE
