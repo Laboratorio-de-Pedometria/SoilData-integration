@@ -3,9 +3,14 @@
 # author: "Alessandro Samuel-Rosa"
 # date: "2020-01-17"
 
-## Tabelas "observacao"
+# Summary
+# R script that downloads and processes soil observation data from the Brazilian Soil Data
+# Repository (FEBR). It fetches data using the third level of harmonization, and applies specific
+# standardization parameters. The script then processes the data for three soil taxonomic
+# classification systems, merging columns with soil taxonomic classifications from different
+# versions of the same system, prioritizing the most recent classifications. The goal is to
+# harmonize and standardize the soil observation data for further analysis.
 
-### Descarregamento
 
 # Os dados das tabelas "observacao" de cada conjunto de dados são descarregados utilizando o nível
 # 3 de harmonização.
