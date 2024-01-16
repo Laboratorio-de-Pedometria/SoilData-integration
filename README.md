@@ -1,6 +1,6 @@
 # Brazilian Soil Dataset 2020
 
-_A Comprehensive Dataset of Soil Properties for Brazil_
+## A Comprehensive Dataset of Soil Properties for Brazil
 
 Alessandro Samuel-Rosa
 
@@ -41,3 +41,16 @@ using SIRGAS 2000 (EPSG:4674) as the coordinate reference system.
 The data cleaning procedures adopted are described in detail below. The other data standardization
 and harmonization procedures are described in the help pages of the febr package for R at
 https://www.pedometria.org/software/febr/.
+
+## Contributors
+
+- Beatriz Hiyori Hamada (Universidade Tecnológica Federal do Paraná)
+- Eloi Ribeiro (ISRIC - World Soil Information)
+- João Herbert Moreira Viana (Embrapa Milho e Sorgo)
+- Mikael Pereira Messias (Universidade Tecnológica Federal do Paraná)
+- Maria Eduarda Vilas Boas Alves (Universidade Tecnológica Federal do Paraná)
+- Matheus Ferreira Ramos (Universidade Tecnológica Federal do Paraná)
+- Paulo Ivonir Gubiani (Universidade Federal de Santa Maria)
+- Ricardo Simão Diniz Dalmolin (Universidade Federal de Santa Maria)
+- Stanley Robson de Medeiros Oliveira (Embrapa Informática Agropecuária)
+- Wenceslau Geraldes Teixeira (Embrapa Solos)
