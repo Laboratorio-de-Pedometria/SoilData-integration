@@ -2,25 +2,26 @@
 # subtitle: A Comprehensive Dataset of Soil Properties for Brazil
 # author: "Alessandro Samuel-Rosa"
 # date: "2020-01-17"
-
+# 
 # Summary
-# R script that processes the 'identification' table from datasets published in the Brazilian Soil
-# Data Repository (FEBR). It selectively extracts specific rows such as 'dataset_id',
-# 'dataset_titulo', and 'dataset_licenca' among others, and splits multiple entries in
-# 'area_conhecimento', 'autor_nome', and 'organizacao_nome' fields, retaining only the first entry.
-# The goal is to streamline and standardize the dataset for subsequent analysis.
-
+# This R script handles the 'identification' table extracted from datasets available in the
+# Brazilian Soil Data Repository (FEBR). It selectively retrieves particular rows, including
+# 'dataset_id,' 'dataset_titulo,' and 'dataset_licenca,' among others. Additionally, it splits
+# multiple entries in the 'area_conhecimento,' 'autor_nome,' and 'organizacao_nome' fields,
+# retaining only the initial entry. The objective is to streamline and standardize the dataset for
+# subsequent analysis.
+ 
 # Load packages
 library(febr)
 # library(dplyr)
 # library(magrittr)
-
+ 
 # Read the identification table from the Brazilian Soil Data Repository
 identificacao <- febr::identification(dataset = "all", febr.repo = "~/ownCloud/febr-repo/publico")
 dataset <- febr::dataset(dataset = 'all')
 # str(dataset, 1)
 # sapply(dataset, colnames)
-
+ 
 # Selectively extract specific rows from the identification table
 # and split multiple entries in 'area_conhecimento', 'autor_nome', and 'organizacao_nome' fields,
 # retaining only the first entry.
