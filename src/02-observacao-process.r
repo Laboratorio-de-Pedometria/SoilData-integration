@@ -1,4 +1,4 @@
-# title: "Brazilian Soil Dataset 2020"
+# title: "Brazilian Soil Dataset 2019"
 # subtitle: A Comprehensive Dataset of Soil Properties for Brazil
 # author: "Alessandro Samuel-Rosa"
 # date: "2020-01-17"
@@ -11,7 +11,7 @@
 # with soil taxonomic classifications from different versions of the same system, prioritizing the
 # most recent classifications. The goal is to harmonize and standardize the soil observation data
 # for further analysis.
-# 
+
 # Download and process data from the 'observacao' table of the FEBR database.
 # Set the harmonization argument to the third level.
 vars <- "taxon_"
@@ -24,7 +24,7 @@ observacao <- febr::observation(
     time.format = "%d-%m-%Y", 
     units = FALSE, round = FALSE),
   harmonization = list(harmonize = TRUE, level = 3))
-# 
+
 # Data processing
 # Data on the soil taxonomic classification are processed as follows:
 # 1. Merge columns with soil taxonomic classifications from different versions of the same taxonomic
@@ -41,7 +41,7 @@ observacao <- febr::observation(
 # 3. For 'taxon_sibcs,' 'taxon_st_,' and 'taxon_wrb_,' clean and standardize the formatting of
 # character strings representing each soil taxonomic classification (uppercase, without diacritics,
 # and without periods).
-# 
+
 # The columns in the resulting data table are organized as follows:
 # 1. Discard columns 'taxon_sibcs_<...>', 'taxon_st_<...>', and 'taxon_wrb_<...>', where '<...>' is
 # the year of the classification system. These columns have been processed as described above and
@@ -50,7 +50,7 @@ observacao <- febr::observation(
 # standardized to the SIRGAS 2000 coordinate reference system (EPSG:4674).
 # 3. Arrange the columns with identification data ('observacao_id', 'sisb_id', and 'ibge_id') side
 # by side at the beginning of the data table.
-# 
+
 # The data type of the columns is also defined here:
 # 1. The data in the 'coord_precisao' column is set to the real type using 'as.numeric()'.
 sibcs_tabela <- 
@@ -103,8 +103,6 @@ observacao <-
     dataset_id, observacao_id, sisb_id, ibge_id, observacao_data, coord_x, coord_y, coord_precisao, 
     coord_fonte, pais_id, estado_id, municipio_id, amostra_tipo, amostra_quanti, amostra_area,
     taxon_sibcs, taxon_st, taxon_wrb)
-# 
+
 # Save the data in TXT format
-write.table(observacao,
-  file = glue::glue("../data/febr-observacao.txt"), sep = ";", dec = ",", row.names = FALSE
-)
+write.table(observacao, file = "data/observacao.txt", sep = ";", dec = ",", row.names = FALSE)
