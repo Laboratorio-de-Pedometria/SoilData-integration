@@ -2,18 +2,18 @@
 # subtitle: A Comprehensive Dataset of Soil Properties for Brazil
 # author: "Alessandro Samuel-Rosa"
 # date: "2020-01-17"
-
+# 
 # Summary
-# R script that downloads and processes soil observation data from the Brazilian Soil Data
-# Repository (FEBR). It fetches data using the third level of harmonization, and applies specific
-# standardization parameters. The script then processes the data for three soil taxonomic
-# classification systems, merging columns with soil taxonomic classifications from different
-# versions of the same system, prioritizing the most recent classifications. The goal is to
-# harmonize and standardize the soil observation data for further analysis.
-
-
-# Os dados das tabelas "observacao" de cada conjunto de dados são descarregados utilizando o nível
-# 3 de harmonização.
+# This R script downloads and processes soil observation data from the Brazilian Soil Data
+# Repository (FEBR). It uses the observation() function of the R package febr, setting the
+# harmonization argument to the third level, and applies specific standardization parameters. The
+# script then processes the data for three soil taxonomic classification systems, merging columns
+# with soil taxonomic classifications from different versions of the same system, prioritizing the
+# most recent classifications. The goal is to harmonize and standardize the soil observation data
+# for further analysis.
+# 
+# Download and process data from the 'observacao' table of the FEBR database.
+# Set the harmonization argument to the third level.
 vars <- "taxon_"
 observacao <- febr::observation(
   dataset = "all", 
@@ -24,36 +24,35 @@ observacao <- febr::observation(
     time.format = "%d-%m-%Y", 
     units = FALSE, round = FALSE),
   harmonization = list(harmonize = TRUE, level = 3))
-
-### Processamento
-
-# Para os três sistemas de classificação taxonômica do solo, o processamento dos dados segue os
-# seguintes passos:
-# 1. Fusão das colunas com a classificação taxonômica do solo nas diferentes versões de um mesmo
-# sistema de classificação taxonômica. Prioridade é dada à classificação mais recente. No caso do
-# Sistema Brasileiro de Classificação do Solos, 'sibcs', classificações até 1999 são ignoradas, pois
-# o número de classes e a nomenclatura utilizada são diferentes da versão atual. Nesse caso,
-# observações apenas com a classificação taxonômica antiga do 'sibcs' ficam sem dados
-# ('NA_character'). Os códigos de identificação das colunas resultantes da fusão das colunas de cada
-# um dos três sistema de classificação taxonômica são 'taxon_sibcs', 'taxon_st' e 'taxon_wrb'.
-# 2. Para 'taxon_sibcs', substituição da classificação taxonômica registrada na forma de sigla pelo
-# nome correspondente por extenso, seguida da eliminação de níveis categóricos inferiores,
-# mantendo-se apenas o primeiro (ordem) e o segundo (subordem).
-# 3. Para 'taxon_sibcs', 'taxon_st_' e 'taxon_wrb_', limpeza e padronização da formatação das
-# correntes de caracteres que representam cada classificação taxonômica do solo (caixa alta, sem
-# acentuação, sem ponto final).
-
-# As colunas são organizadas de maneira a:
-# 1. Descartar as colunas 'taxon_sibcs_<...>', 'taxon_st_<...>' e 'taxon_wrb_<...>', processadas
-# acima e substituídas pelas colunas 'taxon_sibcs_', 'taxon_st_' e 'taxon_wrb', respectivamente.
-# 2. Descartar a colunas 'coord_sistema', uma vez que as coordenadas espaciais de todas as
-# observações foram padronizadas para o sistema de referência de coordenadas SIRGAS 2000
-# (EPSG:4674).
-# 3. Posicionar as colunas com dados de identificação -- 'observacao_id', 'sisb_id' e 'ibge_id'
-# lado-a-lado.
-
-# O tipo de dados das colunas também é definido aqui:
-# 1. Os dados da coluna 'coord_precisao' são definidos como do tipo real usando 'as.numeric()'.
+# 
+# Data processing
+# Data on the soil taxonomic classification are processed as follows:
+# 1. Merge columns with soil taxonomic classifications from different versions of the same taxonomic
+# classification system. Priority is given to the classification on the most recent version of a
+# system. In the case of the Brazilian Soil Classification System, 'sibcs,' classifications up to
+# the 1999 version are ignored because the number of classes and the nomenclature used differ from
+# later versions. In this case, observations with only the old taxonomic classification of 'sibcs'
+# (1999 and before) are left without data ('NA_character'). The identification codes for the three
+# resulting columns from the fusion of each of the three taxonomic classification systems are
+# 'taxon_sibcs,' 'taxon_st,' and 'taxon_wrb.'
+# 2. For 'taxon_sibcs,' when the taxonomic classification is recorded in acronym form, replace it
+# with the corresponding full name. Next, eliminate lower categorical levels, retaining only the
+# first (order) and the second (suborder).
+# 3. For 'taxon_sibcs,' 'taxon_st_,' and 'taxon_wrb_,' clean and standardize the formatting of
+# character strings representing each soil taxonomic classification (uppercase, without diacritics,
+# and without periods).
+# 
+# The columns in the resulting data table are organized as follows:
+# 1. Discard columns 'taxon_sibcs_<...>', 'taxon_st_<...>', and 'taxon_wrb_<...>', where '<...>' is
+# the year of the classification system. These columns have been processed as described above and
+# replaced by the columns 'taxon_sibcs_', 'taxon_st_', and 'taxon_wrb', respectively.
+# 2. Discard the 'coord_sistema' column since the spatial coordinates for all observations are
+# standardized to the SIRGAS 2000 coordinate reference system (EPSG:4674).
+# 3. Arrange the columns with identification data ('observacao_id', 'sisb_id', and 'ibge_id') side
+# by side at the beginning of the data table.
+# 
+# The data type of the columns is also defined here:
+# 1. The data in the 'coord_precisao' column is set to the real type using 'as.numeric()'.
 sibcs_tabela <- 
   "1yJ_XnsJhnhJSfC3WRimfu_3_owXxpfSKaoxCiMD2_Z0" %>% 
   googlesheets::gs_key() %>% 
@@ -104,9 +103,8 @@ observacao <-
     dataset_id, observacao_id, sisb_id, ibge_id, observacao_data, coord_x, coord_y, coord_precisao, 
     coord_fonte, pais_id, estado_id, municipio_id, amostra_tipo, amostra_quanti, amostra_area,
     taxon_sibcs, taxon_st, taxon_wrb)
-
-### Salvar dados
-# Salvar os dados no formato TXT
+# 
+# Save the data in TXT format
 write.table(observacao,
   file = glue::glue("../data/febr-observacao.txt"), sep = ";", dec = ",", row.names = FALSE
 )
