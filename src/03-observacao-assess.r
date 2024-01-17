@@ -1,4 +1,4 @@
-# title: "Brazilian Soil Dataset 2020"
+# title: "Brazilian Soil Dataset 2019"
 # subtitle: A Comprehensive Dataset of Soil Properties for Brazil
 # author: "Alessandro Samuel-Rosa"
 # date: "2020-01-17"
@@ -14,13 +14,21 @@
 # for each state. Finally, the script transforms the 'observacao_data' column to a year format,
 # summarizes the 'observacao' data frame by counting the total observations and those within
 # specific year ranges, and then calculates the percentage of total observations for each year
-# range. The script also counts the number of duplicated observations and prepares a figure with the
-# number of observations for each year. The goal is to assess the soil observation data for further
-# analysis.
+# range. The script also counts the number of duplicated observations and prepares a figure with
+# the number of observations for each year. The goal is to assess the soil observation data for
+# further analysis.
+
+# Install and load required packages
+if (!require("rnaturalearth")) {
+  install.packages("rnaturalearth", dependencies = TRUE)
+}
+southamerica <- rnaturalearth::ne_countries(continent = c("south america", "europe"),
+  returnclass = "sf", scale = "medium")
+southamerica <- southamerica[, "iso_a2"]
 
 # Exploratory data analysis
 # Read the 'observacao' table from the Brazilian Soil Data Repository
-observacao <- read.table("../data/febr-observacao.txt", sep = ";", dec = ",", header = TRUE)
+observacao <- read.table("data/observacao.txt", sep = ";", dec = ",", header = TRUE)
 
 # Evaluate the result using some randomly selected records
 mess <-
@@ -30,11 +38,26 @@ mess <-
   }
 mess(observacao)
 
+# Count the number of duplicated observations using the geographic and temporal coordinates
+idx_has_coordinates <-
+  !is.na(observacao$coord_x) & !is.na(observacao$coord_y) & !is.na(observacao$observacao_data)
+idx_duplicated <- duplicated(
+  observacao[idx_has_coordinates, c("coord_x", "coord_y", "observacao_data")]
+)
+sum(idx_duplicated)
+# There are 277 duplicated observations in the 'observacao' table. This occurs when certain soil
+# observations are reused across different datasets. It's important to note that only observations
+# containing both geographic and temporal coordinates are considered in this count. Consequently,
+# there might be additional duplicated observations that cannot currently be identified due to the
+# absence of geographic and/or temporal coordinates. While we retain these duplicated observations
+# in the dataset, it's ultimately the user's decision whether to keep or remove them during data
+# analysis. However, for the analysis conducted here, they are excluded to ensure accuracy.
+
 # Summarize the 'observacao' data frame, calculating the total count, the count of non-missing
 # latitude/longitude values, the median of 'coord_precisao', and the counts of 'coord_fonte' being
-# "GPS", "MAPA", or "WEB".
+# "GPS", "MAPA", or "WEB". Consider only the unique observations.
 tmp <-
-  observacao %>% 
+  observacao[!idx_duplicated, ] %>% 
   dplyr::summarise(
     Total = n(),
     `Lat/Long` = sum(!is.na(coord_x)),
@@ -45,49 +68,42 @@ tmp <-
   ) %T>% 
   print()
 
-# The FEBR repository has a total of 15,158 soil observations. Among these, 11,970 have spatial
-# coordinates, which corresponds to 78.9682% (11,970 / 15,158 * 100). The median precision of the
-# spatial coordinates is 100 meters. The source of a significant portion of the coordinates is
-# unknown, with GPS being the most common source (5,309). Many coordinates were estimated using
-# online map services (693), or alternatively, were estimated using, for example, base maps (693).
+round(tmp["Lat/Long"] / tmp["Total"] * 100)
+# The FEBR repository has a total of 14,786 unique soil observations. Among these, 11,664 have
+# spatial coordinates, which corresponds to 79%. The median precision of the spatial coordinates is
+# 100 meters. The source of a significant portion of the coordinates is unknown, with GPS being the
+# most common source (5,254). Many coordinates were estimated using web map services (602), or
+# alternatively, were estimated using, for example, base maps (722).
 
 # Assess the spatial distribution of the observations
-br <- sf::read_sf("../data/vector/br.shp")
+br <- sf::read_sf("data/vector/br.shp")
 tmp <- 
-  observacao$estado_id %>% 
+  observacao[!idx_duplicated, ]$estado_id %>% 
   table()
 idx <- match(br$SigUF, names(tmp))
 dens <- tmp[idx] / br$area
 dens <- dens[order(dens)]
-png("../res/fig/febr-observacao-espaco.png",
-  width = 480 * 2, height = 480 * 2, res = 72 * 2
+
+# Prepare figure with the spatial distribution of the observations in the Brazilian territory
+png("res/fig/observacao-espaco.png", width = 480 * 3, height = 480 * 3, res = 72 * 3)
+plot(br[1],
+  reset = FALSE, main = "", col = "transparent",
+  axes = TRUE, graticule = TRUE, lwd = 0.01
 )
-# png("../res/fig/febr-observacao-espaco-saopaulo.png",
-#   width = 480 * 3, height = 480 * 2, res = 72 * 2
-# )
-# png("../res/fig/febr-observacao-espaco-goias.png",
-#   width = 480 * 3, height = 480 * 2, res = 72 * 2
-# )
-plot(
-  br[1], graticule = TRUE, axes = TRUE, 
-  sub = Sys.Date(), 
-  # main = "Distribuição espacial das observações",
-  # main = "Spatial distribution of observations",
+plot(southamerica,
+  reset = FALSE,
+  col = "gray96",
+  add = TRUE, lwd = 0.5
+)
+plot(br[1], reset = FALSE,
   main = "",
-  col = 0, reset = FALSE)
-observacao %>%
+  axes = TRUE, col = "#eeece1", lwd = 0.5,
+  border = "gray69",
+  key.pos = NULL, graticule = TRUE, add = TRUE)
+observacao[!idx_duplicated, ] %>%
   dplyr::filter(!is.na(coord_x) & !is.na(coord_y)) %>%
-  sf::st_as_sf(coords = c('coord_x', 'coord_y'), crs = 4326) %>%
-  # dplyr::select(estado_id) %>%
-  # plot(
-  # cex = ifelse(.$estado_id == "GO", 0.5, 0.3),
-  # pch = ifelse(.$estado_id == "GO", 20, 1),
-  # col = ifelse(.$estado_id == "GO", "firebrick1", "lightgray"), add = TRUE)
-  # plot(
-  # cex = ifelse(.$estado_id == "SP", 0.5, 0.3),
-  # pch = ifelse(.$estado_id == "SP", 20, 1),
-  # col = ifelse(.$estado_id == "SP", "firebrick1", "lightgray"), add = TRUE)
-  plot(cex = 0.5, col = "firebrick1", add = TRUE)
+  sf::st_as_sf(coords = c("coord_x", "coord_y"), crs = 4326) %>%
+  plot(cex = 0.5, col = "firebrick", add = TRUE)
 dev.off()
 
 # Compute the number of observations and the density of observations per 1000 km² for each state
@@ -112,42 +128,23 @@ tmp2 <-
 
 # Prepare figure with the number of observations and the density of observations per 1000 km² for
 # each state
-png("../res/fig/febr-observacao-uf.png", width = 480 * 2, height = 480 * 2, res = 72 * 2)
-# png("../res/fig/febr-observacao-uf-saopaulo.png",
-#   width = 480 * 3, height = 480 * 2, res = 72 * 2
-# )
-# png("../res/fig/febr-observacao-uf-goias.png",
-#   width = 480 * 3, height = 480 * 2, res = 72 * 2
-# )
+png("res/fig/observacao-uf.png", width = 480 * 3, height = 480 * 3, res = 72 * 3)
 layout(matrix(1:2, nrow = 1), widths = c(2, 2), heights = 1, respect = FALSE)
 par(oma = c(0, 0, 1, 0), las = 1, mar = c(4, 4, 1, 1))
 tmp %>% 
   sort() %>% 
   barplot(
-    col = "firebrick1", border = "firebrick1",
-    # col = ifelse(names(.) == "SP", "firebrick1", "lightgray"),
-    # border = ifelse(names(.) == "SP", "firebrick1", "lightgray"),
-    # col = ifelse(names(.) == "GO", "firebrick1", "lightgray"),
-    # border = ifelse(names(.) == "GO", "firebrick1", "lightgray"),
-    ylab = "Unidade da federação", xlab = "Número",
-    # ylab = "Federative unit", xlab = "Number",
+    col = "gray", border = NA,
+    ylab = "Federative unit", xlab = "Absolute frequency",
     horiz = TRUE, ann = TRUE)
-grid()
-dens %>% 
+abline(v = seq(0, 3000, 500), col = "gray", lty = 2)
+dens %>%
   barplot(
-    col = "firebrick1", border = "firebrick1",
-    # col = ifelse(names(.) == "SP", "firebrick1", "lightgray"),
-    # border = ifelse(names(.) == "SP", "firebrick1", "lightgray"),
-    # col = ifelse(names(.) == "GO", "firebrick1", "lightgray"),
-    # border = ifelse(names(.) == "GO", "firebrick1", "lightgray"),
-    ylab = "Unidade da federação", xlab = "Densidade (por 1000 km²)",
-    # ylab = "Federative unit", xlab = "Density (per 1000 km²)",
-    horiz = TRUE, ann = TRUE)
-title(
-  main = "Distribuição das observações pelas unidades da federação",
-  # main = "Observations by federative unit",
-  sub = Sys.Date(), outer = TRUE)
-grid()
+    col = "gray", border = NA,
+    ylab = "Federative unit", xlab = "Density (per 1000 km²)",
+    horiz = TRUE, ann = TRUE
+  )
+abline(v = seq(0, 25, 5), col = "gray", lty = 2)
 dev.off()
 
 # Of the total soil observations without spatial coordinates, the majority are located in the states
@@ -157,62 +154,43 @@ dev.off()
 # coordinates.
 
 # Prepare figure with the number of observations without spatial coordinates for each state
-png("../res/fig/febr-observacao-sem-coordenadas.png",
-  width = 480 * 2, height = 480 * 2, res = 72 * 2
-)
-# png("../res/fig/febr-observacao-sem-coordenadas-goias.png",
-#   width = 480 * 3, height = 480 * 2, res = 72 * 2
-# )
-# png("../res/fig/febr-observacao-sem-coordenadas-saopaulo.png",
-#   width = 480 * 3, height = 480 * 2, res = 72 * 2
-# )
+png("res/fig/observacao-sem-coordenadas.png", width = 480 * 3, height = 480 * 3, res = 72 * 3)
 layout(matrix(1:2, nrow = 1), widths = c(2, 2), heights = 1, respect = FALSE)
 par(oma = c(0, 0, 1, 0), las = 1, mar = c(4, 4, 1, 1))
-observacao %>% 
-  dplyr::filter(is.na(coord_x)) %>% 
-  dplyr::select(estado_id) %>% 
-  dplyr::mutate(estado_id = as.factor(estado_id)) %>% 
-  table() %>% 
-  sort() %>% 
+observacao[!idx_duplicated, ] %>%
+  dplyr::filter(is.na(coord_x)) %>%
+  dplyr::select(estado_id) %>%
+  dplyr::mutate(estado_id = as.factor(estado_id)) %>%
+  table() %>%
+  sort() %>%
   barplot(
-    col = "firebrick1", border = "firebrick1",
-    # col = ifelse(names(.) == "GO", "firebrick1", "lightgray"),
-    # border = ifelse(names(.) == "GO", "firebrick1", "lightgray"),
-    # col = ifelse(names(.) == "SP", "firebrick1", "lightgray"),
-    # border = ifelse(names(.) == "SP", "firebrick1", "lightgray"),
-    ylab = "Unidade da federação", xlab = "Número de observações",
-    # ylab = "Federative unit", xlab = "Number",
-    horiz = TRUE)
-grid()
-observacao %>% 
-  dplyr::filter(is.na(coord_x)) %>% 
-  dplyr::select(dataset_id) %>% 
-  dplyr::mutate(dataset_id = as.factor(dataset_id)) %>% 
-  table() %>% 
-  sort(decreasing = TRUE) %>% 
-  head(27L) %>% 
-  sort() %>% 
+    col = "gray", border = NA,
+    ylab = "Federative unit", xlab = "Absolute frequency",
+    horiz = TRUE
+  )
+abline(v = seq(0, 400, 100), col = "gray", lty = 2)
+observacao[!idx_duplicated, ] %>%
+  dplyr::filter(is.na(coord_x)) %>%
+  dplyr::select(dataset_id) %>%
+  dplyr::mutate(dataset_id = as.factor(dataset_id)) %>%
+  table() %>%
+  sort(decreasing = TRUE) %>%
+  head(27L) %>%
+  sort() %>%
   barplot(
-    col = "firebrick1", border = "firebrick1",
-    # col = ifelse(names(.) == "GO", "firebrick1", "lightgray"),
-    # border = ifelse(names(.) == "GO", "firebrick1", "lightgray"),
-    # col = ifelse(names(.) == "SP", "firebrick1", "lightgray"),
-    # border = ifelse(names(.) == "SP", "firebrick1", "lightgray"),
+    col = "gray", border = NA,
     names.arg = gsub("ctb0", "", names(.)),
-    ylab = "Conjunto de dados", xlab = "Número de observações",
-    # ylab = "Dataset ID", xlab = "Number",
-    horiz = TRUE)
-grid()
-title(
-  main = "Distribuição das observações sem coordenadas espaciais",
-  # main = "Observations without spatial coordinates",
-  sub = Sys.Date(), outer = TRUE)
+    ylab = "Dataset ID", xlab = "Absolute frequency",
+    horiz = TRUE
+  )
+abline(v = seq(0, 200, 50), col = "gray", lty = 2)
 dev.off()
 
 # Transform the 'observacao_data' column to a year format, summarize the 'observacao' data frame by
 # counting the total observations and those within specific year ranges, and then calculates the
 # percentage of total observations for each year range.
-observacao %>%
+tmp <-
+  observacao[!idx_duplicated, ] %>%
   dplyr::mutate(observacao_data = as.Date(observacao_data) %>% format("%Y")) %>%
   dplyr::summarise(
     Total = dplyr::n(),
@@ -227,103 +205,61 @@ observacao %>%
     `1960-1990` = round(`1960-1990` / Data * 100, 2),
     `1990-2010` = round(`1990-2010` / Data * 100, 2),
     `2010-2019` = round(`2010-2019` / Data * 100, 2)
-  )
+  ) %>%
+  print()
 
-# Only about 66.54572% of soil observations have recorded observation dates, which translates to
-# approximately 10,087 out of 15,158 observations. Among these, half (49.26%) were obtained between
-# 1990 and 2010. This is attributed to a peak in the year 1997, the year in which soil observations
-# from the largest dataset available in FEBR were obtained. This dataset is the Agroecological
-# Zoning of the State of Rondônia, containing over 2,000 soil observations. Regarding observations
-# without observation dates, it is believed that the majority were produced in the 1970s, a period
-# of extensive soil surveys in Brazil.
+round(tmp["Data"] / tmp["Total"] * 100)
+# Only about 67% of soil observations have recorded observation dates, which translates to
+# approximately 9,890 out of 14,786 unique soil observations. Among these, half (49.47%) were
+# obtained between 1990 and 2010. This is attributed to a peak in the year 1997, the year in which
+# soil observations from the largest dataset available in FEBR were obtained. This dataset is the
+# Agroecological Zoning of the State of Rondônia, containing over 2,000 soil observations.
+# Regarding observations without observation dates, it is believed that the majority were produced
+# in the 1970s, a period of extensive soil surveys in Brazil.
+
 # The distribution of soil observations over time reveals a gap between the 1980s and 1990s. This
 # period was marked by the conclusion of major large-scale soil mapping projects/programs in Brazil.
 # However, due to a significant portion of soil observations lacking information on the observation
 # date, it is not possible to precisely identify the reason for this gap.
 
-# Count the number of duplicated observations
-observacao[!is.na(observacao$coord_x), c("coord_x", "coord_y", "observacao_data")] %>% 
-  duplicated() %>% 
-  sum()
-
 # Prepare figure with the number of observations for each year
-png("../res/fig/febr-observacao-tempo.png", width = 480 * 2, height = 480 * 2, res = 72 * 2)
-# png("../res/fig/febr-observacao-tempo-saopaulo.png",
-#   width = 480 * 3, height = 480 * 2, res = 72 * 2
-# )
-# png("../res/fig/febr-observacao-tempo-goias.png",
-#   width = 480 * 3, height = 480 * 2, res = 72 * 2
-# )
+png("res/fig/observacao-tempo.png", width = 480 * 3, height = 480 * 3, res = 72 * 3)
 par(oma = c(0, 0, 0, 0), las = 1, mar = c(4, 4, 2, 1))
 tmp <- 
-  observacao %>% 
+  observacao[!idx_duplicated, ] %>% 
   select(observacao_data) %>% 
   mutate(
     observacao_data = as.Date(observacao_data),
     observacao_data = format(observacao_data, "%Y")) %>% 
   table()
-barplot(tmp, col = "lightgray", border = "lightgray")
-# barplot(tmp, col = "firebrick1", border = "firebrick1")
-grid()
 tmp %>% 
   barplot(
-    # col = "firebrick1", border = "firebrick1",
-    col = "lightgray", border = "lightgray",
-    # sub = glue::glue("Versão {Sys.Date()}"),
-    xlab = "Ano", ylab = "Número de observações",
-    # xlab = "Year", ylab = "Number",
-    main = "Distribuição temporal das observações",
-    # main = "Temporal distribution of observations",
-    add = TRUE, ann = TRUE)
-# tmp2 <-
-# observacao %>%
-#   # filter(estado_id == "GO") %>%
-#   filter(estado_id == "SP") %>%
-#   select(observacao_data) %>%
-#   mutate(
-#     observacao_data = as.Date(observacao_data),
-#     observacao_data = format(observacao_data, "%Y")) %>%
-#   table()
-# id <- which(names(tmp) %in% names(tmp2))
-# tmp[id] <- tmp2
-# tmp[-id] <- NA
-# barplot(tmp, col = "firebrick1", border = "firebrick1", add = TRUE, xaxt = "n", yaxt = "n")
+    col = "gray", border = NA,
+    xlab = "Year", ylab = "Absolute frequency",
+    main = "")
+abline(h = seq(0, 2500, 500), col = "gray", lty = 2)
 dev.off()
 
 # The majority of soil observations with unknown observation dates belong to datasets covering the
 # states of Amazonas, Santa Catarina, Bahia, Rio Grande do Sul, Pará, Minas Gerais, and Paraná.
 # Among these, three datasets stand out due to a large number of observations without dates. They
 # are: ctb0572, ctb0770, and ctb0657.
-
 # Prepare figure with the number of observations without dates for each state
-png("../res/fig/febr-observacao-sem-data.png",
-  width = 480 * 2, height = 480 * 2, res = 72 * 2
-)
-# png("../res/fig/febr-observacao-sem-data-goias.png",
-#   width = 480 * 2, height = 480 * 2, res = 72 * 2
-# )
-# png("../res/fig/febr-observacao-sem-data-saopaulo.png",
-#   width = 480 * 3, height = 480 * 2, res = 72 * 2
-# )
+png("res/fig/observacao-sem-data.png", width = 480 * 2, height = 480 * 2, res = 72 * 2)
 layout(matrix(1:2, nrow = 1), widths = c(2, 2), heights = 1, respect = FALSE)
 par(oma = c(0, 0, 1, 0), las = 1, mar = c(4, 4, 1, 1))
-observacao %>% 
+observacao[!idx_duplicated, ] %>% 
   dplyr::filter(is.na(observacao_data)) %>% 
   dplyr::select(estado_id) %>% 
   dplyr::mutate(estado_id = as.factor(estado_id)) %>% 
   table() %>% 
   sort() %>% 
   barplot(
-    col = "firebrick1", border = "firebrick1",
-    # col = ifelse(names(.) == "GO", "firebrick1", "lightgray"),
-    # border = ifelse(names(.) == "GO", "firebrick1", "lightgray"),
-    # col = ifelse(names(.) == "SP", "firebrick1", "lightgray"),
-    # border = ifelse(names(.) == "SP", "firebrick1", "lightgray"),
-    ylab = "Unidade da federação", xlab = "Número de observações",
-    # ylab = "Federative unit", xlab = "Number",
+    col = "gray", border = NA,
+    ylab = "Federative unit", xlab = "Absolute frequency",
     horiz = TRUE)
-grid()
-observacao %>% 
+abline(v = seq(0, 500, 100), col = "gray", lty = 2)
+observacao[!idx_duplicated, ] %>% 
   dplyr::filter(is.na(observacao_data)) %>% 
   dplyr::select(dataset_id) %>% 
   dplyr::mutate(dataset_id = as.factor(dataset_id)) %>% 
@@ -332,18 +268,9 @@ observacao %>%
   head(27L) %>% 
   sort() %>% 
   barplot(
-    col = "firebrick1", border = "firebrick1",
-    # col = ifelse(names(.) == "GO", "firebrick1", "lightgray"),
-    # border = ifelse(names(.) == "GO", "firebrick1", "lightgray"),
-    # col = ifelse(names(.) == "SP", "firebrick1", "lightgray"),
-    # border = ifelse(names(.) == "SP", "firebrick1", "lightgray"),
+    col = "gray", border = NA,
     names.arg = gsub("ctb0", "", names(.)),
-    ylab = "Conjunto de dados", xlab = "Número de observações",
-    # ylab = "Dataset ID", xlab = "Number",
+    ylab = "Dataset ID", xlab = "Absolute frequency",
     horiz = TRUE)
-grid()
-title(
-  main = "Distribuição das observações com data desconhecida",
-  # main = "Observations without temporal coordinate",
-  sub = Sys.Date(), outer = TRUE)
+abline(v = seq(0, 250, 50), col = "gray", lty = 2)
 dev.off()
