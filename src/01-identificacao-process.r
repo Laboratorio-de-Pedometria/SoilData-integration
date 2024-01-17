@@ -1,8 +1,8 @@
-# title: "Brazilian Soil Dataset 2020"
+# title: "Brazilian Soil Dataset 2019"
 # subtitle: A Comprehensive Dataset of Soil Properties for Brazil
 # author: "Alessandro Samuel-Rosa"
 # date: "2020-01-17"
-# 
+#
 # Summary
 # This R script handles the 'identification' table extracted from datasets available in the
 # Brazilian Soil Data Repository (FEBR). It selectively retrieves particular rows, including
@@ -10,11 +10,12 @@
 # multiple entries in the 'area_conhecimento,' 'autor_nome,' and 'organizacao_nome' fields,
 # retaining only the initial entry. The objective is to streamline and standardize the dataset for
 # subsequent analysis.
- 
-# Load packages
-library(febr)
-# library(dplyr)
-# library(magrittr)
+
+# Load required packages, installing them if necessary
+if (!require("febr")) install.packages("febr")
+if (!require("stringr")) install.packages("stringr")
+if (!require("dplyr")) install.packages("dplyr")
+if (!require("magrittr")) install.packages("magrittr")
  
 # Read the identification table from the Brazilian Soil Data Repository
 identificacao <- febr::identification(dataset = "all", febr.repo = "~/ownCloud/febr-repo/publico")
@@ -69,7 +70,4 @@ dataset <- dataset[col_order]
 #   select(-tmp)
 
 # Save the dataset in TXT format
-write.table(dataset,
-  file = glue::glue("../data/febr-dataset.txt"), sep = ";", dec = ",",
-  row.names = FALSE
-)
+write.table(dataset, file = "data/identificacao.txt", sep = ";", dec = ",", row.names = FALSE)
