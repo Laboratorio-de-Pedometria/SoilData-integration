@@ -3,13 +3,26 @@
 # author: "Alessandro Samuel-Rosa"
 # date: "2020-01-17"
 
-### Análise exploratória dos dados
-observacao <- read.table(glue::glue("../data/febr-observacao.txt"),
-  sep = ";", dec = ",",
-  header = TRUE
-)
+# Summary
+# This R script assesses the 'observacao' table extracted from datasets available in the Brazilian
+# Soil Data Repository (FEBR). It evaluates the result using some randomly selected records and
+# summarizes the data frame, calculating the total count, the count of non-missing latitude/
+# longitude values, the median of 'coord_precisao', and the counts of 'coord_fonte' being "GPS",
+# "MAPA", or "WEB". The script also assesses the spatial distribution of the observations, computes
+# the number of observations and the density of observations per 1000 km² for each state, and
+# prepares a figure with the number of observations and the density of observations per 1000 km²
+# for each state. Finally, the script transforms the 'observacao_data' column to a year format,
+# summarizes the 'observacao' data frame by counting the total observations and those within
+# specific year ranges, and then calculates the percentage of total observations for each year
+# range. The script also counts the number of duplicated observations and prepares a figure with the
+# number of observations for each year. The goal is to assess the soil observation data for further
+# analysis.
 
-# Avaliar o resultado usando alguns registros selecionados aleatoriamente
+# Exploratory data analysis
+# Read the 'observacao' table from the Brazilian Soil Data Repository
+observacao <- read.table("../data/febr-observacao.txt", sep = ";", dec = ",", header = TRUE)
+
+# Evaluate the result using some randomly selected records
 mess <-
   function (x) {
     n <- nrow(x)
@@ -17,6 +30,9 @@ mess <-
   }
 mess(observacao)
 
+# Summarize the 'observacao' data frame, calculating the total count, the count of non-missing
+# latitude/longitude values, the median of 'coord_precisao', and the counts of 'coord_fonte' being
+# "GPS", "MAPA", or "WEB".
 tmp <-
   observacao %>% 
   dplyr::summarise(
@@ -29,12 +45,13 @@ tmp <-
   ) %T>% 
   print()
 
-# O FEBR dispõe de um total de 15158 observações do solo. Destas, 11970 possuem coordenadas
-# espaciais, ou seja, 11970 / 15158 * 100 = 78.9682%. A precisão mediana das coordenadas espaciais é
-# de 100 m. A fonte de boa parte das coordenadas é desconhecida, sendo o GPS a fonte mais comum
-# (5309). Boa parte das coordenadas foi estimada usando serviços de mapas online (693), ou então
-# foram estimadas usando, por exemplo, mapas base (693).
+# The FEBR repository has a total of 15,158 soil observations. Among these, 11,970 have spatial
+# coordinates, which corresponds to 78.9682% (11,970 / 15,158 * 100). The median precision of the
+# spatial coordinates is 100 meters. The source of a significant portion of the coordinates is
+# unknown, with GPS being the most common source (5,309). Many coordinates were estimated using
+# online map services (693), or alternatively, were estimated using, for example, base maps (693).
 
+# Assess the spatial distribution of the observations
 br <- sf::read_sf("../data/vector/br.shp")
 tmp <- 
   observacao$estado_id %>% 
@@ -73,6 +90,7 @@ observacao %>%
   plot(cex = 0.5, col = "firebrick1", add = TRUE)
 dev.off()
 
+# Compute the number of observations and the density of observations per 1000 km² for each state
 tmp2 <- 
   data.frame(
     n_max = max(tmp),
@@ -82,16 +100,18 @@ tmp2 <-
   ) %T>% 
   print()
 
-# A distribuição espacial das observações do solo é bastante heterogênea, com inúmeros agrupamentos
-# de observações aparecendo em várias partes do território nacional. Consequentemente, amplos vazios
-# de observações aparecem. O estado de Rondônia concentra o maior número de observações. Enquanto
-# isso, o menor número de observações parece no estado do Tocantis. Devido ao seu relativamente 
-# grande território, o estado do Tocantis também possui a menor densidade de observação. A maior
-# densidade de observação é no Distrito Federal. Em geral, os estados das regiões Centro-Oeste, 
-# Norte e Nordeste são aqueles com as menores densidades de observação, refletindo o histórico de
-# ocupação do território brasileiro e os investimentos feitos no ensino e pesquisa via universidades
-# e centros de pesquisa agronômica.
+# The spatial distribution of soil observations is highly heterogeneous, with numerous clusters of
+# observations appearing in various parts of the national territory. Consequently, large observation
+# gaps are evident. The state of Rondônia has the highest number of observations. Meanwhile, the
+# lowest number of observations appears in the state of Tocantins. Due to its relatively large
+# territory, Tocantins also has the lowest observation density. The highest observation density is
+# in the Federal District. In general, the states in the Central-West, North, and Northeast regions
+# have the lowest observation densities, reflecting the historical occupation of the Brazilian
+# territory and the investments made in education and research through universities and agronomic
+# research centers.
 
+# Prepare figure with the number of observations and the density of observations per 1000 km² for
+# each state
 png("../res/fig/febr-observacao-uf.png", width = 480 * 2, height = 480 * 2, res = 72 * 2)
 # png("../res/fig/febr-observacao-uf-saopaulo.png",
 #   width = 480 * 3, height = 480 * 2, res = 72 * 2
@@ -130,11 +150,13 @@ title(
 grid()
 dev.off()
 
-# Das observações sem coordenadas espaciais, a maioria se encontra nos estados da Bahia, Minas
-# Gerais, Paraná e Pará. Três conjuntos de dados concentram parte considerável dessas observações
-# (ctb0657, ctb0831 e ctb0775), cada um com mais de 100 observações sem coordenadas espaciais.
-# Outros 14 conjuntos de dados possuem entre 50 e 100 observações sem coordenadas espaciais.
+# Of the total soil observations without spatial coordinates, the majority are located in the states
+# of Bahia, Minas Gerais, Paraná, and Pará. Three datasets account for a significant portion of
+# these observations (ctb0657, ctb0831, and ctb0775), each with over 100 observations lacking
+# spatial coordinates. Another 14 datasets have between 50 and 100 observations without spatial
+# coordinates.
 
+# Prepare figure with the number of observations without spatial coordinates for each state
 png("../res/fig/febr-observacao-sem-coordenadas.png",
   width = 480 * 2, height = 480 * 2, res = 72 * 2
 )
@@ -187,6 +209,9 @@ title(
   sub = Sys.Date(), outer = TRUE)
 dev.off()
 
+# Transform the 'observacao_data' column to a year format, summarize the 'observacao' data frame by
+# counting the total observations and those within specific year ranges, and then calculates the
+# percentage of total observations for each year range.
 observacao %>%
   dplyr::mutate(observacao_data = as.Date(observacao_data) %>% format("%Y")) %>%
   dplyr::summarise(
@@ -204,24 +229,24 @@ observacao %>%
     `2010-2019` = round(`2010-2019` / Data * 100, 2)
   )
 
-# Apenas cerca de 10087 / 15158 * 100 = 66.54572% das observações do solo possuem registro da data
-# de observação. Destas, metade (49.26%) foram obtidas entre 1990 e 2010. Isso se deve a um pico no
-# ano de 1997, ano em que foram obtidas as observações do solo do maior conjunto de dados disponível
-# no FEBR. Trata-se do conjunto de dados do Zoneamento Agroecológico do Estado de Rondônia, que
-# possui mais de 2000 observações do solo. Das observações sem data de observação, acredita-se que a
-# maioria foi produzida na década de 1970, período de maior realização de levantamentos de solo no
-# Brasil.
+# Only about 66.54572% of soil observations have recorded observation dates, which translates to
+# approximately 10,087 out of 15,158 observations. Among these, half (49.26%) were obtained between
+# 1990 and 2010. This is attributed to a peak in the year 1997, the year in which soil observations
+# from the largest dataset available in FEBR were obtained. This dataset is the Agroecological
+# Zoning of the State of Rondônia, containing over 2,000 soil observations. Regarding observations
+# without observation dates, it is believed that the majority were produced in the 1970s, a period
+# of extensive soil surveys in Brazil.
+# The distribution of soil observations over time reveals a gap between the 1980s and 1990s. This
+# period was marked by the conclusion of major large-scale soil mapping projects/programs in Brazil.
+# However, due to a significant portion of soil observations lacking information on the observation
+# date, it is not possible to precisely identify the reason for this gap.
 
-# A distribuição das observações do solo no tempo mostra que há um vazio entre as décadas de 1980 e
-# 1990. Esse período foi marcado pelo término dos principais projetos/programas de mapeamento do
-# solo em larga escala no Brasil. Contudo, como parte considerável das observações do solo não
-# possui informação sobre a data de observação, não é possível identificar a razão do vazio com
-# precisão.
-
+# Count the number of duplicated observations
 observacao[!is.na(observacao$coord_x), c("coord_x", "coord_y", "observacao_data")] %>% 
   duplicated() %>% 
   sum()
 
+# Prepare figure with the number of observations for each year
 png("../res/fig/febr-observacao-tempo.png", width = 480 * 2, height = 480 * 2, res = 72 * 2)
 # png("../res/fig/febr-observacao-tempo-saopaulo.png",
 #   width = 480 * 3, height = 480 * 2, res = 72 * 2
@@ -265,11 +290,12 @@ tmp %>%
 # barplot(tmp, col = "firebrick1", border = "firebrick1", add = TRUE, xaxt = "n", yaxt = "n")
 dev.off()
 
-# A maioria das observações com data de observação desconhecida pertencem a conjuntos de dados que
-# abrangem os estados do Amazonas, Santa Catarina, Bahia, Rio Grande do Sul, Pará, Minas Gerais e
-# Paraná. Dentre estes, três conjuntos de dados se destacam pelo grande número de observações sem
-# data. São eles: ctb0572, ctb0770 e ctb0657.
+# The majority of soil observations with unknown observation dates belong to datasets covering the
+# states of Amazonas, Santa Catarina, Bahia, Rio Grande do Sul, Pará, Minas Gerais, and Paraná.
+# Among these, three datasets stand out due to a large number of observations without dates. They
+# are: ctb0572, ctb0770, and ctb0657.
 
+# Prepare figure with the number of observations without dates for each state
 png("../res/fig/febr-observacao-sem-data.png",
   width = 480 * 2, height = 480 * 2, res = 72 * 2
 )
