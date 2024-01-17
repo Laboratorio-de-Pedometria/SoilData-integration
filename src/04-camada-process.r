@@ -1,4 +1,4 @@
-# title: "Brazilian Soil Dataset 2020"
+# title: "Brazilian Soil Dataset 2019"
 # subtitle: A Comprehensive Dataset of Soil Properties for Brazil
 # author: "Alessandro Samuel-Rosa"
 # date: "2020-01-17"
@@ -145,8 +145,5 @@ camada %<>%
   ) %T>%
   print()
 
-### Salvar dados
-# Salvar os dados no formato TXT.
-write.table(camada,
-  file = glue::glue("../data/febr-camada.txt"), sep = ";", dec = ",", row.names = FALSE
-)
+# Save data in TXT format
+write.table(camada, file = "data/camada.txt", sep = ";", dec = ",", row.names = FALSE)

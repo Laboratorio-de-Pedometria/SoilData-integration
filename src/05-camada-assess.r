@@ -1,16 +1,13 @@
-# title: "Brazilian Soil Dataset 2020"
+# title: "Brazilian Soil Dataset 2019"
 # subtitle: A Comprehensive Dataset of Soil Properties for Brazil
 # author: "Alessandro Samuel-Rosa"
 # date: "2020-01-17"
 
 ### Análise exploratória dos dados
-camada <- read.table(glue::glue("../data/febr-camada.txt"),
-  sep = ";", dec = ",",
-  header = TRUE
-)
+camada <- read.table("data/camada.txt", sep = ";", dec = ",", header = TRUE)
 
 # Verificar a distribuição empírica dos dados, procurando por inconsistências nos dados.
-png("../res/fig/febr-camada.png", width = 480 * 2, height = 480 * 2, res = 72 * 2)
+png("../res/fig/camada.png", width = 480 * 2, height = 480 * 2, res = 72 * 2)
 par(oma = c(0, 0, 1, 0), las = 1)
 camada %>% 
   dplyr::mutate(fragmentos = 1000 - terrafina) %>% 
@@ -44,7 +41,7 @@ camada %>%
     sub = glue::glue("{Sys.Date()}-febr-camada"))
 dev.off()
 
-png("../res/fig/febr-camada-200cm.png", width = 480 * 2, height = 480 * 2, res = 72 * 2)
+png("../res/fig/camada-200cm.png", width = 480 * 2, height = 480 * 2, res = 72 * 2)
 par(oma = c(0, 0, 1, 0), las = 1)
 camada %>% 
   dplyr::mutate(fragmentos = 1000 - terrafina) %>% 
@@ -76,5 +73,5 @@ camada %>%
     cex = 0.5, col = "firebrick1",
     main = "Distribuição empírica dos dados (< 200 cm)",
     # main = "Empirical data distribution (< 200 cm)",
-    sub = glue::glue("{Sys.Date()}-febr-camada"))
+    sub = glue::glue("{Sys.Date()}-camada"))
 dev.off()

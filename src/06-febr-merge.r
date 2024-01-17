@@ -1,4 +1,4 @@
-# title: "Brazilian Soil Dataset 2020"
+# title: "Brazilian Soil Dataset 2019"
 # subtitle: A Comprehensive Dataset of Soil Properties for Brazil
 # author: "Alessandro Samuel-Rosa"
 # date: "2020-01-17"
@@ -9,10 +9,10 @@
 # merged table back into a text file. The goal of this script is to consolidate multiple data
 # sources into a single, comprehensive dataset for easier analysis and manipulation.
 
-# Read tables 'dataset', 'observacao' and 'camada'
-dataset <- read.table("../data/febr-dataset.txt", sep = ";", dec = ",", header = TRUE)
-observacao <- read.table("../data/febr-observacao.txt", sep = ";", dec = ",", header = TRUE)
-camada <- read.table("../data/febr-camada.txt", sep = ";", dec = ",", header = TRUE)
+# Read tables 'identificacao', 'observacao' and 'camada'
+dataset <- read.table("data/identificacao.txt", sep = ";", dec = ",", header = TRUE)
+observacao <- read.table("data/observacao.txt", sep = ";", dec = ",", header = TRUE)
+camada <- read.table("data/camada.txt", sep = ";", dec = ",", header = TRUE)
 
 # Merge tables 'dataset', 'observacao' and 'camada'
 febr <- 
@@ -20,6 +20,4 @@ febr <-
   merge(camada, by = c("dataset_id", "observacao_id"))
 
 # Save data in TXT format
-write.table(febr,
-  file = "../data/febr-superconjunto.txt", sep = ";", dec = ",", row.names = FALSE
-)
+write.table(febr, file = "data/superconjunto.txt", sep = ";", dec = ",", row.names = FALSE)
