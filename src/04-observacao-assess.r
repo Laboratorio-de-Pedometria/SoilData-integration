@@ -274,3 +274,34 @@ observacao[!idx_duplicated, ] %>%
     horiz = TRUE)
 abline(v = seq(0, 250, 50), col = "gray", lty = 2)
 dev.off()
+
+# Observations with soil classification information
+observacao[!idx_duplicated, ] %>%
+  dplyr::filter(!is.na(taxon_sibcs)) %>%
+  nrow()
+# There are 2411 observations with soil classification information according to the Brazilian Soil
+# Classification System (SIBCS). This represents 16% of the total number of unique soil observations
+# in the 'observacao' table.
+
+# Change taxon_sibcs to lower case, keeping only the first letter of each word capitalized
+observacao$taxon_sibcs <- 
+  observacao$taxon_sibcs %>% 
+  tolower() %>% 
+  stringr::str_to_title()
+
+# Prepare figure (barplot) with the distribution os observations per order of the Brazilian System of Soil Classification.
+png("res/fig/observacao-sibcs.png", width = 480 * 3, height = 480 * 3, res = 72 * 3)
+par(oma = c(0, 0, 1, 0), las = 1, mar = c(4, 13, 1, 1))
+observacao[!idx_duplicated, ] %>%
+  dplyr::filter(!is.na(taxon_sibcs)) %>%
+  dplyr::select(taxon_sibcs) %>%
+  dplyr::mutate(taxon_sibcs = as.factor(taxon_sibcs)) %>%
+  table() %>%
+  sort() %>%
+  barplot(
+    col = "gray", border = NA,
+    ylab = "", xlab = "Absolute frequency",
+    horiz = TRUE
+  )
+abline(v = seq(0, 350, 50), col = "gray", lty = 2)
+dev.off()
