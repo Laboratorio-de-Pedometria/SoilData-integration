@@ -1,7 +1,7 @@
-# title: "Brazilian Soil Dataset 2019"
+# title: "Brazilian Soil Dataset 2023"
 # subtitle: A Comprehensive Dataset of Soil Properties for Brazil
 # author: "Alessandro Samuel-Rosa"
-# date: "2020-01-17"
+# date: "2024-01-18"
 
 # Summary
 # R script that reads the three separate data tables named 'dataset', 'observacao', and 'camada'

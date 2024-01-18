@@ -1,10 +1,10 @@
-# Brazilian Soil Dataset 2019
+# Brazilian Soil Dataset 2023
 
 ## A Comprehensive Dataset of Soil Properties for Brazil
 
 Alessandro Samuel-Rosa
 
-2020-01-17
+2024-01-18
 
 Processing of soil data from datasets published in the Brazilian Soil Data Repository
 (FEBR, https://www.pedometria.org/febr/) until the end of 2019. The data undergoes cleaning,
@@ -38,7 +38,7 @@ Additional data:
 - coordinates of the observation or sampling location (`coord_x` and `coord_y`), in decimal degrees,
 using SIRGAS 2000 (EPSG:4674) as the coordinate reference system.
 
-The data cleaning procedures adopted are described in detail below. The other data standardization
+The data cleaning procedures adopted are described in each R script. The other data standardization
 and harmonization procedures are described in the help pages of the `febr` package for R at
 https://www.pedometria.org/software/febr/.
 
@@ -50,10 +50,11 @@ The following people contributed to the data processing (in alphabetical order):
 - Eloi Ribeiro (ISRIC - World Soil Information)
 - Glauber José Vaz (Embrapa Informática Agropecuária)
 - João Herbert Moreira Viana (Embrapa Milho e Sorgo)
-- Mikael Pereira Messias (Universidade Tecnológica Federal do Paraná)
 - Maria Eduarda Vilas Boas Alves (Universidade Tecnológica Federal do Paraná)
 - Matheus Ferreira Ramos (Universidade Tecnológica Federal do Paraná)
+- Mikael Pereira Messias (Universidade Tecnológica Federal do Paraná)
 - Paulo Ivonir Gubiani (Universidade Federal de Santa Maria)
 - Ricardo Simão Diniz Dalmolin (Universidade Federal de Santa Maria)
 - Stanley Robson de Medeiros Oliveira (Embrapa Informática Agropecuária)
+- Taciara Zborowski Horst (Universidade Tecnológica Federal do Paraná)
 - Wenceslau Geraldes Teixeira (Embrapa Solos)
