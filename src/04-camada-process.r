@@ -3,15 +3,13 @@
 # author: "Alessandro Samuel-Rosa"
 # date: "2020-01-17"
 
-## Tabelas 'camada'
+# Set soil variables of interest
 vars <- c(
-  "carbono",
-  "argila", "areia", "areiagrossa2", "areiafina2", "silte",
-  "terrafina", "cascalho", "calhau",
-  "dsi",
-  "ctc",
-  "ph",
-  "ce")
+  "carbono", "argila", "areia", "areiagrossa2", "areiafina2", "silte", "terrafina",
+  "cascalho", "calhau", "dsi", "ctc", "ph", "ce"
+)
+
+# Read data from 'camada' table
 camada <- febr::layer(
   dataset = "all",
   variable = glue::glue("{vars}_"),
@@ -21,12 +19,13 @@ camada <- febr::layer(
     plus.sign = "add",
     plus.depth = 20,
     lessthan.sign = "remove",
-    # lessthan.frac = 0.5,
-    repetition = "combine", 
+    repetition = "combine",
     combine.fun = "mean",
     transition = "smooth",
     smoothing.fun = "mean",
-    units = TRUE, round = TRUE))
+    units = TRUE, round = TRUE
+  )
+)
 # camada %>%
 #   lapply(function (x) {
 #     classe <-
@@ -38,13 +37,19 @@ camada <- febr::layer(
 #   }) %>%
 #   do.call(rbind, .)
 
-### Processamento
-# O processamento dos dados das variáveis prioritárias das tabelas 'camada' segue os seguintes
-# passos:
-# 1. (em construção)
-
-# Em seguida, as colunas dos dados de cada variável prioritária determinadas usando métodos
-# parcialmente distintos são fundidas usando usando 'dplyr::coalesce()'.
+# Data processing
+# As colunas dos dados de cada variável de solo prioritária que foram determinadas usando métodos parcialmente distintos são fundidas usando usando 'dplyr::coalesce()'. A ordem de prioridade de cada variável é a seguinte:
+# 1. carbono: digestão úmida com cromo; método não especificado (geralmente digestão úmida como cromo); oxidação seca em forno de altíssima temperatura;
+# 2. argila: dispersão com NaOH (determinação pelo método da pipeta ou do densímetro -- geralmente pipeta); método não especificado (geralmente dispersão com NaOH e determinação pelo método da pipeta ou do densímetro -- geralmente pipeta);
+# 3. silte: dispersão com NaOH (determinação por diferença); método não especificado (geralmente dispersão com NaOH e determinação por diferença);
+# 4. areia: dispersão com NaOH (determinação por peneiramento úmido); método não especificado (geralmente dispersão com NaOH e determinação por peneiramento úmido); soma das frações areia grossa e areia fina (com combinações como para a areia);
+# 5. ctc: soma das bases trocáveis (Ca e Mg determinados por acetato de amônio ou KCl; K e Na determinados por HCl, HCl + H2SO4 ou acetato de amônio e quantificação por absorção atômica ou volumetria) e da acidez potencial (H + Al determinado por acetato de cálcio ou KCl e quantificação por volumetria); método não especificado;
+# 6. dsi: determinação por cilindro; método não especificado (geralmente determinação por cilindro);
+# 7. ph: determinação em água (razão solo:água variável e quantificação por potenciometria);
+# 8. terrafina: determinação por peneiramento; método não especificado (geralmente determinação por peneiramento);
+# 9. ce: determinação por pasta saturada;
+# 10. cascalho: determinação por peneiramento; determinação visual (olho); método não especificado (geralmente determinação por peneiramento);
+# 11. calhau: determinação por peneiramento; método não especificado (geralmente determinação por peneiramento).
 camada %<>%
   dplyr::mutate(
     carbono = dplyr::coalesce(carbono_cromo, carbono_xxx, carbono_forno),
