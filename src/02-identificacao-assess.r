@@ -6,7 +6,7 @@
 # Summary
 # This R script handles the 'identification' obtained after integrating each of the
 # 'identification'tables extracted from datasets available in the Brazilian Soil Data Repository
-# (FEBR). It computes the number of datasets and the number of occurrences of each license.
+# (FEBR/SoilData). It computes the number of datasets and the number of occurrences of each license.
 
 # Read the processed data from the 'identificacao' table
 identificacao <- read.table("data/identificacao.txt", sep = ";", dec = ",", header = TRUE)

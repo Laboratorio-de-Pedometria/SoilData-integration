@@ -5,9 +5,9 @@
 #
 # Summary
 # This R script handles the 'identification' table extracted from datasets available in the
-# Brazilian Soil Data Repository (FEBR). It selectively retrieves particular rows, including
-# 'dataset_id,' 'dataset_titulo,' and 'dataset_licenca,' among others. Additionally, it splits
-# multiple entries in the 'area_conhecimento,' 'autor_nome,' and 'organizacao_nome' fields,
+# Brazilian Soil Data Repository (FEBR/SoilData). It selectively retrieves particular rows,
+# including 'dataset_id,' 'dataset_titulo,' and 'dataset_licenca,' among others. Additionally, it
+# splits multiple entries in the 'area_conhecimento,' 'autor_nome,' and 'organizacao_nome' fields,
 # retaining only the initial entry. The objective is to streamline and standardize the dataset for
 # subsequent analysis.
 

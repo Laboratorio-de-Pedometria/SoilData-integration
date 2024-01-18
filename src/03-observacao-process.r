@@ -5,17 +5,18 @@
 # 
 # Summary
 # This R script downloads and processes soil observation data from the Brazilian Soil Data
-# Repository (FEBR). It uses the observation() function of the R package febr, setting the
+# Repository (FEBR/SoilData). It uses the observation() function of the R package febr, setting the
 # harmonization argument to the third level, and applies specific standardization parameters. The
 # script then processes the data for three soil taxonomic classification systems, merging columns
 # with soil taxonomic classifications from different versions of the same system, prioritizing the
 # most recent classifications. The goal is to harmonize and standardize the soil observation data
 # for further analysis.
 
-# Download and process data from the 'observacao' table of the FEBR database.
+# Download and process data from the 'observacao' table of the (FEBR/SoilData) database.
 # Set the harmonization argument to the third level, that is, return variables as is.
 # The standard variables downloaded are the following:
-# dataset_id. Identification code of the dataset in the FEBR to which an observation belongs.
+# dataset_id. Identification code of the dataset in the (FEBR/SoilData) to which an observation
+# belongs.
 # evento_id_febr. Identification code of an observation in a dataset.
 # evento_data. Date (dd-mm-yyyy) in which an observation was made.
 # coord_datum. EPSG code of the coordinate reference system.

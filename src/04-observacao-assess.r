@@ -5,12 +5,12 @@
 
 # Summary
 # This R script assesses the 'observacao' table extracted from datasets available in the Brazilian
-# Soil Data Repository (FEBR). It evaluates the result using some randomly selected records and
-# summarizes the data frame, calculating the total count, the count of non-missing latitude/
-# longitude values, the median of 'coord_precisao', and the counts of 'coord_fonte' being "GPS",
-# "MAPA", or "WEB". The script also assesses the spatial distribution of the observations, computes
-# the number of observations and the density of observations per 1000 km² for each state, and
-# prepares a figure with the number of observations and the density of observations per 1000 km²
+# Soil Data Repository (FEBR/SoilData). It evaluates the result using some randomly selected
+# records and summarizes the data frame, calculating the total count, the count of non-missing
+# latitude/longitude values, the median of 'coord_precisao', and the counts of 'coord_fonte' being
+# "GPS", "MAPA", or "WEB". The script also assesses the spatial distribution of the observations,
+# computes the number of observations and the density of observations per 1000 km² for each state,
+# and prepares a figure with the number of observations and the density of observations per 1000 km²
 # for each state. Finally, the script transforms the 'observacao_data' column to a year format,
 # summarizes the 'observacao' data frame by counting the total observations and those within
 # specific year ranges, and then calculates the percentage of total observations for each year

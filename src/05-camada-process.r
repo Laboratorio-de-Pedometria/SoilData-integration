@@ -5,11 +5,11 @@
 
 # Summary
 # This R script manages the 'layer' table extracted from datasets available in the Brazilian Soil
-# Data Repository (FEBR). It selectively retrieves specific columns, including 'dataset_id,'
-# 'observacao_id,' 'camada_id,' 'amostra_id,' 'camada_nome,' 'profund_sup,' 'profund_inf,'
-# 'terrafina,' 'argila,' 'silte,' 'areia,' 'carbono,' 'ctc,' 'ph,' 'dsi,' and 'ce.' Additionally,
-# it harmonizes the data of the continuous variables, 'terrafina,' 'argila,' 'silte,' 'areia,'
-# 'carbono,' 'ctc,' 'ph,' 'dsi,' and 'ce,' and corrects the depth of the soil layers in the
+# Data Repository (FEBR/SoilData). It selectively retrieves specific columns, including 
+# 'dataset_id,' 'observacao_id,' 'camada_id,' 'amostra_id,' 'camada_nome,' 'profund_sup,'
+# 'profund_inf,' 'terrafina,' 'argila,' 'silte,' 'areia,' 'carbono,' 'ctc,' 'ph,' 'dsi,' and 'ce.'
+# Additionally, it harmonizes the data of the continuous variables, 'terrafina,' 'argila,' 'silte,'
+# 'areia,' 'carbono,' 'ctc,' 'ph,' 'dsi,' and 'ce,' and corrects the depth of the soil layers in the
 # presence of organic layers at the top of the soil observation. The goal is to streamline and
 # standardize the dataset for subsequent analysis.
 
