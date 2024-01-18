@@ -10,6 +10,18 @@ vars <- c(
 )
 
 # Read data from 'camada' table
+# In the presence of the plus sign (+) alongside the lower limit of the bottom layer in a soil
+# profile, add 20 cm to that layer.
+# In the presence of the less-than sign (<), indicating that the value of a variable is below the
+# lower limit of detection, simply remove the less-than sign, disregarding the limitation.
+# When encountering repeated measurements of layers in an observation, combine the data from those
+# repeated layers using the mean.
+# In the presence of a wavy or irregular transition between subsequent layers in an observation,
+# smooth them using the mean.
+# The measurement unit(s) of the continuous variable(s) are converted to the standard measurement
+# units and rounded to the standard number of decimal places.
+# Data harmonization is performed at the second level, considering only the variable names and
+# extraction/digestion/dispersion/separation method for harmonization.
 camada <- febr::layer(
   dataset = "all",
   variable = glue::glue("{vars}_"),
@@ -38,18 +50,31 @@ camada <- febr::layer(
 #   do.call(rbind, .)
 
 # Data processing
-# As colunas dos dados de cada variável de solo prioritária que foram determinadas usando métodos parcialmente distintos são fundidas usando usando 'dplyr::coalesce()'. A ordem de prioridade de cada variável é a seguinte:
-# 1. carbono: digestão úmida com cromo; método não especificado (geralmente digestão úmida como cromo); oxidação seca em forno de altíssima temperatura;
-# 2. argila: dispersão com NaOH (determinação pelo método da pipeta ou do densímetro -- geralmente pipeta); método não especificado (geralmente dispersão com NaOH e determinação pelo método da pipeta ou do densímetro -- geralmente pipeta);
-# 3. silte: dispersão com NaOH (determinação por diferença); método não especificado (geralmente dispersão com NaOH e determinação por diferença);
-# 4. areia: dispersão com NaOH (determinação por peneiramento úmido); método não especificado (geralmente dispersão com NaOH e determinação por peneiramento úmido); soma das frações areia grossa e areia fina (com combinações como para a areia);
-# 5. ctc: soma das bases trocáveis (Ca e Mg determinados por acetato de amônio ou KCl; K e Na determinados por HCl, HCl + H2SO4 ou acetato de amônio e quantificação por absorção atômica ou volumetria) e da acidez potencial (H + Al determinado por acetato de cálcio ou KCl e quantificação por volumetria); método não especificado;
-# 6. dsi: determinação por cilindro; método não especificado (geralmente determinação por cilindro);
-# 7. ph: determinação em água (razão solo:água variável e quantificação por potenciometria);
-# 8. terrafina: determinação por peneiramento; método não especificado (geralmente determinação por peneiramento);
-# 9. ce: determinação por pasta saturada;
-# 10. cascalho: determinação por peneiramento; determinação visual (olho); método não especificado (geralmente determinação por peneiramento);
-# 11. calhau: determinação por peneiramento; método não especificado (geralmente determinação por peneiramento).
+# The columns for the data of each selected soil variable (carbon, clay, sand, coarse sand, fine
+# sand, silt, fine earth, gravel, pebble, dsi, ctc, pH, and ce), determined using partially
+# distinct methods, are merged using 'dplyr::coalesce()'. The priority order for each variable is
+# as follows:
+# 1. carbon: wet digestion with chromium; unspecified method (usually wet digestion like chromium);
+# high-temperature dry oxidation;
+# 2. clay: dispersion with NaOH (determination by the pipette or hydrometer method—usually
+# pipette); unspecified method (usually dispersion with NaOH and determination by the pipette or
+# hydrometer method—usually pipette);
+# 3. silt: dispersion with NaOH (determination by difference); unspecified method (usually
+# dispersion with NaOH and determination by difference);
+# 4. sand: dispersion with NaOH (determination by wet sieving); unspecified method (usually
+# dispersion with NaOH and determination by wet sieving); sum of the coarse and fine sand fractions
+# (with combinations as for sand);
+# 5. cation exchange capacity (ctc): sum of exchangeable bases (Ca and Mg determined by ammonium
+# acetate or KCl; K and Na determined by HCl, HCl + H2SO4, or ammonium acetate and quantification
+# by atomic absorption or volumetry) and potential acidity (H + Al determined by calcium acetate or
+# KCl and quantified by volumetry); unspecified method;
+# 6. dsi: determination by cylinder; unspecified method (usually determination by cylinder);
+# 7. pH: determination in water (variable soil:water ratio and quantification by potentiometry);
+# 8. fine earth: determination by sieving; unspecified method (usually determination by sieving);
+# 9. electrical conductivity (ce): determination by saturated paste;
+# 10. gravel: determination by sieving; visual determination (eye); unspecified method (usually
+# determination by sieving);
+# 11. pebble: determination by sieving; unspecified method (usually determination by sieving).
 camada %<>%
   dplyr::mutate(
     carbono = dplyr::coalesce(carbono_cromo, carbono_xxx, carbono_forno),
@@ -68,21 +93,23 @@ camada %<>%
   ) %T>%
   print()
 
-# Após a fusão das colunas com dados da mesma variável, faz-se ajustes nos dados das frações
-# granulométricas. Primeiro, na falta de uma das duas frações granulométricas finas, 'argila' ou
-# 'silte', calcula-se seu valor como sendo a diferença entre 1000 g/kg e a soma das duas outras
-# frações granulométricas. Na falta dos dados do conteúdo de areia total ('areia'), primeiro se usa
-# (quando disponível) a soma dos dados do conteúdo de areia grossa ('areiagrossa') e areia fina
-# ('areiafina'). Caso não estejam disponíveis, então se usa a estratégia anterior. A seguir,
-# verifica-se se a soma dos valores inteiros das três frações é igual a 1000 g/kg. Caso não seja
-# (a diferença geralmente é de 1 g/kg para menos ou para mais), então altera-se os dados do conteúdo
-# de silte total de maneira que a soma seja igual a 1000 g/kg. Finalmente, faz-se o processamento
-# dos dados das frações granulométricas grossas calhau ('calhau'), cascalho ('cascalho') e terra
-# fina ('terrafina'). Na ausência da última, utiliza-se as demais para sua estimativa. Caso todas as
-# frações estejam faltando, então assume-se que o conteúdo da fração terra fina seja igual a
-# 1000 g/kg. Isso porque é comum os trabalhos omitirem o conteúdo de terra fina quando a mesma
-# corresponde a totalidade do solo.
+# After merging the columns with data for the same variable, adjustments are made to the data of
+# the granulometric fractions. Firstly, in the absence of one of the two fine granulometric
+# fractions, 'argila' or 'silte', its value is calculated as the difference between 1000 g/kg and
+# the sum of the other two granulometric fractions. In the absence of total sand content ('areia')
+# data, the sum of the data for coarse sand content ('areiagrossa') and fine sand content
+# ('areiafina') is used (if available). If not available, the previous strategy is employed. Next,
+# it is verified whether the sum of the integer values of the three fractions is equal to 1000
+# g/kg. If not (usually a difference of 1 g/kg more or less), then the data for total silt content
+# is adjusted so that the sum equals 1000 g/kg. Finally, the data for the coarse granulometric 
+# fractions, 'pebble' ('calhau'), gravel ('cascalho'), and fine earth ('terrafina'), are processed.
+# In the absence of the latter, the former two are used for estimation. If all fractions are
+# missing, it is assumed that the content of the fine earth fraction is equal to 1000 g/kg. This is
+# because it is common for studies to omit the fine earth content when it represents the entirety
+# of the soil.
 
+# Correct the depth of the soil layers in the presence of organic layers at the top of the soil
+# observation
 correct_depth <-
   function(profund.sup, profund.inf) {
     res <- as.matrix(data.frame(profund.sup, profund.inf))
@@ -133,16 +160,15 @@ camada %<>%
   ) %>% 
   dplyr::ungroup()
 
-# A última etapa de processamento lida com os dados da profundidade do solo, especificamente, com as
-# camadas compostas por material orgânico. Em geral, o registro dessas camadas é realizado fixando o
-# limite inferior como sendo igual a zero. Isso gera uma sequência invertida de valores de
-# profundidade. Por exemplo, uma camada com profundidade de 3--0 cm representa uma camada orgânica
-# de três centímetros de espessura acima das camadas de material mineral do solo. Em alguns casos a
-# profundidade superior pode ser negativa, por exemplo, -3--0 cm. O processamento desses dados
-# consiste em ajustar a profundidade superior do solo a profundidade superior da camada de material
-# orgânico do solo, definida assim como sendo igual a zero centímetros de profundidade.
+# The final processing stage deals with soil depth data, specifically the layers composed of
+# organic material. Generally, recording for these layers is done by setting the lower limit as
+# equal to zero. This results in a reversed sequence of depth values. For instance, a layer with a
+# depth of 3–0 cm represents an organic layer three centimeters thick above the mineral soil
+# layers. In some cases, the upper depth may be negative, for example, -3–0 cm. The processing of
+# these data involves adjusting the upper soil depth to the upper depth of the organic soil layer,
+# defined as zero centimeters depth.
 
-# Selecionar as colunas de interesse.
+# Select and order columns
 camada %<>%
   dplyr::select(
     dataset_id, observacao_id, camada_id, amostra_id, camada_nome, profund_sup, profund_inf,
