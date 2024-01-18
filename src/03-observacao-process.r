@@ -13,12 +13,26 @@
 # for further analysis.
 
 # Download and process data from the 'observacao' table of the FEBR database.
-# Set the harmonization argument to the third level.
+# Set the harmonization argument to the third level, that is, return variables as is.
+# The standard variables downloaded are the following:
+# dataset_id. Identification code of the dataset in the FEBR to which an observation belongs.
+# evento_id_febr. Identification code of an observation in a dataset.
+# evento_data. Date (dd-mm-yyyy) in which an observation was made.
+# coord_datum. EPSG code of the coordinate reference system.
+# coord_longitude. Longitude (deg) or easting (m).
+# coord_latitude. Latitude (deg) or northing (m).
+# coord_precisao. Precision with which the spatial coordinates were determined (m).
+# coord_fonte. Source of the spatial coordinates.
+# pais_id. Code (ISO 3166-1 alpha-2) of the county where an observation was made.
+# estado_sigla. Acronym of the Brazilian federative unit where an observation was made.
+# municipio_nome. Name of the Brazilian municipality where as observation was made.
+# subamostra_quanti. Number of sub samples taken (used to indicate composite sampling).
+# amostra_area. Sampling area (used to indicate areal or block sampling).
 vars <- "taxon_"
 observacao <- febr::observation(
-  dataset = "all", 
-  variable = vars, 
-  stack = TRUE, 
+  dataset = "all",
+  variable = vars,
+  stack = TRUE,
   standardization = list(
     crs =  "EPSG:4674", 
     time.format = "%d-%m-%Y", 
