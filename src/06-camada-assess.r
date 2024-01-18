@@ -4,7 +4,16 @@
 # date: "2020-01-17"
 
 # Summary
-# This R script reads processed data from the 'camada' and 'observacao' tables of the Brazilian Soil Dataset. It identifies duplicated observations based on coordinates and observation date, and extracts the dataset ID and observation ID of these duplicates. The script then identifies and removes these duplicated records from the 'camada' table. The goal is to ensure data integrity by eliminating duplicate entries in the dataset. Then the script creates two new variables in the 'camada' table, 'fragmentos' and 'profund,' which are the difference between 1000 and the variable 'terrafina' and the average of the variables 'profund_sup' and 'profund_inf,' respectively. Finally, the script plots the empirical distribution of the data and the boxplot of each of the ten continuous variables side by side. The goal is to assess the distribution of the data and identify potential outliers.
+# This R script reads processed data from the 'camada' and 'observacao' tables of the Brazilian
+# Soil Dataset. It identifies duplicated observations based on coordinates and observation date,
+# and extracts the dataset ID and observation ID of these duplicates. The script then identifies
+# and removes these duplicated records from the 'camada' table. The goal is to ensure data
+# integrity by eliminating duplicate entries in the dataset. Then the script creates two new
+# variables in the 'camada' table, 'fragmentos' and 'profund,' which are the difference between
+# 1000 and the variable 'terrafina' and the average of the variables 'profund_sup' and 
+# 'profund_inf,' respectively. Finally, the script plots the empirical distribution of the data 
+# and the boxplot of each of the ten continuous variables side by side. The goal is to assess the 
+# distribution of the data and identify potential outliers.
 
 # Read the processed data from the 'camada' table
 camada <- read.table("data/camada.txt", sep = ";", dec = ",", header = TRUE)
