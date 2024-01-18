@@ -20,4 +20,6 @@ febr <-
   merge(camada, by = c("dataset_id", "observacao_id"))
 
 # Save data in TXT format
-write.table(febr, file = "data/superconjunto.txt", sep = ";", dec = ",", row.names = FALSE)
+write.table(febr,
+  file = "data/brazilian-soil-dataset.txt", sep = ";", dec = ",", row.names = FALSE
+)
