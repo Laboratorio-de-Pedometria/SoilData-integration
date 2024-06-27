@@ -1,15 +1,11 @@
-# Brazilian Soil Dataset 2023
+# Brazilian Soil Dataset
 
 ## A Comprehensive Dataset of Soil Properties for Brazil
 
-Alessandro Samuel-Rosa
-
-2024-01-18
-
 Processing of soil data from datasets published in the Brazilian Soil Data Repository
-(FEBR, https://www.pedometria.org/febr/; SoilData, https://soildata.mapbiomas.org/) until the end
-of 2019. The data undergoes cleaning, standardization and, when possible, harmonization. The
-resulting dataset is made available in a single TXT file for reuse, respecting the original data
+(FEBR, https://www.pedometria.org/febr/; SoilData, https://soildata.mapbiomas.org/).
+The data undergoes cleaning, standardization and, when possible, harmonization.
+The resulting dataset is made available in a single TXT file for reuse, respecting the original data
 use licenses.
 
 The following variables are included in the dataset:
