@@ -1,7 +1,6 @@
-# title: "Brazilian Soil Dataset 2023"
+# title: "Brazilian Soil Dataset"
 # subtitle: A Comprehensive Dataset of Soil Properties for Brazil
 # author: "Alessandro Samuel-Rosa"
-# date: "2024-01-18"
 # 
 # Summary
 # This R script downloads and processes soil observation data from the Brazilian Soil Data
