@@ -20,5 +20,5 @@ febr <-
 
 # Save data in TXT format
 write.table(febr,
-  file = "data/brazilian-soil-dataset.txt", sep = ";", dec = ",", row.names = FALSE
+  file = "data/brazilian-soil-dataset.txt", sep = ";", dec = ".", row.names = FALSE
 )
