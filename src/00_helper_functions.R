@@ -2,7 +2,7 @@
 # author: Alessandro Samuel-Rosa and Taciara Zborowski Horst
 # data: 2025 CC-BY
 
-# Describe soil data
+# Describe soil data ###############################################################################
 # Create function to describe a data.frame. Use an argument na.rm = TRUE.
 summary_soildata <- function(x, na.rm = TRUE) {
   cat("Column names:")
