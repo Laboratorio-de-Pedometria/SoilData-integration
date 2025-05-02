@@ -17,7 +17,7 @@ if (!require("geobr")) {
 }
 
 # Source helper functions
-source("src/00_helper_functions.r")
+source("src/00_helper_functions.R")
 
 brazil <- geobr::read_country()
 
@@ -147,16 +147,56 @@ if (FALSE) {
 # Merge SoilData data with external data
 soildata_01[, observacao_id := id]
 soildata_01[, id := paste0(dataset_id, "-", id)]
-soildata <- rbind(soildata_01, soildata_02, fill = TRUE)
-# The following code is deleterious: it removed key columns from the second data set
-# idx <- match(colnames(soildata_02), colnames(soildata_01))
-# idx01 <- na.exclude(idx)
-# idx02 <- which(!is.na(idx))
-# soildata <- rbind(soildata_02[, ..idx02], soildata_01[, ..idx01])
+soildata <- rbind(soildata_02, soildata_01, fill = TRUE)
 summary_soildata(soildata)
-# Layers: 52260
-# Events: 15175
-# Georeferenced events: 12045
+# Layers: 52294
+# Events: 15209
+# Georeferenced events: 12079
+
+# Set values for missing title
+# "ctb0055" "ctb0056" "ctb0057" "ctb0058" "ctb0059" "ctb0060" "ctb0061"
+soildata[is.na(dataset_titulo), unique(dataset_id)]
+dataset_title <- c(
+  "ctb0055" = "ctb0055-Inventário Florestal Nacional - Paraná",
+  "ctb0056" = "ctb0056-Inventário Florestal Nacional - Espírito Santo",
+  "ctb0057" = "ctb0057-Inventário Florestal Nacional - Sergipe",
+  "ctb0058" = "ctb0058-Inventário Florestal Nacional - Rio Grande do Norte",
+  "ctb0059" = "ctb0059-Inventário Florestal Nacional - Ceará",
+  "ctb0060" = "ctb0060-Inventário Florestal Nacional - Paraíba",
+  "ctb0061" = "ctb0061-Inventário Florestal Nacional - Caçador SC"
+)
+soildata[is.na(dataset_titulo), dataset_titulo := dataset_title[dataset_id]]
+
+# Set values for missing licence
+soildata[is.na(dataset_licenca), unique(dataset_id)]
+# "ctb0055" "ctb0056" "ctb0057" "ctb0058" "ctb0059" "ctb0060" "ctb0061"
+dataset_licence <- c(
+  "ctb0055" = "CC-BY-4.0",
+  "ctb0056" = "CC-BY-4.0",
+  "ctb0057" = "CC-BY-4.0",
+  "ctb0058" = "CC-BY-4.0",
+  "ctb0059" = "CC-BY-4.0",
+  "ctb0060" = "CC-BY-4.0",
+  "ctb0061" = "CC-BY-4.0"
+)
+soildata[is.na(dataset_licenca), dataset_licenca := dataset_licence[dataset_id]]
+
+# Set values for missing organizacao_nome
+soildata[is.na(organizacao_nome), unique(dataset_id)]
+# "ctb0055" "ctb0056" "ctb0057" "ctb0058" "ctb0059" "ctb0060" "ctb0061"
+# organizacao_nome = Serviço Florestal Brasileiro (SFB/MAPA)
+dataset_organization <- c(
+  "ctb0055" = "Serviço Florestal Brasileiro (SFB/MAPA)",
+  "ctb0056" = "Serviço Florestal Brasileiro (SFB/MAPA)",
+  "ctb0057" = "Serviço Florestal Brasileiro (SFB/MAPA)",
+  "ctb0058" = "Serviço Florestal Brasileiro (SFB/MAPA)",
+  "ctb0059" = "Serviço Florestal Brasileiro (SFB/MAPA)",
+  "ctb0060" = "Serviço Florestal Brasileiro (SFB/MAPA)",
+  "ctb0061" = "Serviço Florestal Brasileiro (SFB/MAPA)"
+)
+soildata[is.na(organizacao_nome), organizacao_nome := dataset_organization[dataset_id]]
+
+
 
 # Write data to disk
 data.table::fwrite(soildata, "data/12_soildata_soc.txt", sep = "\t")
