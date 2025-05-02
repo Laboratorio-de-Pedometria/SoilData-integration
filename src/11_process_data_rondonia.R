@@ -170,12 +170,14 @@ rondonia[, carbono := carbono * 10]
 rondonia[, EXTRA := duplicated(profund_sup), by = observacao_id]
 nrow(rondonia[EXTRA == TRUE, ]) # 63 duplicated layers
 nrow(unique(rondonia[EXTRA == TRUE, "observacao_id"])) # 24 events with duplicated layers
+# Rename the duplicated layers by pasting the layer id (a letter) to the observation id, for
+# example, RO0600C.
 rondonia[EXTRA == TRUE, observacao_id := paste0(observacao_id, camada_id_febr)]
 rondonia[, id := paste0(dataset_id, "-", observacao_id)]
 
 # Add random perturbation to the coordinates of extra samples
-# Use sf::st_jitter() with amount = 200 m, where runif(1, -amount, amount)
-amount <- 200
+# Use sf::st_jitter() with amount = 100 m, where runif(1, -amount, amount)
+amount <- 100
 extra_coords <- rondonia[EXTRA == TRUE & !is.na(coord_x), c("id", "coord_x", "coord_y")]
 extra_coords <- sf::st_as_sf(extra_coords, coords = c("coord_x", "coord_y"), crs = 4326)
 extra_coords <- sf::st_transform(extra_coords, crs = 32720)
@@ -195,9 +197,9 @@ summary_soildata(rondonia)
 soildata <- data.table::fread("data/10_soildata_soc.txt", sep = "\t")
 soildata[, coord_datum_epsg := 4326]
 summary_soildata(soildata)
-# Layers: 50404
-# Events: 13977
-# Georeferenced events: 10946
+# Layers: 50438
+# Events: 14011
+# Georeferenced events: 10980
 if (FALSE) {
   x11()
   plot(soildata[, c("coord_x", "coord_y")])
@@ -205,15 +207,15 @@ if (FALSE) {
 
 # Merge data from Rondônia with the SoilData snapshot
 # First remove existing data from Rondônia (morphological descriptions)
-length(unique(soildata[, id])) # 13 977 events
+length(unique(soildata[, id])) # 14 011 events
 soildata <- soildata[dataset_id != "ctb0032", ]
-length(unique(soildata[, id])) # 11 063 events
+length(unique(soildata[, id])) # 11 097 events
 col_ro <- intersect(names(soildata), names(rondonia))
 soildata <- data.table::rbindlist(list(soildata, rondonia[, ..col_ro]), fill = TRUE)
 summary_soildata(soildata)
-# Layers: 50319
-# Events: 14124
-# Georeferenced events: 10994
+# Layers: 50353
+# Events: 14158
+# Georeferenced events: 11028
 
 # Write data to disk
 data.table::fwrite(soildata, "data/11_soildata_soc.txt", sep = "\t")
