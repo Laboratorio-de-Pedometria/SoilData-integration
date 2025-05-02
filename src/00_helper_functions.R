@@ -1,7 +1,8 @@
 # title: SoilData Integration
 # subtitle: Helper functions
 # author: Alessandro Samuel-Rosa and Taciara Zborowski Horst
-# data: 2025 CC-BY
+# data: 2025
+# licence: MIT
 
 # Describe soil data ###############################################################################
 # Create function to describe a data.frame. Use an argument na.rm = TRUE.

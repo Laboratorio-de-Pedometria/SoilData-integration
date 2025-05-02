@@ -1,7 +1,8 @@
 # title: SoilData Integration
 # subtitle: Process time coordinate
 # author: Alessandro Samuel-Rosa and Taciara Zborowski Horst
-# data: 2025 CC-BY
+# data: 2025
+# licence: MIT
 rm(list = ls())
 
 # Install and load required packages
