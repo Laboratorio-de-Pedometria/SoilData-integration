@@ -25,7 +25,7 @@ if (!require("febr")) {
 }
 
 # Source helper functions
-source("src/00_helper_functions.r")
+source("src/00_helper_functions.R")
 
 # Zoneamento Socioeconômico-Ecológico do Estado de Rondônia (ctb0033 and ctb0034)
 # Download current version from FEBR: events
@@ -67,9 +67,32 @@ if (FALSE) {
 str(eventRO)
 
 # Attribute new coordinates to events falling in water bodies or outside the state of Rondônia
+# Create a column named observacao_cura to store information about the correction (in Portuguese),
+# as well as a copy of the original coordinates, the data of the collection, and the accronym of the
+# author (ASR).
+
+# RO2656
+# Ao consultar as coordenadas originais do ponto RO2656, registradas no SoilData, e visualizar as
+# mesmas no GoogleMaps, verificamos que realmente o ponto cai dentro de um curso de água na divisa
+# entre Brasil e Bolívia. O estudo da documentação do trabalho revelou que pode haver um erro
+# posicional de aproximadamente 100 m. Segundo a descrição textual da localização, o perfil de solo
+# foi coletado na "Beira Rio Guapore". Novas coordenadas, coletadas no Google Maps, serão atribuídas
+# manualmente ao ponto.
+# More information about the location can be found at:
+# https://github.com/Laboratorio-de-Pedometria/mapbiomas-soil-train-prep/issues/5
 # RO2656: -61.306907, -13.485739
-eventRO[observacao_id == "RO2656", coord_x := -61.306907]
-eventRO[observacao_id == "RO2656", coord_y := -13.485739]
+id <- "RO2656"
+eventRO[observacao_id == id, coord_x := -61.306907]
+eventRO[observacao_id == id, coord_y := -13.485739]
+cura_info <- paste0(
+  "2024-06-05 (ASR): As coordenadas originais do ponto RO2656 (",
+  eventRO[observacao_id == id, coord_x], ", ",
+  eventRO[observacao_id == id, coord_y], ") caem dentro de um curso de água na divisa entre Brasil e Bolívia. ",
+  " O estudo da documentação do trabalho revelou que pode haver um erro posicional de aproximadamente 100 m. ",
+  " Segundo a descrição textual da localização, o perfil de solo foi coletado na Beira Rio Guapore. ",
+  " Novas coordenadas, coletadas no Google Maps, foram atribuídas manualmente ao ponto."
+)
+eventRO[observacao_id == id, observacao_cura := cura_info]
 
 # RO2953: -9.765833 -65.73528 (original)
 # The sample location is in Bolivia, close to the Brazilian border
@@ -79,8 +102,17 @@ eventRO[observacao_id == "RO2656", coord_y := -13.485739]
 # The coordinates were changed to a location in Rondônia, Brazil.
 # -9.764905, -65.735686
 # google_maps(eventRO[observacao_id == "RO2953", ])
-eventRO[observacao_id == "RO2953", coord_x := -65.735686]
-eventRO[observacao_id == "RO2953", coord_y := -9.764905]
+id <- "RO2953"
+eventRO[observacao_id == id, coord_x := -65.735686]
+eventRO[observacao_id == id, coord_y := -9.764905]
+cura_info <- paste0(
+  "2024-06-05 (ASR): As coordenadas originais do ponto RO2953 (",
+  eventRO[observacao_id == id, coord_x], ", ",
+  eventRO[observacao_id == id, coord_y], ") estão em território boliviano, próximo à divisa com o Brasil. ",
+  " O estudo da documentação do trabalho revelou que pode haver um erro posicional de aproximadamente 100 m. ",
+  " Novas coordenadas, coletadas no Google Maps, foram atribuídas manualmente ao ponto."
+)
+eventRO[observacao_id == id, observacao_cura := cura_info]
 
 # Attribute sampling date to events with missing data
 target_year <- 1996
