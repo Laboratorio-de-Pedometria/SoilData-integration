@@ -196,7 +196,9 @@ dataset_organization <- c(
 )
 soildata[is.na(organizacao_nome), organizacao_nome := dataset_organization[dataset_id]]
 
-
-
 # Write data to disk
+summary_soildata(soildata)
+# Layers: 52294
+# Events: 15209
+# Georeferenced events: 12079
 data.table::fwrite(soildata, "data/12_soildata_soc.txt", sep = "\t")
