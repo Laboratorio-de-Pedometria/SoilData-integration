@@ -59,6 +59,7 @@ cols <- intersect(names(eventRO), tolower(names(eventRO)))
 eventRO <- eventRO[, ..cols]
 eventRO[, data_coleta_ano := as.integer(format(data_coleta, "%Y"))]
 nrow(eventRO[is.na(data_coleta_ano), ]) # 87 events missing the sampling date
+# Set the sampling date to 1996 for events with missing data
 eventRO[is.na(data_coleta_ano), data_coleta_ano := 1996]
 if (FALSE) {
   x11()
@@ -113,10 +114,7 @@ cura_info <- paste0(
   " Novas coordenadas, coletadas no Google Maps, foram atribuídas manualmente ao ponto."
 )
 eventRO[observacao_id == id, observacao_cura := cura_info]
-
-# Attribute sampling date to events with missing data
-target_year <- 1996
-eventRO[!is.na(data_coleta_ano), data_coleta_ano := target_year]
+rm(id, cura_info)
 
 # Download current version from FEBR: layers
 # ctb0033
