@@ -14,10 +14,6 @@ if (!require("sf")) {
   install.packages("sf")
   library("sf")
 }
-if (!require("geobr")) {
-  install.packages("geobr")
-  library("geobr")
-}
 if (!require("febr")) {
   if (!require(remotes)) {
     install.packages(pkgs = "remotes")
@@ -207,7 +203,11 @@ if (FALSE) {
 }
 
 # Merge data from Rondônia with the SoilData snapshot
-# First remove existing data from Rondônia (morphological descriptions)
+# First create missing columns in the data from Rondônia
+rondonia[, dataset_titulo := "Zoneamento Socioeconômico-Ecológico do Estado de Rondônia"]
+rondonia[, dataset_licenca := "CC-BY-4.0"]
+rondonia[, organizacao_nome := "Governo do Estado de Rondônia"]
+# Then remove existing data from Rondônia (morphological descriptions)
 length(unique(soildata[, id])) # 14 011 events
 soildata <- soildata[dataset_id != "ctb0032", ]
 length(unique(soildata[, id])) # 11 097 events
