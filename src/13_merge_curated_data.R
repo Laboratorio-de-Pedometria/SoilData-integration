@@ -72,10 +72,11 @@ summary_soildata(soildata)
 # Events: 15209
 # Georeferenced events: 12079
 
-# Check spatial distribution before merging data
+# FIGURE 13.1
+# Check spatial distribution before merging curated data
 soildata_sf <- soildata[!is.na(coord_x) & !is.na(coord_y)]
 soildata_sf <- sf::st_as_sf(soildata_sf, coords = c("coord_x", "coord_y"), crs = 4326)
-file_path <- "res/fig/13_spatial_distribution_before_curated_data.png"
+file_path <- "res/fig/131_spatial_distribution_before_curated_data.png"
 png(file_path, width = 480 * 3, height = 480 * 3, res = 72 * 3)
 plot(brazil["code_state"],
   col = "gray95", lwd = 0.5, reset = FALSE,
@@ -102,10 +103,11 @@ summary_soildata(soildata)
 # Events: 18472
 # Georeferenced events: 15024
 
+# FIGURE 13.2
 # Check spatial distribution after merging curated data
 soildata_sf <- soildata[!is.na(coord_x) & !is.na(coord_y)]
 soildata_sf <- sf::st_as_sf(soildata_sf, coords = c("coord_x", "coord_y"), crs = 4326)
-file_path <- "res/fig/13_spatial_distribution_after_curated_data.png"
+file_path <- "res/fig/132_spatial_distribution_after_curated_data.png"
 png(file_path, width = 480 * 3, height = 480 * 3, res = 72 * 3)
 plot(brazil["code_state"],
   col = "gray95", lwd = 0.5, reset = FALSE,
