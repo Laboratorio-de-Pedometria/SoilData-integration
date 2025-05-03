@@ -51,7 +51,7 @@ nrow(unique(br_soil2023[is.na(data_coleta_ano), c("dataset_id", "observacao_id")
 br_soil2023[, na_year := FALSE]
 br_soil2023[is.na(data_coleta_ano), na_year := TRUE]
 missing_time <- is.na(br_soil2023[["data_coleta_ano"]])
-file_path <- "res/fig/temporal_distribution_before_rescue.png"
+file_path <- "res/fig/101_temporal_distribution_before_rescue.png"
 png(file_path, width = 8, height = 5, units = "in", res = 300)
 hist(br_soil2023[["data_coleta_ano"]], sub = paste0("n = ", sum(!missing_time)), 
   main = "Temporal distribution of samples with known sampling date before data rescue",
@@ -104,7 +104,7 @@ nrow(unique(br_soil2023[is.na(data_coleta_ano), c("dataset_id", "observacao_id")
 br_soil2023[, na_year := FALSE]
 br_soil2023[is.na(data_coleta_ano), na_year := TRUE]
 missing_time <- is.na(br_soil2023[["data_coleta_ano"]])
-file_path <- "res/fig/temporal_distribution_after_rescue.png"
+file_path <- "res/fig/102_temporal_distribution_after_rescue.png"
 png(file_path, width = 8, height = 5, units = "in", res = 300)
 hist(br_soil2023[["data_coleta_ano"]], sub = paste0("n = ", sum(!missing_time)), 
   main = "Temporal distribution of samples with known sampling date after data rescue",
@@ -578,7 +578,7 @@ nrow(br_soil2023) # 50438 layers
 
 # Temporal distribution of samples with known sampling date after data rescue and estimation
 missing_time <- is.na(br_soil2023[["data_coleta_ano"]])
-file_path <- "res/fig/temporal_distribution_after_estimation.png"
+file_path <- "res/fig/103_temporal_distribution_after_estimation.png"
 png(file_path, width = 8, height = 5, units = "in", res = 300)
 x <- br_soil2023[, data_coleta_ano[1], by = c("dataset_id", "observacao_id")][, V1]
 hist(x,
