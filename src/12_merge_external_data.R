@@ -133,7 +133,7 @@ summary_soildata(soildata_01)
 # Georeferenced events: 1051
 
 # Read SoilData data processed in the previous scripts
-soildata_02 <- data.table::fread("data/11_soildata_soc.txt", sep = "\t")
+soildata_02 <- data.table::fread("data/11_soildata.txt", sep = "\t")
 if (!"coord_datum_epsg" %in% colnames(soildata_02)) {
   soildata_02[, coord_datum_epsg := 4326]
 }
@@ -201,4 +201,4 @@ summary_soildata(soildata)
 # Layers: 52294
 # Events: 15209
 # Georeferenced events: 12079
-data.table::fwrite(soildata, "data/12_soildata_soc.txt", sep = "\t")
+data.table::fwrite(soildata, "data/12_soildata.txt", sep = "\t")
