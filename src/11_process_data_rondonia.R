@@ -191,7 +191,7 @@ summary_soildata(rondonia)
 # Georeferenced events: 2962
 
 # Read SoilData data processed in the previous script
-soildata <- data.table::fread("data/10_soildata_soc.txt", sep = "\t")
+soildata <- data.table::fread("data/10_soildata.txt", sep = "\t")
 soildata[, coord_datum_epsg := 4326]
 summary_soildata(soildata)
 # Layers: 50438
@@ -219,4 +219,4 @@ summary_soildata(soildata)
 # Georeferenced events: 11028
 
 # Write data to disk
-data.table::fwrite(soildata, "data/11_soildata_soc.txt", sep = "\t")
+data.table::fwrite(soildata, "data/11_soildata.txt", sep = "\t")
