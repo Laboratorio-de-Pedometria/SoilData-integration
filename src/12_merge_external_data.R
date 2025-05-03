@@ -19,7 +19,8 @@ if (!require("geobr")) {
 # Source helper functions
 source("src/00_helper_functions.R")
 
-brazil <- geobr::read_country()
+# Download Brazilian state boundaries
+brazil <- geobr::read_state()
 
 # Rename columns following previous standards
 rename <- c(
@@ -137,12 +138,17 @@ soildata_02 <- data.table::fread("data/11_soildata.txt", sep = "\t")
 if (!"coord_datum_epsg" %in% colnames(soildata_02)) {
   soildata_02[, coord_datum_epsg := 4326]
 }
-if (FALSE) {
-  x11()
-  plot(brazil, reset = FALSE, main = "")
-  points(soildata_02[, coord_x], soildata_02[, coord_y], cex = 0.5, pch = 20)
-  points(soildata_01[, coord_x], soildata_01[, coord_y], cex = 0.5, pch = 20, col = "red")
-}
+# Check spatial distribution before merging external data
+soildata_02_sf <- soildata_02[!is.na(coord_x) & !is.na(coord_y)]
+soildata_02_sf <- sf::st_as_sf(soildata_02_sf, coords = c("coord_x", "coord_y"), crs = 4326)
+file_path <- "res/fig/121_spatial_distribution_before_external_data.png"
+png(file_path, width = 480 * 3, height = 480 * 3, res = 72 * 3)
+plot(brazil["code_state"],
+  col = "gray95", lwd = 0.5, reset = FALSE,
+  main = "Spatial distribution of SoilData before merging external data"
+)
+plot(soildata_02_sf["estado_id"], cex = 0.3, add = TRUE, pch = 20)
+dev.off()
 
 # Merge SoilData data with external data
 soildata_01[, observacao_id := id]
@@ -152,6 +158,18 @@ summary_soildata(soildata)
 # Layers: 52294
 # Events: 15209
 # Georeferenced events: 12079
+
+# Check spatial distribution after merging external data
+soildata_sf <- soildata[!is.na(coord_x) & !is.na(coord_y)]
+soildata_sf <- sf::st_as_sf(soildata_sf, coords = c("coord_x", "coord_y"), crs = 4326)
+file_path <- "res/fig/122_spatial_distribution_after_external_data.png"
+png(file_path, width = 480 * 3, height = 480 * 3, res = 72 * 3)
+plot(brazil["code_state"],
+  col = "gray95", lwd = 0.5, reset = FALSE,
+  main = "Spatial distribution of SoilData after merging external data"
+)
+plot(soildata_sf["estado_id"], cex = 0.3, add = TRUE, pch = 20)
+dev.off()
 
 # Set values for missing title
 # "ctb0055" "ctb0056" "ctb0057" "ctb0058" "ctb0059" "ctb0060" "ctb0061"
