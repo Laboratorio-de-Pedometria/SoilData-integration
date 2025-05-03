@@ -605,4 +605,4 @@ summary_soildata(br_soil2023)
 # Layers: 50438
 # Events: 14011
 # Georeferenced events: 10980
-data.table::fwrite(br_soil2023, "data/10_soildata_soc.txt", sep = "\t")
+data.table::fwrite(br_soil2023, "data/10_soildata.txt", sep = "\t")
