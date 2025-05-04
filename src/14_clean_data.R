@@ -47,14 +47,18 @@ summary_soildata(soildata)
 # Carbono e matéria orgânica em amostras do solo do Estado do Rio Grande do Sul por diferentes
 # métodos de determinação
 # Some of the samples come from ctb0003. Those samples meet the following criteria:
-# municipio_id %in% c("Santa Maria", "Itaara") & amostra_tipo == "COMPOSTA"
-# Filter out samples in ctb0029 that are also in ctb0003
+# municipio_id %in% c("Santa Maria", "Itaara") & amostra_tipo == "COMPOSTA". Other samples come from
+# ctb0012. Those samples meet the following criteria: municipio_id == "Silveira Martins" &
+# amostra_tipo == "SIMPLES" 
+# Filter out samples in ctb0029 that are also in ctb0003 and ctb0012
 soildata <- soildata[!(dataset_id == "ctb0029" & municipio_id %in% c("Santa Maria", "Itaara") &
   amostra_tipo == "COMPOSTA"), ]
+soildata <- soildata[!(dataset_id == "ctb0029" & municipio_id == "Silveira Martins" &
+  amostra_tipo == "SIMPLES"), ]
 summary_soildata(soildata)
-# Layers: 60925
-# Events: 18419
-# Georeferenced events: 14971
+# Layers: 60921
+# Events: 18415
+# Georeferenced events: 14967
 
 # ctb0654 (exact duplicate of ctb0608)
 # Conjunto de dados do 'V Reunião de Classificação, Correlação e Aplicação de Levantamentos de Solo
@@ -62,26 +66,26 @@ summary_soildata(soildata)
 # Ceará e Bahia'
 soildata <- soildata[dataset_id != "ctb0654", ]
 summary_soildata(soildata)
-# Layers: 60855
-# Events: 18437
-# Georeferenced events: 14990
+# Layers: 60813
+# Events: 18395
+# Georeferenced events: 14948
 
 # ctb0800 (many duplicates of ctb0702)
 # Estudos pedológicos e suas relações ambientais
 soildata <- soildata[dataset_id != "ctb0800", ]
 summary_soildata(soildata)
-# Layers: 60610
-# Events: 18393
-# Georeferenced events: 14946
+# Layers: 60568
+# Events: 18351
+# Georeferenced events: 14904
 
 # ctb0808 (exact duplicate of ctb0574)
 # Conjunto de dados do levantamento semidetalhado 'Levantamento Semidetalhado e Aptidão Agrícola dos
 # Solos do Município do Rio de Janeiro, RJ.'
 soildata <- soildata[dataset_id != "ctb0808", ]
 summary_soildata(soildata)
-# Layers: 60269
-# Events: 18333
-# Georeferenced events: 14886
+# Layers: 60227
+# Events: 18291
+# Georeferenced events: 14844
 
 # LAYER ORDER
 soildata <- soildata[order(id, profund_sup, profund_inf)]
@@ -217,9 +221,9 @@ soildata <- soildata[equal_depth == FALSE]
 nrow(soildata[profund_sup == profund_inf]) # 0 layers
 soildata[, equal_depth := NULL]
 summary_soildata(soildata)
-# Layers: 58217
-# Events: 17000
-# Georeferenced events: 14511
+# Layers: 58213
+# Events: 16996
+# Georeferenced events: 14507
 
 # Layer id
 # Sort each event (id) by layer depth (profund_sup and profund_inf)
@@ -242,9 +246,9 @@ print(soildata[id == "ctb0055-PR_4", .(id, camada_nome, profund_sup, profund_inf
 soildata <- soildata[repeated == FALSE, ]
 soildata[, repeated := NULL]
 summary_soildata(soildata)
-# Layers: 57653
-# Events: 17000
-# Georeferenced events: 14510
+# Layers: 57649
+# Events: 16996
+# Georeferenced events: 14506
 
 # Update layer id
 # Sort each event (id) by layer depth (profund_sup and profund_inf)
@@ -284,9 +288,9 @@ View(soildata[!(dataset_id %in% ctb_ok) & esqueleto > 800, ..cols])
 # Some layers have esqueleto > 1000. This is not possible.
 soildata <- soildata[is.na(esqueleto) | esqueleto < 1000]
 summary_soildata(soildata)
-# Layers: 57652
-# Events: 17000
-# Georeferenced events: 14510
+# Layers: 57648
+# Events: 16996
+# Georeferenced events: 14506
 
 # Clean camada_nome
 soildata[, camada_nome := as.character(camada_nome)]
@@ -304,23 +308,118 @@ soildata[, argila := round(argila / 10)]
 soildata[, silte := round(silte / 10)]
 soildata[, areia := round(areia / 10)]
 soildata[, psd := round(argila + silte + areia)]
+# Correct the particle size fractions
+soildata[
+  id == "ctb0591-P-13-Sao-Mateus-do-Sul" & camada_nome == "BW1" & argila == 37, `:=` (
+    argila = 100 - 16 - 9,
+    silte = 16,
+    areia = 9
+  )
+]
+soildata[
+  id == "ctb0591-P-13-Sao-Mateus-do-Sul" & camada_nome == "BW2" & argila == 0, `:=` (
+    argila = 100 - 14 - 10,
+    silte = 14,
+    areia = 10
+  )
+]
+soildata[
+  id == "ctb0591-P-13-Sao-Mateus-do-Sul" & camada_nome == "BW3" & argila == 4, `:=` (
+    argila = 100 - 13 - 10,
+    silte = 13,
+    areia = 10
+  )
+]
+soildata[
+  id == "ctb0620-Á-de-Chapecó-3" & camada_nome == "Ap" & argila == 0, `:=`(
+    argila = 100 - 36 - 2,
+    silte = 36,
+    areia = 2
+  )
+]
+soildata[
+  id == "ctb0646-PERFIL-20" & camada_nome == "C2" & argila == 0, `:=` (
+    argila = NA_real_,
+    silte = NA_real_,
+    areia = NA_real_
+  )
+]
+# Check if there is any size fraction equal to 0
+# clay
+ctb_zero_clay <- c(
+  "ctb0607", "ctb0656", "ctb0666", "ctb0679", "ctb0020", "ctb0691", "ctb0695", "ctb0698",
+  "ctb0705"
+)
+soildata[argila == 0 & !dataset_id %in% ctb_zero_clay, .N]
+# 23 layers (they need to be checked)
+# Print the layers with clay == 0
+cols <- c("id", "camada_nome", "argila", "silte", "areia")
+soildata[argila == 0 & !dataset_id %in% ctb_zero_clay, ..cols]
+# silt
+soildata[silte == 0, .N]
+# 85 layers (they need to be checked)
+# Print the layers with silt == 0
+soildata[silte == 0, ..cols]
+# sand
+soildata[areia == 0, .N]
+# 138 layers (they need to be checked)
+# Print the layers with sand == 0
+soildata[areia == 0, ..cols]
+
 # Check if the sum of the three fractions is 100%
-soildata[psd != 100, .N] # 2417 layers
+soildata[psd != 100, .N] # 2363 layers
 psd_lims <- 90:110
-soildata[!is.na(psd) & !(psd %in% psd_lims), .N] # 32 layers
+soildata[!is.na(psd) & !(psd %in% psd_lims), .N] # 2 layers
 cols <- c("id", "camada_nome", "argila", "silte", "areia", "psd")
 soildata[!is.na(psd) & !(psd %in% psd_lims), ..cols]
-
-
-
-
-
-
-
 # If the sum of the three fractions is different from 100%, adjust their values, adding the
 # difference to the silt fraction.
-soildata[abs(psd - 100) %in% 1:5, .N] # 1322 layers
-soildata[abs(psd - 100) %in% 1:5, argila := round(argila / psd * 100)]
-soildata[abs(psd - 100) %in% 1:5, areia := round(areia / psd * 100)]
-soildata[abs(psd - 100) %in% 1:5, silte := 100 - argila - areia]
+soildata[psd != 100, argila := round(argila / psd * 100)]
+soildata[psd != 100, areia := round(areia / psd * 100)]
+soildata[psd != 100, silte := 100 - argila - areia]
 soildata[, psd := round(argila + silte + areia)]
+soildata[psd != 100, psd]
+soildata[, psd := NULL]
+
+# Correct bulk density values
+soildata[id == "ctb0562-Perfil-13" & camada_id == 2, dsi := ifelse(dsi == 2.6, 0.86, dsi)]
+soildata[id == "ctb0562-Perfil-14" & camada_id == 1, dsi := ifelse(dsi == 2.53, 1.09, dsi)]
+soildata[id == "ctb0562-Perfil-14" & camada_id == 2, dsi := ifelse(dsi == 2.6, 0.9, dsi)]
+soildata[id == "ctb0608-15-V-RCC" & camada_id == 3, dsi := ifelse(dsi == 0.42, 1.94, dsi)]
+soildata[id == "ctb0631-Perfil-17" & camada_id == 3, dsi := ifelse(dsi == 0.14, 1.1, dsi)]
+soildata[id == "ctb0700-15" & camada_id == 1, dsi := ifelse(dsi == 2.53, 1.6, dsi)]
+soildata[id == "ctb0700-15" & camada_id == 2, dsi := ifelse(dsi == 2.56, 1.49, dsi)]
+soildata[id == "ctb0771-26" & camada_id == 1, dsi := ifelse(dsi == 2.59, 1.32, dsi)]
+soildata[id == "ctb0771-26" & camada_id == 2, dsi := ifelse(dsi == 2.56, 1.37, dsi)]
+soildata[id == "ctb0777-1" & camada_id == 1, dsi := ifelse(dsi == 2.65, 1.35, dsi)]
+soildata[id == "ctb0787-1" & camada_id == 2, dsi := ifelse(dsi == 2.58, 1.35, dsi)]
+soildata[id == "ctb0787-4" & camada_id == 1, dsi := ifelse(dsi == 2.35, 1.35, dsi)]
+soildata[id == "ctb0787-4" & camada_id == 2, dsi := ifelse(dsi == 1.3, 1.27, dsi)]
+soildata[id == "ctb0811-2" & camada_id == 3, dsi := ifelse(dsi == 0.34, 1.64, dsi)]
+soildata[id == "ctb0702-P-46" & camada_id == 1, dsi := ifelse(dsi == 2.08, 1.08, dsi)] # check document
+soildata[id == "ctb0572-Perfil-063" & camada_id == 2, dsi := ifelse(dsi == 0.34, 1.84, dsi)]
+soildata[id == "ctb0605-P-06" & camada_id == 2, dsi := ifelse(dsi == 0.31, 1.32, dsi)]
+summary_soildata(soildata)
+# Layers: 57648
+# Events: 16996
+# Georeferenced events: 14506
+
+# Clean events
+
+# Get unique events
+soildata_events <- soildata[!is.na(coord_x) & !is.na(coord_y) & !is.na(data_ano), id[1],
+  by = c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
+]
+nrow(soildata_events) # 13340 events
+
+# Identify duplicated events
+# Duplicated events have equal spatial and temporal coordinates.
+# Make sure to analise events with complete spatial and temporal coordinates.
+# For every duplicate, identify and show the copy.
+soildata_events[
+  ,
+  duplicated := duplicated(paste0(coord_x, coord_y, data_ano)) |
+    duplicated(paste0(coord_x, coord_y, data_ano), fromLast = TRUE)
+]
+cols <- c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
+View(soildata_events[duplicated == TRUE, ..cols])
