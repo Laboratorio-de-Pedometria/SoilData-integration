@@ -58,6 +58,7 @@ eventRO[, data_coleta_ano := as.integer(format(data_coleta, "%Y"))]
 nrow(eventRO[is.na(data_coleta_ano), ]) # 87 events missing the sampling date
 # Set the sampling date to 1996 for events with missing data
 eventRO[is.na(data_coleta_ano), data_coleta_ano := 1996]
+eventRO[!is.na(data_coleta_ano), data_coleta_ano_fonte := "original"]
 if (FALSE) {
   x11()
   plot(eventRO[, c("coord_x", "coord_y")])
@@ -192,7 +193,7 @@ summary_soildata(rondonia)
 # Georeferenced events: 2962
 
 # Read SoilData data processed in the previous script
-soildata <- data.table::fread("data/10_soildata.txt", sep = "\t")
+soildata <- data.table::fread("data/10_soildata.txt", sep = "\t", na.strings = c("", "NA"))
 soildata[, coord_datum_epsg := 4326]
 summary_soildata(soildata)
 # Layers: 50470
