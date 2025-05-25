@@ -94,6 +94,7 @@ summary_soildata(data_event)
 # Clean sampling date (just to make sure)
 data_event[data_coleta_ano < 1950, data_coleta_ano := NA_integer_]
 data_event[data_coleta_ano > as.integer(format(Sys.time(), "%Y")), data_coleta_ano := NA_integer_]
+data_event[!is.na(data_coleta_ano), data_coleta_ano_fonte := "original"]
 summary_soildata(data_event)
 # Layers: 1662
 # Events: 1662
@@ -134,7 +135,7 @@ summary_soildata(soildata_01)
 # Georeferenced events: 1051
 
 # Read SoilData data processed in the previous scripts
-soildata_02 <- data.table::fread("data/11_soildata.txt", sep = "\t")
+soildata_02 <- data.table::fread("data/11_soildata.txt", sep = "\t", na.strings = c("", "NA"))
 if (!"coord_datum_epsg" %in% colnames(soildata_02)) {
   soildata_02[, coord_datum_epsg := 4326]
 }
@@ -155,9 +156,9 @@ soildata_01[, observacao_id := id]
 soildata_01[, id := paste0(dataset_id, "-", id)]
 soildata <- rbind(soildata_02, soildata_01, fill = TRUE)
 summary_soildata(soildata)
-# Layers: 52294
-# Events: 15209
-# Georeferenced events: 12079
+# Layers: 52326
+# Events: 15241
+# Georeferenced events: 12111
 
 # Check spatial distribution after merging external data
 soildata_sf <- soildata[!is.na(coord_x) & !is.na(coord_y)]
@@ -216,7 +217,7 @@ soildata[is.na(organizacao_nome), organizacao_nome := dataset_organization[datas
 
 # Write data to disk
 summary_soildata(soildata)
-# Layers: 52294
-# Events: 15209
-# Georeferenced events: 12079
+# Layers: 52326
+# Events: 15241
+# Georeferenced events: 12111
 data.table::fwrite(soildata, "data/12_soildata.txt", sep = "\t")
