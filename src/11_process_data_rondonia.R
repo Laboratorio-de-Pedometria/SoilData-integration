@@ -172,19 +172,20 @@ nrow(unique(rondonia[EXTRA == TRUE, "observacao_id"])) # 24 events with duplicat
 rondonia[EXTRA == TRUE, observacao_id := paste0(observacao_id, camada_id_febr)]
 rondonia[, id := paste0(dataset_id, "-", observacao_id)]
 
-# Add random perturbation to the coordinates of extra samples
-# Use sf::st_jitter() with amount = 100 m, where runif(1, -amount, amount)
-amount <- 100
-extra_coords <- rondonia[EXTRA == TRUE & !is.na(coord_x), c("id", "coord_x", "coord_y")]
-extra_coords <- sf::st_as_sf(extra_coords, coords = c("coord_x", "coord_y"), crs = 4326)
-extra_coords <- sf::st_transform(extra_coords, crs = 32720)
-set.seed(1984)
-extra_coords <- sf::st_jitter(extra_coords, amount = amount)
-extra_coords <- sf::st_transform(extra_coords, crs = 4326)
-extra_coords <- sf::st_coordinates(extra_coords)
-rondonia[EXTRA == TRUE & !is.na(coord_x), coord_x := extra_coords[, "X"]]
-rondonia[EXTRA == TRUE & !is.na(coord_x), coord_y := extra_coords[, "Y"]]
-rondonia[, EXTRA := NULL]
+# WE DO NOT ADD RANDOM PERTURBATION TO THE COORDINATES OF EXTRA SAMPLES
+# # Add random perturbation to the coordinates of extra samples
+# # Use sf::st_jitter() with amount = 100 m, where runif(1, -amount, amount)
+# amount <- 100
+# extra_coords <- rondonia[EXTRA == TRUE & !is.na(coord_x), c("id", "coord_x", "coord_y")]
+# extra_coords <- sf::st_as_sf(extra_coords, coords = c("coord_x", "coord_y"), crs = 4326)
+# extra_coords <- sf::st_transform(extra_coords, crs = 32720)
+# set.seed(1984)
+# extra_coords <- sf::st_jitter(extra_coords, amount = amount)
+# extra_coords <- sf::st_transform(extra_coords, crs = 4326)
+# extra_coords <- sf::st_coordinates(extra_coords)
+# rondonia[EXTRA == TRUE & !is.na(coord_x), coord_x := extra_coords[, "X"]]
+# rondonia[EXTRA == TRUE & !is.na(coord_x), coord_y := extra_coords[, "Y"]]
+# rondonia[, EXTRA := NULL]
 summary_soildata(rondonia)
 # Layers: 10789
 # Events: 3061
@@ -194,9 +195,9 @@ summary_soildata(rondonia)
 soildata <- data.table::fread("data/10_soildata.txt", sep = "\t")
 soildata[, coord_datum_epsg := 4326]
 summary_soildata(soildata)
-# Layers: 50438
-# Events: 14011
-# Georeferenced events: 10980
+# Layers: 50470
+# Events: 14043
+# Georeferenced events: 11012
 if (FALSE) {
   x11()
   plot(soildata[, c("coord_x", "coord_y")])
@@ -208,15 +209,15 @@ rondonia[, dataset_titulo := "Zoneamento Socioeconômico-Ecológico do Estado de
 rondonia[, dataset_licenca := "CC-BY-4.0"]
 rondonia[, organizacao_nome := "Governo do Estado de Rondônia"]
 # Then remove existing data from Rondônia (morphological descriptions)
-length(unique(soildata[, id])) # 14 011 events
+length(unique(soildata[, id])) # 14 043 events
 soildata <- soildata[dataset_id != "ctb0032", ]
-length(unique(soildata[, id])) # 11 097 events
+length(unique(soildata[, id])) # 11 129 events
 col_ro <- intersect(names(soildata), names(rondonia))
 soildata <- data.table::rbindlist(list(soildata, rondonia[, ..col_ro]), fill = TRUE)
 summary_soildata(soildata)
-# Layers: 50353
-# Events: 14158
-# Georeferenced events: 11028
+# Layers: 50385
+# Events: 14190
+# Georeferenced events: 11060
 
 # Write data to disk
 data.table::fwrite(soildata, "data/11_soildata.txt", sep = "\t")
