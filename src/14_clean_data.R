@@ -17,9 +17,9 @@ source("src/00_helper_functions.R")
 # Read SoilData data processed in the previous script
 soildata <- data.table::fread("data/13_soildata.txt", sep = "\t")
 summary_soildata(soildata)
-# Layers: 60978
-# Events: 18472
-# Georeferenced events: 15024
+# Layers: 61009
+# Events: 18537
+# Georeferenced events: 14994
 
 # Clean datasets
 
@@ -39,26 +39,22 @@ duplicates_idx <- duplicates[, observacao_id]
 # Drop dataset_id = ctb0002 duplicates from soildata
 soildata <- soildata[!(dataset_id == "ctb0002" & observacao_id %in% duplicates_idx)]
 summary_soildata(soildata)
-# Layers: 60963
-# Events: 18457
-# Georeferenced events: 15009
+# Layers: 60994
+# Events: 18522
+# Georeferenced events: 14979
 
 # ctb0029
 # Carbono e matéria orgânica em amostras do solo do Estado do Rio Grande do Sul por diferentes
 # métodos de determinação
-# Some of the samples come from ctb0003. Those samples meet the following criteria:
-# municipio_id %in% c("Santa Maria", "Itaara") & amostra_tipo == "COMPOSTA". Other samples come from
-# ctb0012. Those samples meet the following criteria: municipio_id == "Silveira Martins" &
-# amostra_tipo == "SIMPLES" 
-# Filter out samples in ctb0029 that are also in ctb0003 and ctb0012
-soildata <- soildata[!(dataset_id == "ctb0029" & municipio_id %in% c("Santa Maria", "Itaara") &
-  amostra_tipo == "COMPOSTA"), ]
+# Some of the samples come from ctb0012. Those samples meet the following criteria:
+# municipio_id == "Silveira Martins" & amostra_tipo == "SIMPLES" 
+# Filter out samples in ctb0029 that are also in ctb0012
 soildata <- soildata[!(dataset_id == "ctb0029" & municipio_id == "Silveira Martins" &
   amostra_tipo == "SIMPLES"), ]
 summary_soildata(soildata)
-# Layers: 60921
-# Events: 18415
-# Georeferenced events: 14967
+# Layers: 60990
+# Events: 18518
+# Georeferenced events: 14975
 
 # ctb0654 (exact duplicate of ctb0608)
 # Conjunto de dados do 'V Reunião de Classificação, Correlação e Aplicação de Levantamentos de Solo
@@ -66,26 +62,26 @@ summary_soildata(soildata)
 # Ceará e Bahia'
 soildata <- soildata[dataset_id != "ctb0654", ]
 summary_soildata(soildata)
-# Layers: 60813
-# Events: 18395
-# Georeferenced events: 14948
+# Layers: 60882
+# Events: 18498
+# Georeferenced events: 14956
 
 # ctb0800 (many duplicates of ctb0702)
 # Estudos pedológicos e suas relações ambientais
 soildata <- soildata[dataset_id != "ctb0800", ]
 summary_soildata(soildata)
-# Layers: 60568
-# Events: 18351
-# Georeferenced events: 14904
+# Layers: 60637
+# Events: 18454
+# Georeferenced events: 14912
 
 # ctb0808 (exact duplicate of ctb0574)
 # Conjunto de dados do levantamento semidetalhado 'Levantamento Semidetalhado e Aptidão Agrícola dos
 # Solos do Município do Rio de Janeiro, RJ.'
 soildata <- soildata[dataset_id != "ctb0808", ]
 summary_soildata(soildata)
-# Layers: 60227
-# Events: 18291
-# Georeferenced events: 14844
+# Layers: 60296
+# Events: 18394
+# Georeferenced events: 14852
 
 # LAYER ORDER
 soildata <- soildata[order(id, profund_sup, profund_inf)]
@@ -148,7 +144,7 @@ soildata[
 ]
 nrow(soildata[profund_sup == profund_inf]) # 67 layers
 soildata[, equal_depth := any(profund_sup == profund_inf), by = id]
-View(soildata[equal_depth == TRUE, ..cols])
+# View(soildata[equal_depth == TRUE, ..cols])
 # Some events from dataset_id = ctb0033 have a single layer and the depth limit is equal to zero.
 # We remove these layers.
 soildata[, n_layers := .N, by = id]
@@ -215,14 +211,14 @@ soildata[id == "ctb0775-9" & camada_nome == "B21" & profund_sup == 150 & profund
   profund_inf = 150
 )]
 soildata[, equal_depth := any(profund_sup == profund_inf), by = id]
-View(soildata[equal_depth == TRUE, ..cols])
+# View(soildata[equal_depth == TRUE, ..cols])
 # Drop all of the remaining layers with equal depth limits
 soildata <- soildata[equal_depth == FALSE]
 nrow(soildata[profund_sup == profund_inf]) # 0 layers
 soildata[, equal_depth := NULL]
 summary_soildata(soildata)
-# Layers: 58213
-# Events: 16996
+# Layers: 58171
+# Events: 16988
 # Georeferenced events: 14507
 
 # Layer id
@@ -246,8 +242,8 @@ print(soildata[id == "ctb0055-PR_4", .(id, camada_nome, profund_sup, profund_inf
 soildata <- soildata[repeated == FALSE, ]
 soildata[, repeated := NULL]
 summary_soildata(soildata)
-# Layers: 57649
-# Events: 16996
+# Layers: 57607
+# Events: 16988
 # Georeferenced events: 14506
 
 # Update layer id
@@ -283,13 +279,13 @@ ctb_ok <- c(
   "ctb0600", "ctb0605", "ctb0606"
 )
 cols <- c("id", "camada_nome", "profund_sup", "profund_inf", "esqueleto", "terrafina")
-View(soildata[!(dataset_id %in% ctb_ok) & esqueleto > 800, ..cols])
+# View(soildata[!(dataset_id %in% ctb_ok) & esqueleto > 800, ..cols])
 # Filter out samples with skeleton > 1000.
 # Some layers have esqueleto > 1000. This is not possible.
 soildata <- soildata[is.na(esqueleto) | esqueleto < 1000]
 summary_soildata(soildata)
-# Layers: 57648
-# Events: 16996
+# Layers: 57609
+# Events: 16988
 # Georeferenced events: 14506
 
 # Clean camada_nome
@@ -400,8 +396,8 @@ soildata[id == "ctb0702-P-46" & camada_id == 1, dsi := ifelse(dsi == 2.08, 1.08,
 soildata[id == "ctb0572-Perfil-063" & camada_id == 2, dsi := ifelse(dsi == 0.34, 1.84, dsi)]
 soildata[id == "ctb0605-P-06" & camada_id == 2, dsi := ifelse(dsi == 0.31, 1.32, dsi)]
 summary_soildata(soildata)
-# Layers: 57648
-# Events: 16996
+# Layers: 57606
+# Events: 16988
 # Georeferenced events: 14506
 
 # Clean events
@@ -410,7 +406,7 @@ summary_soildata(soildata)
 soildata_events <- soildata[!is.na(coord_x) & !is.na(coord_y) & !is.na(data_ano), id[1],
   by = c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
 ]
-nrow(soildata_events) # 13340 events
+nrow(soildata_events) # 13374 events
 
 # Identify duplicated events
 # Duplicated events have equal spatial and temporal coordinates.
@@ -418,8 +414,80 @@ nrow(soildata_events) # 13340 events
 # For every duplicate, identify and show the copy.
 soildata_events[
   ,
-  duplicated := duplicated(paste0(coord_x, coord_y, data_ano)) |
+  duplicated := duplicated(paste0(observacao_id, coord_x, coord_y, data_ano)) |
     duplicated(paste0(coord_x, coord_y, data_ano), fromLast = TRUE)
 ]
 cols <- c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
-View(soildata_events[duplicated == TRUE, ..cols])
+View(soildata_events[duplicated == TRUE, ])
+
+# ctb0010
+# Create a spatial object for ctb0010 dataset
+ctb0010_sf <- sf::st_as_sf(soildata[dataset_id == "ctb0010" & !is.na(coord_x) & !is.na(coord_y)],
+  coords = c("coord_x", "coord_y"), crs = 4326
+)
+# Transform to UTM
+ctb0010_sf <- sf::st_transform(ctb0010_sf, crs = 32720)
+ctb0010_sf <- data.table(
+  observacao_id = ctb0010_sf$observacao_id,
+  coord_x = sf::st_coordinates(ctb0010_sf)[, "X"],
+  coord_y = sf::st_coordinates(ctb0010_sf)[, "Y"]
+)
+# Jitter coordinates
+set.seed(1984) # For reproducibility
+ctb0010_sf[, coord_x := coord_x + runif(.N, -1, 1), by = observacao_id]
+set.seed(2001)
+ctb0010_sf[, coord_y := coord_y + runif(.N, -1, 1), by = observacao_id]
+ctb0010_sf <- sf::st_as_sf(ctb0010_sf, coords = c("coord_x", "coord_y"), crs = 32720)
+# Transform back to WGS84
+ctb0010_sf <- sf::st_transform(ctb0010_sf, crs = 4326)
+# Update coordinates in soildata
+soildata[dataset_id == "ctb0010" & !is.na(coord_x) & !is.na(coord_y), `:=`(
+  coord_x = sf::st_coordinates(ctb0010_sf)[, "X"],
+  coord_y = sf::st_coordinates(ctb0010_sf)[, "Y"]
+)]
+rm(ctb0010_sf)
+
+# ctb0029
+
+# Jitter duplicates...
+
+
+# Events located in urban areas. Delete coordinates.
+ctb0029_ids <- c(99, 26, 66, 67, 24, 44, 105, 51, 62)
+soildata[dataset_id == "ctb0029" & observacao_id %in% ctb0029_ids, `:=`(
+  coord_x = NA_real_,
+  coord_y = NA_real_,
+  coord_precision = NA_real_,
+  coord_fonte = NA_character_,
+  coord_datum = NA_character_
+)]
+rm(ctb0029_ids)
+idx_duplicated <- duplicated(soildata[
+  dataset_id == "ctb0029" & !is.na(coord_x) & !is.na(coord_y),
+  .(coord_x, coord_y)
+])
+# Create a spatial object for ctb0029 dataset considering only idx_duplicated
+ctb0029_sf <- soildata[dataset_id == "ctb0029" & !is.na(coord_x) & !is.na(coord_y)]
+ctb0029_sf <- ctb0029_sf[idx_duplicated, ]
+ctb0029_sf <- sf::st_as_sf(ctb0029_sf, coords = c("coord_x", "coord_y"), crs = 4326)
+# Transform to UTM
+ctb0029_sf <- sf::st_transform(ctb0029_sf, crs = 32720)
+ctb0029_sf < data.table(
+  observacao_id = ctb0029_sf$observacao_id,
+  coord_x = sf::st_coordinates(ctb0029_sf)[, "X"],
+  coord_y = sf::st_coordinates(ctb0029_sf)[, "Y"]
+)
+# Jitter coordinates
+set.seed(1984) # For reproducibility
+ctb0029_sf[, coord_x := coord_x + runif(.N, -1, 1), by = observacao_id]
+set.seed(2001)
+ctb0029_sf[, coord_y := coord_y + runif(.N, -1, 1), by = observacao_id]
+ctb0029_sf <- sf::st_as_sf(ctb0029_sf, coords = c("coord_x", "coord_y"), crs = 32720)
+# Transform back to WGS84
+ctb0029_sf <- sf::st_transform(ctb0029_sf, crs = 4326)
+# Update coordinates in soildata
+soildata[dataset_id == "ctb0029" & !is.na(coord_x) & !is.na(coord_y),] `:=`(
+  coord_x = sf::st_coordinates(ctb0029_sf)[, "X"],
+  coord_y = sf::st_coordinates(ctb0029_sf)[, "Y"]
+)]
+
