@@ -29,7 +29,9 @@ rename <- c(
   "camada_id_febr",               "camada_id",
   "coord_longitude",              "coord_x",
   "coord_latitude",               "coord_y",
+  "coord_municipio_nome",         "municipio_id",
   "coord_estado_sigla",           "estado_id",
+  "coord_pais_id",                "pais_id",
   "ph_h2o_25_eletrodo",           "ph",
   "ph_h2o",                       "ph",
   "ctc_soma_calc",                "ctc",
@@ -156,9 +158,9 @@ soildata_01[, observacao_id := id]
 soildata_01[, id := paste0(dataset_id, "-", id)]
 soildata <- rbind(soildata_02, soildata_01, fill = TRUE)
 summary_soildata(soildata)
-# Layers: 52326
-# Events: 15241
-# Georeferenced events: 12111
+# Layers: 52256
+# Events: 15171
+# Georeferenced events: 12041
 
 # Check spatial distribution after merging external data
 soildata_sf <- soildata[!is.na(coord_x) & !is.na(coord_y)]
@@ -217,7 +219,7 @@ soildata[is.na(organizacao_nome), organizacao_nome := dataset_organization[datas
 
 # Write data to disk
 summary_soildata(soildata)
-# Layers: 52326
-# Events: 15241
-# Georeferenced events: 12111
+# Layers: 52256
+# Events: 15171
+# Georeferenced events: 12041
 data.table::fwrite(soildata, "data/12_soildata.txt", sep = "\t")
