@@ -41,14 +41,16 @@ if (!dir.exists(dir_path)) {
 
 # Read all files and store them in a list
 curated_list <- lapply(curated_path, function(x) {
-  data.table::fread(x)
+  data.table::fread(x, na.strings = c("NA", ""))
 })
 
 # rbind all datasets keeping only the matching columns
 # Target columns
 read_cols <- c(
-  "dataset_id", "observacao_id",
+  "dataset_id",
+  "observacao_id",
   "data_ano",
+  # "data_fonte",
   "coord_x", "coord_y", "coord_precisao", "coord_fonte", "coord_datum",
   "pais_id", "estado_id", "municipio_id",
   "amostra_area",
@@ -60,17 +62,18 @@ read_cols <- c(
 curated_data <- data.table::rbindlist(curated_list, fill = TRUE)
 curated_data <- curated_data[, ..read_cols]
 curated_data[, id := paste0(dataset_id, "-", observacao_id)]
+curated_data[!is.na(data_ano), data_fonte := NA_character_]
 summary_soildata(curated_data)
-# Layers: 9900
-# Events: 3677
-# Georeferenced events: 3357
+# Layers: 9969
+# Events: 3780
+# Georeferenced events: 3365
 
 # Read SoilData data processed in the previous script
-soildata <- data.table::fread("data/12_soildata.txt", sep = "\t")
+soildata <- data.table::fread("data/12_soildata.txt", sep = "\t", na.strings = c("", "NA"))
 summary_soildata(soildata)
-# Layers: 52294
-# Events: 15209
-# Georeferenced events: 12079
+# Layers: 52256
+# Events: 15171
+# Georeferenced events: 12041
 
 # FIGURE 13.1
 # Check spatial distribution before merging curated data
@@ -88,20 +91,21 @@ dev.off()
 # Merge curated data with SoilData
 # Adjust column names
 data.table::setnames(soildata, old = "data_coleta_ano", new = "data_ano")
+data.table::setnames(soildata, old = "data_coleta_ano_fonte", new = "data_fonte")
 data.table::setnames(soildata, old = "coord_datum_epsg", new = "coord_datum")
 # Filter out duplicated datasets
 curated_ctb <- curated_data[, unique(dataset_id)]
 soildata <- soildata[!dataset_id %in% curated_ctb]
 summary_soildata(soildata)
-# Layers: 51078
-# Events: 14795
-# Georeferenced events: 11667
+# Layers: 51040
+# Events: 14757
+# Georeferenced events: 11629
 # Merge curated data with SoilData
 soildata <- rbind(soildata, curated_data, fill = TRUE)
 summary_soildata(soildata)
-# Layers: 60978
-# Events: 18472
-# Georeferenced events: 15024
+# Layers: 61009
+# Events: 18537
+# Georeferenced events: 14994
 
 # FIGURE 13.2
 # Check spatial distribution after merging curated data
