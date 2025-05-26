@@ -95,6 +95,10 @@ soildata[
   id == "ctb0770-100" & camada_nome == "B21H",
   camada_nome := ifelse(camada_nome == "B21H", "B21h", camada_nome)
 ]
+soildata[
+  id == "ctb0636-Perfil-03" & profund_sup == 0,
+  camada_nome := ifelse(camada_nome == "Ao", "A1", camada_nome)
+]
 
 # Incorrect depth limits: profund_sup > profund_inf
 cols <- c("id", "camada_nome", "profund_sup", "profund_inf")
@@ -947,6 +951,13 @@ plot(brazil["code_state"],
 )
 plot(soildata_sf["estado_id"], cex = 0.3, add = TRUE, pch = 20)
 dev.off()
+
+# Clean soil bulk density data
+# Delete possible inconsistent values
+soildata[dsi > 2.5, dsi := NA_real_]
+
+# Correct inconsistent soil bulk density values
+soildata[id == "ctb0058-RN_20", dsi := ifelse(dsi == 2.11, 1.11, dsi)]
 
 # Write data to disk ###############################################################################
 summary_soildata(soildata)
