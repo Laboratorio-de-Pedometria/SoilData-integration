@@ -962,4 +962,4 @@ soildata[id == "ctb0058-RN_20", dsi := ifelse(dsi == 2.11, 1.11, dsi)]
 # Write data to disk ###############################################################################
 summary_soildata(soildata)
 # Export cleaned data
-data.table::fwrite(soildata, "data/14_soildata_soc.txt", sep = "\t")
+data.table::fwrite(soildata, "data/14_soildata.txt", sep = "\t")
