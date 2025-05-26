@@ -556,23 +556,28 @@ nrow(unique(br_soil2023[is.na(data_coleta_ano), c("dataset_id", "observacao_id")
 # 66 events remain without sampling date
 
 # ctb0009
-# several events from ctb0003 are missing the sampling date; we retrieve the sampling date
-# from ctb0003, setting data_coleta_ano = 2009 and data_coleta_ano_fonte = "original"
+# events missing the sampling date are from ctb0003, thus they are already included in the dataset
 ctb <- "ctb0009"
-br_soil2023[dataset_id == ctb & is.na(data_coleta_ano), `:=`(
-  data_coleta_ano = 2009,
-  data_coleta_ano_fonte = "original"
-)]
+br_soil2023 <- br_soil2023[!(dataset_id %in% ctb & is.na(data_coleta_ano)), ]
 nrow(unique(br_soil2023[is.na(data_coleta_ano), c("dataset_id", "observacao_id")]))
 # 34 events remain without sampling date, all from ctb0029
 
 # ctb0029
-# Set sampling year to year_min for vizualization purposes
+# events from municipio_id %in% c("Santa Maria", "Itaara"), amostra_tipo == "COMPOSTA",
+# amostra_quanti == 3, and data_ano == 2009 are from ctb0003, thus they are already included in
+# the dataset and can be removed
 ctb <- "ctb0029"
-target_year <- year_min
-# Set sampling_year to target_year and data_coleta_ano_fonte to "estimativa"
+br_soil2023 <- br_soil2023[!(
+  dataset_id == ctb & municipio_id %in% c("Santa Maria", "Itaara") &
+    amostra_tipo == "COMPOSTA" & amostra_quanti == 3 & data_coleta_ano == 2009
+), ]
+# Check how many events remain without sampling date
+nrow(unique(br_soil2023[is.na(data_coleta_ano), c("dataset_id", "observacao_id")]))
+# 34 events remain without sampling date, all from ctb0029
+# Soil samples were taken around 2009, but the exact date is not known.
+# ctb0029: Set sampling year to 2009 and data_coleta_ano_fonte to "estimativa"
 br_soil2023[dataset_id == ctb & is.na(data_coleta_ano), `:=`(
-  data_coleta_ano = target_year,
+  data_coleta_ano = 2009,
   data_coleta_ano_fonte = "estimativa"
 )]
 
@@ -587,8 +592,8 @@ nrow(unique(br_soil2023[is.na(data_coleta_ano), c("dataset_id", "observacao_id")
 # 0 events remain without sampling date
 
 # Check how many events have spatial coordinates (coord_x and coord_y) and
-nrow(unique(br_soil2023[, c("dataset_id", "observacao_id")])) # 14043 events
-nrow(br_soil2023) # 50470 layers
+nrow(unique(br_soil2023[, c("dataset_id", "observacao_id")])) # 13973 events
+nrow(br_soil2023) # 50400 layers
 
 # Temporal distribution of samples with known sampling date after data rescue and estimation
 missing_time <- is.na(br_soil2023[["data_coleta_ano"]])
@@ -616,7 +621,7 @@ br_soil2023[
 
 # Write data to disk ###############################################################################
 summary_soildata(br_soil2023)
-# Layers: 50470
-# Events: 14043
-# Georeferenced events: 11012
+# Layers: 50400
+# Events: 13973
+# Georeferenced events: 10942
 data.table::fwrite(br_soil2023, "data/10_soildata.txt", sep = "\t")
