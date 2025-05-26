@@ -14,6 +14,9 @@ if (!require("data.table")) {
 # Source helper functions
 source("src/00_helper_functions.R")
 
+# Download Brazilian state boundaries
+brazil <- geobr::read_state()
+
 # Read SoilData data processed in the previous script
 soildata <- data.table::fread("data/13_soildata.txt", sep = "\t")
 summary_soildata(soildata)
@@ -401,13 +404,14 @@ summary_soildata(soildata)
 # Georeferenced events: 14506
 
 # Clean events
+# Correct date (there is a typo in the spreadsheet)
+soildata[id == "ctb0585-Perfil-9", data_ano := ifelse(all(data_ano == 1993), 1983, data_ano)]
 
 # Get unique events
 soildata_events <- soildata[!is.na(coord_x) & !is.na(coord_y) & !is.na(data_ano), id[1],
   by = c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
 ]
 nrow(soildata_events) # 13374 events
-
 # Identify duplicated events
 # Duplicated events have equal spatial and temporal coordinates.
 # Make sure to analise events with complete spatial and temporal coordinates.
@@ -421,8 +425,10 @@ cols <- c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
 View(soildata_events[duplicated == TRUE, ])
 
 # ctb0010
+# Identify duplicated events in ctb0010 dataset
+idx_duplicated <- soildata_events[dataset_id == "ctb0010" & duplicated == TRUE, V1]
 # Create a spatial object for ctb0010 dataset
-ctb0010_sf <- sf::st_as_sf(soildata[dataset_id == "ctb0010" & !is.na(coord_x) & !is.na(coord_y)],
+ctb0010_sf <- sf::st_as_sf(soildata[id %in% idx_duplicated],
   coords = c("coord_x", "coord_y"), crs = 4326
 )
 # Transform to UTM
@@ -434,24 +440,60 @@ ctb0010_sf <- data.table(
 )
 # Jitter coordinates
 set.seed(1984) # For reproducibility
-ctb0010_sf[, coord_x := coord_x + runif(.N, -1, 1), by = observacao_id]
+ctb0010_sf[, coord_x := coord_x + runif(1, -1, 1), by = observacao_id]
 set.seed(2001)
-ctb0010_sf[, coord_y := coord_y + runif(.N, -1, 1), by = observacao_id]
+ctb0010_sf[, coord_y := coord_y + runif(1, -1, 1), by = observacao_id]
 ctb0010_sf <- sf::st_as_sf(ctb0010_sf, coords = c("coord_x", "coord_y"), crs = 32720)
 # Transform back to WGS84
 ctb0010_sf <- sf::st_transform(ctb0010_sf, crs = 4326)
 # Update coordinates in soildata
-soildata[dataset_id == "ctb0010" & !is.na(coord_x) & !is.na(coord_y), `:=`(
+soildata[id %in% idx_duplicated, `:=`(
   coord_x = sf::st_coordinates(ctb0010_sf)[, "X"],
   coord_y = sf::st_coordinates(ctb0010_sf)[, "Y"]
 )]
-rm(ctb0010_sf)
+rm(ctb0010_sf, idx_duplicated)
 
-# ctb0029
+# Get unique events
+soildata_events <- soildata[!is.na(coord_x) & !is.na(coord_y) & !is.na(data_ano), id[1],
+  by = c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
+]
+soildata_events[
+  ,
+  duplicated := duplicated(paste0(observacao_id, coord_x, coord_y, data_ano)) |
+    duplicated(paste0(coord_x, coord_y, data_ano), fromLast = TRUE)
+]
+cols <- c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
+View(soildata_events[duplicated == TRUE, ])
 
-# Jitter duplicates...
+# ctb0029 (need to check this events in the source data)
+# Identify duplicated events in ctb0029 dataset
+idx_duplicated <- soildata_events[dataset_id == "ctb0029" & duplicated == TRUE, V1]
 
-
+# Create a spatial object for ctb0029 dataset
+ctb0029_sf <- sf::st_as_sf(soildata[id %in% idx_duplicated],
+  coords = c("coord_x", "coord_y"), crs = 4326
+)
+# Transform to UTM
+ctb0029_sf <- sf::st_transform(ctb0029_sf, crs = 32720)
+ctb0029_sf <- data.table(
+  observacao_id = ctb0029_sf$observacao_id,
+  coord_x = sf::st_coordinates(ctb0029_sf)[, "X"],
+  coord_y = sf::st_coordinates(ctb0029_sf)[, "Y"]
+)
+# Jitter coordinates
+set.seed(1984) # For reproducibility
+ctb0029_sf[, coord_x := coord_x + runif(1, -1, 1), by = observacao_id]
+set.seed(2001)
+ctb0029_sf[, coord_y := coord_y + runif(1, -1, 1), by = observacao_id]
+ctb0029_sf <- sf::st_as_sf(ctb0029_sf, coords = c("coord_x", "coord_y"), crs = 32720)
+# Transform back to WGS84
+ctb0029_sf <- sf::st_transform(ctb0029_sf, crs = 4326)
+# Update coordinates in soildata
+soildata[id %in% idx_duplicated, `:=`(
+  coord_x = sf::st_coordinates(ctb0029_sf)[, "X"],
+  coord_y = sf::st_coordinates(ctb0029_sf)[, "Y"]
+)]
+rm(ctb0029_sf, idx_duplicated)
 # Events located in urban areas. Delete coordinates.
 ctb0029_ids <- c(99, 26, 66, 67, 24, 44, 105, 51, 62)
 soildata[dataset_id == "ctb0029" & observacao_id %in% ctb0029_ids, `:=`(
@@ -462,32 +504,451 @@ soildata[dataset_id == "ctb0029" & observacao_id %in% ctb0029_ids, `:=`(
   coord_datum = NA_character_
 )]
 rm(ctb0029_ids)
-idx_duplicated <- duplicated(soildata[
-  dataset_id == "ctb0029" & !is.na(coord_x) & !is.na(coord_y),
-  .(coord_x, coord_y)
-])
-# Create a spatial object for ctb0029 dataset considering only idx_duplicated
-ctb0029_sf <- soildata[dataset_id == "ctb0029" & !is.na(coord_x) & !is.na(coord_y)]
-ctb0029_sf <- ctb0029_sf[idx_duplicated, ]
-ctb0029_sf <- sf::st_as_sf(ctb0029_sf, coords = c("coord_x", "coord_y"), crs = 4326)
+
+# Get unique events
+soildata_events <- soildata[!is.na(coord_x) & !is.na(coord_y) & !is.na(data_ano), id[1],
+  by = c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
+]
+soildata_events[
+  ,
+  duplicated := duplicated(paste0(observacao_id, coord_x, coord_y, data_ano)) |
+    duplicated(paste0(coord_x, coord_y, data_ano), fromLast = TRUE)
+]
+cols <- c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
+View(soildata_events[duplicated == TRUE, ])
+
+# ctb0033 (need to check this events in the source data)
+# Identify duplicated events in ctb0033 dataset
+idx_duplicated <- soildata_events[dataset_id == "ctb0033" & duplicated == TRUE, V1]
+# Create a spatial object for ctb0033 dataset
+ctb0033_sf <- sf::st_as_sf(soildata[id %in% idx_duplicated],
+  coords = c("coord_x", "coord_y"), crs = 4326
+)
 # Transform to UTM
-ctb0029_sf <- sf::st_transform(ctb0029_sf, crs = 32720)
-ctb0029_sf < data.table(
-  observacao_id = ctb0029_sf$observacao_id,
-  coord_x = sf::st_coordinates(ctb0029_sf)[, "X"],
-  coord_y = sf::st_coordinates(ctb0029_sf)[, "Y"]
+ctb0033_sf <- sf::st_transform(ctb0033_sf, crs = 32720)
+ctb0033_sf <- data.table(
+  observacao_id = ctb0033_sf$observacao_id,
+  coord_x = sf::st_coordinates(ctb0033_sf)[, "X"],
+  coord_y = sf::st_coordinates(ctb0033_sf)[, "Y"]
 )
 # Jitter coordinates
 set.seed(1984) # For reproducibility
-ctb0029_sf[, coord_x := coord_x + runif(.N, -1, 1), by = observacao_id]
+ctb0033_sf[, coord_x := coord_x + runif(1, -1, 1), by = observacao_id]
 set.seed(2001)
-ctb0029_sf[, coord_y := coord_y + runif(.N, -1, 1), by = observacao_id]
-ctb0029_sf <- sf::st_as_sf(ctb0029_sf, coords = c("coord_x", "coord_y"), crs = 32720)
+ctb0033_sf[, coord_y := coord_y + runif(1, -1, 1), by = observacao_id]
+ctb0033_sf <- sf::st_as_sf(ctb0033_sf, coords = c("coord_x", "coord_y"), crs = 32720)
 # Transform back to WGS84
-ctb0029_sf <- sf::st_transform(ctb0029_sf, crs = 4326)
+ctb0033_sf <- sf::st_transform(ctb0033_sf, crs = 4326)
 # Update coordinates in soildata
-soildata[dataset_id == "ctb0029" & !is.na(coord_x) & !is.na(coord_y),] `:=`(
-  coord_x = sf::st_coordinates(ctb0029_sf)[, "X"],
-  coord_y = sf::st_coordinates(ctb0029_sf)[, "Y"]
+soildata[id %in% idx_duplicated, `:=`(
+  coord_x = sf::st_coordinates(ctb0033_sf)[, "X"],
+  coord_y = sf::st_coordinates(ctb0033_sf)[, "Y"]
 )]
+rm(ctb0033_sf, idx_duplicated)
 
+# Get unique events
+soildata_events <- soildata[!is.na(coord_x) & !is.na(coord_y) & !is.na(data_ano), id[1],
+  by = c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
+]
+soildata_events[
+  ,
+  duplicated := duplicated(paste0(observacao_id, coord_x, coord_y, data_ano)) |
+    duplicated(paste0(coord_x, coord_y, data_ano), fromLast = TRUE)
+]
+cols <- c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
+View(soildata_events[duplicated == TRUE, ])
+
+# ctb0017 (need to check this events in the source data)
+# Identify duplicated events in ctb0017 dataset
+idx_duplicated <- soildata_events[dataset_id == "ctb0017" & duplicated == TRUE, V1]
+# Create a spatial object for ctb0017 dataset
+ctb0017_sf <- sf::st_as_sf(soildata[id %in% idx_duplicated],
+  coords = c("coord_x", "coord_y"), crs = 4326
+)
+# Transform to UTM
+ctb0017_sf <- sf::st_transform(ctb0017_sf, crs = 32720)
+ctb0017_sf <- data.table(
+  observacao_id = ctb0017_sf$observacao_id,
+  coord_x = sf::st_coordinates(ctb0017_sf)[, "X"],
+  coord_y = sf::st_coordinates(ctb0017_sf)[, "Y"]
+)
+# Jitter coordinates
+set.seed(1984) # For reproducibility
+ctb0017_sf[, coord_x := coord_x + runif(1, -1, 1), by = observacao_id]
+set.seed(2001)
+ctb0017_sf[, coord_y := coord_y + runif(1, -1, 1), by = observacao_id]
+ctb0017_sf <- sf::st_as_sf(ctb0017_sf, coords = c("coord_x", "coord_y"), crs = 32720)
+# Transform back to WGS84
+ctb0017_sf <- sf::st_transform(ctb0017_sf, crs = 4326)
+# Update coordinates in soildata
+soildata[id %in% idx_duplicated, `:=`(
+  coord_x = sf::st_coordinates(ctb0017_sf)[, "X"],
+  coord_y = sf::st_coordinates(ctb0017_sf)[, "Y"]
+)]
+rm(ctb0017_sf, idx_duplicated)
+
+# Get unique events
+soildata_events <- soildata[!is.na(coord_x) & !is.na(coord_y) & !is.na(data_ano), id[1],
+  by = c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
+]
+soildata_events[
+  ,
+  duplicated := duplicated(paste0(observacao_id, coord_x, coord_y, data_ano)) |
+    duplicated(paste0(coord_x, coord_y, data_ano), fromLast = TRUE)
+]
+cols <- c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
+View(soildata_events[duplicated == TRUE, ])
+
+# ctb0702 (need to check this events in the source data)
+# It appears that all of the duplicated events in ctb0702 are copies from events in ctb0829.
+# We will remove the duplicated events in ctb0702 and keep the events in ctb0829.
+# Identify duplicated events in ctb0702 dataset
+idx_duplicated <- soildata_events[dataset_id == "ctb0702" & duplicated == TRUE, V1]
+# Remove duplicated events in ctb0702
+soildata <- soildata[!(id %in% idx_duplicated & dataset_id == "ctb0702")]
+rm(idx_duplicated)
+
+# Get unique events
+soildata_events <- soildata[!is.na(coord_x) & !is.na(coord_y) & !is.na(data_ano), id[1],
+  by = c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
+]
+soildata_events[
+  ,
+  duplicated := duplicated(paste0(observacao_id, coord_x, coord_y, data_ano)) |
+    duplicated(paste0(coord_x, coord_y, data_ano), fromLast = TRUE)
+]
+cols <- c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
+View(soildata_events[duplicated == TRUE, ])
+
+# ctb0607 (need to check this events in the source data)
+# Apparently, all of the duplicated events in ctb0607 are unique events in the source data.
+# Identify duplicated events in ctb0607 dataset
+idx_duplicated <- soildata_events[dataset_id == "ctb0607" & duplicated == TRUE, V1]
+# Create a spatial object for ctb0607 dataset
+ctb0607_sf <- sf::st_as_sf(soildata[id %in% idx_duplicated],
+  coords = c("coord_x", "coord_y"), crs = 4326
+)
+# Transform to UTM
+ctb0607_sf <- sf::st_transform(ctb0607_sf, crs = 32720)
+ctb0607_sf <- data.table(
+  observacao_id = ctb0607_sf$observacao_id,
+  coord_x = sf::st_coordinates(ctb0607_sf)[, "X"],
+  coord_y = sf::st_coordinates(ctb0607_sf)[, "Y"]
+)
+# Jitter coordinates
+set.seed(1984) # For reproducibility
+ctb0607_sf[, coord_x := coord_x + runif(1, -1, 1), by = observacao_id]
+set.seed(2001)
+ctb0607_sf[, coord_y := coord_y + runif(1, -1, 1), by = observacao_id]
+ctb0607_sf <- sf::st_as_sf(ctb0607_sf, coords = c("coord_x", "coord_y"), crs = 32720)
+# Transform back to WGS84
+ctb0607_sf <- sf::st_transform(ctb0607_sf, crs = 4326)
+# Update coordinates in soildata
+soildata[id %in% idx_duplicated, `:=`(
+  coord_x = sf::st_coordinates(ctb0607_sf)[, "X"],
+  coord_y = sf::st_coordinates(ctb0607_sf)[, "Y"]
+)]
+rm(ctb0607_sf, idx_duplicated)
+
+# Get unique events
+soildata_events <- soildata[!is.na(coord_x) & !is.na(coord_y) & !is.na(data_ano), id[1],
+  by = c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
+]
+soildata_events[
+  ,
+  duplicated := duplicated(paste0(observacao_id, coord_x, coord_y, data_ano)) |
+    duplicated(paste0(coord_x, coord_y, data_ano), fromLast = TRUE)
+]
+cols <- c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
+View(soildata_events[duplicated == TRUE, ])
+
+# ctb0585
+# Identify duplicated events in ctb0585 dataset
+idx_duplicated <- soildata_events[dataset_id == "ctb0585" & duplicated == TRUE, V1]
+# Create a spatial object for ctb0585 dataset
+# The CRS probably is SAD69
+ctb0585_sf <- sf::st_as_sf(soildata[id %in% idx_duplicated],
+  coords = c("coord_x", "coord_y"), crs = 4618
+)
+# Transform to UTM
+ctb0585_sf <- sf::st_transform(ctb0585_sf, crs = 32720)
+ctb0585_sf <- data.table(
+  observacao_id = ctb0585_sf$observacao_id,
+  coord_x = sf::st_coordinates(ctb0585_sf)[, "X"],
+  coord_y = sf::st_coordinates(ctb0585_sf)[, "Y"]
+)
+# Perfil-1: A 2.200 metros a W. do meridiano de 44º10' e a 5.300 metros ao S. do paralelo de 19º27'.
+ctb0585_sf[observacao_id == "Perfil-1", `:=`(
+  coord_x = coord_x - 2200,
+  coord_y = coord_y - 5300
+)]
+# Perfil-10: A 100 metros a W. do meridiano de 44º10? e a 3.300 metros ao S. do paralelo de 19º27?.
+ctb0585_sf[observacao_id == "Perfil-10", `:=`(
+  coord_x = coord_x - 100,
+  coord_y = coord_y - 3300
+)]
+# Perfil-11: A 1.800 metros a L. do meridiano de 44º10? e a 2.900 metros ao N. do paralelo de 19º27?.
+ctb0585_sf[observacao_id == "Perfil-11", `:=`(
+  coord_x = coord_x + 1800,
+  coord_y = coord_y + 2900
+)]
+# Perfil-12: A 700 metros a L. do meridiano de 44º10? e a 3.100 metros ao N. do paralelo de 19º27?.
+ctb0585_sf[observacao_id == "Perfil-12", `:=`(
+  coord_x = coord_x + 700,
+  coord_y = coord_y + 3100
+)]
+# Perfil-13: A 600 metros a W do meridiano de 44º10? e a 1.500 metros ao N. do paralelo de 19º27?.
+ctb0585_sf[observacao_id == "Perfil-13", `:=`(
+  coord_x = coord_x - 600,
+  coord_y = coord_y + 1500
+)]
+# Perfil-2: A 2.300 metros a W. do meridiano de 44º10? e a 2.000 metros ao S. do paralelo de 19º27?.
+ctb0585_sf[observacao_id == "Perfil-2", `:=`(
+  coord_x = coord_x - 2300,
+  coord_y = coord_y - 2000
+)]
+# Perfil-21: A 800 metros a W do meridiano de 44º10? e a 1.300 metros ao N. do paralelo de 19º27?.
+ctb0585_sf[observacao_id == "Perfil-21", `:=`(
+  coord_x = coord_x - 800,
+  coord_y = coord_y + 1300
+)]
+# Perfil-27: A 2000 metros a L do meridiano de 44º10? e a 3.000 metros ao N. do paralelo de 19º27?.
+ctb0585_sf[observacao_id == "Perfil-27", `:=`(
+  coord_x = coord_x + 2000,
+  coord_y = coord_y + 3000
+)]
+# Perfil-30: A 100 metros a L do meridiano de 44º10? e a 1.300 metros ao N. do paralelo de 19º27?.
+ctb0585_sf[observacao_id == "Perfil-30", `:=`(
+  coord_x = coord_x + 100,
+  coord_y = coord_y + 1300
+)]
+# Perfil-43: A 700 metros a W do meridiano de 44º10? e a 900 metros ao N. do paralelo de 19º27?.
+ctb0585_sf[observacao_id == "Perfil-43", `:=`(
+  coord_x = coord_x - 700,
+  coord_y = coord_y + 900
+)]
+# Perfil-7: A 1.200 metros a W. do meridiano de 44º10? e a 200 metros ao S. do paralelo de 19º27?.
+ctb0585_sf[observacao_id == "Perfil-7", `:=`(
+  coord_x = coord_x - 1200,
+  coord_y = coord_y - 200
+)]
+# Perfil-8: A 1.000 metros a L. do meridiano de 44º10? e a 1.600 metros ao N. do paralelo de 19º27?.
+ctb0585_sf[observacao_id == "Perfil-8", `:=`(
+  coord_x = coord_x + 1000,
+  coord_y = coord_y + 1600
+)]
+# Perfil-9: A 800 metros a W. do meridiano de 44º10? e a 2.700 metros ao S. do paralelo de 19º27?.
+ctb0585_sf[observacao_id == "Perfil-9", `:=`(
+  coord_x = coord_x - 800,
+  coord_y = coord_y - 2700
+)]
+ctb0585_sf <- sf::st_as_sf(ctb0585_sf, coords = c("coord_x", "coord_y"), crs = 32720)
+# Transform back to WGS84
+ctb0585_sf <- sf::st_transform(ctb0585_sf, crs = 4326)
+# Update coordinates in soildata
+soildata[id %in% idx_duplicated, `:=`(
+  coord_x = sf::st_coordinates(ctb0585_sf)[, "X"],
+  coord_y = sf::st_coordinates(ctb0585_sf)[, "Y"]
+)]
+rm(ctb0585_sf, idx_duplicated)
+
+# Get unique events
+soildata_events <- soildata[!is.na(coord_x) & !is.na(coord_y) & !is.na(data_ano), id[1],
+  by = c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
+]
+soildata_events[
+  ,
+  duplicated := duplicated(paste0(observacao_id, coord_x, coord_y, data_ano)) |
+    duplicated(paste0(coord_x, coord_y, data_ano), fromLast = TRUE)
+]
+cols <- c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
+View(soildata_events[duplicated == TRUE, ])
+
+# ctb0631
+# Identify duplicated events in ctb0631 dataset
+idx_duplicated <- soildata_events[dataset_id == "ctb0631" & duplicated == TRUE, V1]
+# Create a spatial object for ctb0631 dataset
+ctb0631_sf <- sf::st_as_sf(soildata[id %in% idx_duplicated],
+  coords = c("coord_x", "coord_y"), crs = 4326
+)
+# Transform to UTM
+ctb0631_sf <- sf::st_transform(ctb0631_sf, crs = 32720)
+ctb0631_sf <- data.table(
+  observacao_id = ctb0631_sf$observacao_id,
+  coord_x = sf::st_coordinates(ctb0631_sf)[, "X"],
+  coord_y = sf::st_coordinates(ctb0631_sf)[, "Y"]
+)
+# Jitter coordinates
+set.seed(1984) # For reproducibility
+ctb0631_sf[, coord_x := coord_x + runif(1, -1, 1), by = observacao_id]
+set.seed(2001)
+ctb0631_sf[, coord_y := coord_y + runif(1, -1, 1), by = observacao_id]
+ctb0631_sf <- sf::st_as_sf(ctb0631_sf, coords = c("coord_x", "coord_y"), crs = 32720)
+# Transform back to WGS84
+ctb0631_sf <- sf::st_transform(ctb0631_sf, crs = 4326)
+# Update coordinates in soildata
+soildata[id %in% idx_duplicated, `:=`(
+  coord_x = sf::st_coordinates(ctb0631_sf)[, "X"],
+  coord_y = sf::st_coordinates(ctb0631_sf)[, "Y"]
+)]
+rm(ctb0631_sf, idx_duplicated)
+
+# Get unique events
+soildata_events <- soildata[!is.na(coord_x) & !is.na(coord_y) & !is.na(data_ano), id[1],
+  by = c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
+]
+soildata_events[
+  ,
+  duplicated := duplicated(paste0(observacao_id, coord_x, coord_y, data_ano)) |
+    duplicated(paste0(coord_x, coord_y, data_ano), fromLast = TRUE)
+]
+cols <- c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
+View(soildata_events[duplicated == TRUE, ])
+
+# all other datasets
+# Identify duplicated events in ctb0832 dataset
+idx_duplicated <- soildata_events[duplicated == TRUE, V1]
+# Create a spatial object for all duplicated datasets
+soildata_sf <- sf::st_as_sf(soildata[id %in% idx_duplicated],
+  coords = c("coord_x", "coord_y"), crs = 4326
+)
+# Transform to UTM
+soildata_sf <- sf::st_transform(soildata_sf, crs = 32720)
+soildata_sf <- data.table(
+  dataset_id = soildata_sf$dataset_id,
+  observacao_id = soildata_sf$observacao_id,
+  coord_x = sf::st_coordinates(soildata_sf)[, "X"],
+  coord_y = sf::st_coordinates(soildata_sf)[, "Y"]
+)
+# Jitter coordinates
+set.seed(1984) # For reproducibility
+soildata_sf[, coord_x := coord_x + runif(1, -1, 1), by = observacao_id]
+set.seed(2001)
+soildata_sf[, coord_y := coord_y + runif(1, -1, 1), by = observacao_id]
+soildata_sf <- sf::st_as_sf(soildata_sf, coords = c("coord_x", "coord_y"), crs = 32720)
+# Transform back to WGS84
+soildata_sf <- sf::st_transform(soildata_sf, crs = 4326)
+# Update coordinates in soildata
+soildata[id %in% idx_duplicated, `:=`(
+  coord_x = sf::st_coordinates(soildata_sf)[, "X"],
+  coord_y = sf::st_coordinates(soildata_sf)[, "Y"]
+)]
+rm(soildata_sf, idx_duplicated)
+
+# Get unique events
+soildata_events <- soildata[!is.na(coord_x) & !is.na(coord_y) & !is.na(data_ano), id[1],
+  by = c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
+]
+soildata_events[
+  ,
+  duplicated := duplicated(paste0(observacao_id, coord_x, coord_y, data_ano)) |
+    duplicated(paste0(coord_x, coord_y, data_ano), fromLast = TRUE)
+]
+cols <- c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
+View(soildata_events[duplicated == TRUE, ])
+
+summary_soildata(soildata)
+# Layers: 57359
+# Events: 16944
+# Georeferenced events: 14453
+
+# Update coordinates (this has already been implemented in the source spreadsheets)
+# MATA ATLÂNTICA
+# ctb0691-15
+# -20.270007, -40.277173
+soildata[id == "ctb0691-15", .(id, coord_y, coord_x)]
+soildata[id == "ctb0691-15", coord_y := -20.270007]
+soildata[id == "ctb0691-15", coord_x := -40.277173]
+soildata[id == "ctb0691-15", .(id, coord_y, coord_x)]
+
+# CERRADO
+# ctb0617-Perfil-45
+# -19.5055229, -47.7914277
+soildata[id == "ctb0617-Perfil-45", .(id, coord_y, coord_x)]
+soildata[id == "ctb0617-Perfil-45", coord_y := -19.5055229]
+soildata[id == "ctb0617-Perfil-45", coord_x := -47.7914277]
+soildata[id == "ctb0617-Perfil-45", .(id, coord_y, coord_x)]
+
+# ctb0617-Perfil-49
+# -19.5042035, -47.7903787
+soildata[id == "ctb0617-Perfil-49", .(id, coord_y, coord_x)]
+soildata[id == "ctb0617-Perfil-49", coord_y := -19.5042035]
+soildata[id == "ctb0617-Perfil-49", coord_x := -47.7903787]
+soildata[id == "ctb0617-Perfil-49", .(id, coord_y, coord_x)]
+
+# ctb0777-41
+# -13.070637, -46.0070019
+soildata[id == "ctb0777-41", .(id, coord_y, coord_x)]
+soildata[id == "ctb0777-41", coord_y := -13.070637]
+soildata[id == "ctb0777-41", coord_x := -46.0070019]
+soildata[id == "ctb0777-41", .(id, coord_y, coord_x)]
+
+# ctb0600-TS-8
+# -16.6849201, -48.7208003
+soildata[id == "ctb0600-TS-8", .(id, coord_y, coord_x)]
+soildata[id == "ctb0600-TS-8", coord_y := -16.6849201]
+soildata[id == "ctb0600-TS-8", coord_x := -48.7208003]
+soildata[id == "ctb0600-TS-8", .(id, coord_y, coord_x)]
+
+# CAATINGA
+# ctb0694-49
+# -5.3244224, -35.4646402
+soildata[id == "ctb0694-49", .(id, coord_y, coord_x)]
+soildata[id == "ctb0694-49", coord_y := -5.3244224]
+soildata[id == "ctb0694-49", coord_x := -35.4646402]
+soildata[id == "ctb0694-49", .(id, coord_y, coord_x)]
+
+# PANTANAL
+# ctb0763-169
+# -19.052547, -57.6605278
+soildata[id == "ctb0763-169", .(id, coord_y, coord_x)]
+soildata[id == "ctb0763-169", coord_y := -19.052547]
+soildata[id == "ctb0763-169", coord_x := -57.6605278]
+soildata[id == "ctb0763-169", .(id, coord_y, coord_x)]
+
+# PAMPA
+# ctb0797-RS-113
+# # -30.8161997, -53.8114681
+soildata[id == "ctb0797-RS-113", .(id, coord_y, coord_x)]
+soildata[id == "ctb0797-RS-113", coord_y := -30.8161997]
+soildata[id == "ctb0797-RS-113", coord_x := -53.8114681]
+soildata[id == "ctb0797-RS-113", .(id, coord_y, coord_x)]
+
+# OTHER
+# ctb0607-PERFIL-92
+# -10.7552957, -37.0623882
+soildata[id == "ctb0607-PERFIL-92", .(id, coord_y, coord_x)]
+soildata[id == "ctb0607-PERFIL-92", coord_y := -10.7552957]
+soildata[id == "ctb0607-PERFIL-92", coord_x := -37.0623882]
+soildata[id == "ctb0607-PERFIL-92", .(id, coord_y, coord_x)]
+
+# THIS HAS ALREADY BEEN CORRECTED IN THE ORIGINAL DATASET. WE KEEP IT HERE FOR REFERENCE.
+soildata[
+  dataset_id == "ctb0607" & observacao_id == "PERFIL-92",
+  carbono := ifelse(carbono == 413, 41.3, carbono)
+]
+
+# THIS HAS ALREADY BEEN CORRECTED IN THE ORIGINAL DATASET. WE KEEP IT HERE FOR REFERENCE.
+# ctb0718-51. carbon is recorded as 145 g/kg. It is corrected to 14.5 g/kg.
+soildata[
+  dataset_id == "ctb0718" & observacao_id == "51",
+  carbono := ifelse(carbono == 145, 14.5, carbono)
+]
+
+# FIGURE 14.1
+# Check spatial distribution after cleaning data
+soildata_sf <- soildata[!is.na(coord_x) & !is.na(coord_y)]
+soildata_sf <- sf::st_as_sf(soildata_sf, coords = c("coord_x", "coord_y"), crs = 4326)
+file_path <- "res/fig/141_spatial_distribution_after_cleaning_data.png"
+png(file_path, width = 480 * 3, height = 480 * 3, res = 72 * 3)
+plot(brazil["code_state"],
+  col = "gray95", lwd = 0.5, reset = FALSE,
+  main = "Spatial distribution of SoilData after cleaning data"
+)
+plot(soildata_sf["estado_id"], cex = 0.3, add = TRUE, pch = 20)
+dev.off()
+
+# Write data to disk ###############################################################################
+summary_soildata(soildata)
+# Export cleaned data
+data.table::fwrite(soildata, "data/14_soildata_soc.txt", sep = "\t")
