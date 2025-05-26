@@ -173,20 +173,20 @@ nrow(unique(rondonia[EXTRA == TRUE, "observacao_id"])) # 24 events with duplicat
 rondonia[EXTRA == TRUE, observacao_id := paste0(observacao_id, camada_id_febr)]
 rondonia[, id := paste0(dataset_id, "-", observacao_id)]
 
-# WE DO NOT ADD RANDOM PERTURBATION TO THE COORDINATES OF EXTRA SAMPLES
-# # Add random perturbation to the coordinates of extra samples
-# # Use sf::st_jitter() with amount = 100 m, where runif(1, -amount, amount)
-# amount <- 100
-# extra_coords <- rondonia[EXTRA == TRUE & !is.na(coord_x), c("id", "coord_x", "coord_y")]
-# extra_coords <- sf::st_as_sf(extra_coords, coords = c("coord_x", "coord_y"), crs = 4326)
-# extra_coords <- sf::st_transform(extra_coords, crs = 32720)
-# set.seed(1984)
-# extra_coords <- sf::st_jitter(extra_coords, amount = amount)
-# extra_coords <- sf::st_transform(extra_coords, crs = 4326)
-# extra_coords <- sf::st_coordinates(extra_coords)
-# rondonia[EXTRA == TRUE & !is.na(coord_x), coord_x := extra_coords[, "X"]]
-# rondonia[EXTRA == TRUE & !is.na(coord_x), coord_y := extra_coords[, "Y"]]
-# rondonia[, EXTRA := NULL]
+# Add random perturbation to the coordinates of extra samples to pass checks for duplicated events
+# Use sf::st_jitter() with amount = 1 m, where runif(1, -amount, amount)
+amount <- 1
+extra_coords <- rondonia[EXTRA == TRUE & !is.na(coord_x), c("id", "coord_x", "coord_y")]
+extra_coords <- sf::st_as_sf(extra_coords, coords = c("coord_x", "coord_y"), crs = 4326)
+extra_coords <- sf::st_transform(extra_coords, crs = 32720)
+set.seed(1984)
+extra_coords <- sf::st_jitter(extra_coords, amount = amount)
+extra_coords <- sf::st_transform(extra_coords, crs = 4326)
+extra_coords <- sf::st_coordinates(extra_coords)
+rondonia[EXTRA == TRUE & !is.na(coord_x), coord_x := extra_coords[, "X"]]
+rondonia[EXTRA == TRUE & !is.na(coord_x), coord_y := extra_coords[, "Y"]]
+rondonia[, EXTRA := NULL]
+rm(extra_coords, amount)
 summary_soildata(rondonia)
 # Layers: 10789
 # Events: 3061
