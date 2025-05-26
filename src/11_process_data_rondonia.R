@@ -210,15 +210,15 @@ rondonia[, dataset_titulo := "Zoneamento Socioeconômico-Ecológico do Estado de
 rondonia[, dataset_licenca := "CC-BY-4.0"]
 rondonia[, organizacao_nome := "Governo do Estado de Rondônia"]
 # Then remove existing data from Rondônia (morphological descriptions)
-length(unique(soildata[, id])) # 14 043 events
+length(unique(soildata[, id])) # 13973 events
 soildata <- soildata[dataset_id != "ctb0032", ]
-length(unique(soildata[, id])) # 11 129 events
+length(unique(soildata[, id])) # 11059 events
 col_ro <- intersect(names(soildata), names(rondonia))
 soildata <- data.table::rbindlist(list(soildata, rondonia[, ..col_ro]), fill = TRUE)
 summary_soildata(soildata)
-# Layers: 50385
-# Events: 14190
-# Georeferenced events: 11060
+# Layers: 50315
+# Events: 14120
+# Georeferenced events: 10990
 
 # Write data to disk
 data.table::fwrite(soildata, "data/11_soildata.txt", sep = "\t")
