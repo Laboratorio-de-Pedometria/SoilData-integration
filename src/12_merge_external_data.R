@@ -32,6 +32,7 @@ rename <- c(
   "coord_municipio_nome",         "municipio_id",
   "coord_estado_sigla",           "estado_id",
   "coord_pais_id",                "pais_id",
+  "subamostra_quanti",            "amostra_quanti", 
   "ph_h2o_25_eletrodo",           "ph",
   "ph_h2o",                       "ph",
   "ctc_soma_calc",                "ctc",
@@ -157,7 +158,6 @@ dev.off()
 soildata_01[, observacao_id := id]
 soildata_01[, id := paste0(dataset_id, "-", id)]
 soildata <- rbind(soildata_02, soildata_01, fill = TRUE)
-summary_soildata(soildata)
 # Layers: 52256
 # Events: 15171
 # Georeferenced events: 12041
