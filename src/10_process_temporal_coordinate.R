@@ -593,7 +593,8 @@ nrow(unique(br_soil2023[is.na(data_coleta_ano), c("dataset_id", "observacao_id")
 
 # Check how many events have spatial coordinates (coord_x and coord_y) and
 nrow(unique(br_soil2023[, c("dataset_id", "observacao_id")])) # 13973 events
-nrow(br_soil2023) # 50400 layers
+nrow(br_soil2023)
+# 50400 layers
 
 # Temporal distribution of samples with known sampling date after data rescue and estimation
 missing_time <- is.na(br_soil2023[["data_coleta_ano"]])
