@@ -158,6 +158,7 @@ dev.off()
 soildata_01[, observacao_id := id]
 soildata_01[, id := paste0(dataset_id, "-", id)]
 soildata <- rbind(soildata_02, soildata_01, fill = TRUE)
+summary_soildata(soildata)
 # Layers: 52256
 # Events: 15171
 # Georeferenced events: 12041
@@ -217,7 +218,7 @@ dataset_organization <- c(
 )
 soildata[is.na(organizacao_nome), organizacao_nome := dataset_organization[dataset_id]]
 
-# Write data to disk
+# Write data to disk ###############################################################################
 summary_soildata(soildata)
 # Layers: 52256
 # Events: 15171
