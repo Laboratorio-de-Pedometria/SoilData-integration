@@ -15,14 +15,21 @@ if (!require("data.table")) {
 source("src/00_helper_functions.R")
 
 # Download Brazilian state boundaries
-brazil <- geobr::read_state()
+# Check if the file already exists to avoid re-downloading
+if (!file.exists("data/brazil_states.geojson")) {
+  brazil <- geobr::read_state()
+  # Save the data to a file for future use
+  sf::st_write(brazil, "data/brazil_states.geojson", delete_dsn = TRUE)
+} else {
+  brazil <- sf::st_read("data/brazil_states.geojson")
+}
 
 # Read SoilData data processed in the previous script
 soildata <- data.table::fread("data/13_soildata.txt", sep = "\t")
 summary_soildata(soildata)
-# Layers: 61009
+# Layers: 61145
 # Events: 18537
-# Georeferenced events: 14994
+# Georeferenced events: 14995
 
 # Clean datasets
 
@@ -42,9 +49,9 @@ duplicates_idx <- duplicates[, observacao_id]
 # Drop dataset_id = ctb0002 duplicates from soildata
 soildata <- soildata[!(dataset_id == "ctb0002" & observacao_id %in% duplicates_idx)]
 summary_soildata(soildata)
-# Layers: 60994
+# Layers: 61130
 # Events: 18522
-# Georeferenced events: 14979
+# Georeferenced events: 14980
 
 # ctb0029
 # Carbono e matéria orgânica em amostras do solo do Estado do Rio Grande do Sul por diferentes
@@ -55,9 +62,9 @@ summary_soildata(soildata)
 soildata <- soildata[!(dataset_id == "ctb0029" & municipio_id == "Silveira Martins" &
   amostra_tipo == "SIMPLES"), ]
 summary_soildata(soildata)
-# Layers: 60990
+# Layers: 61126
 # Events: 18518
-# Georeferenced events: 14975
+# Georeferenced events: 14976
 
 # ctb0654 (exact duplicate of ctb0608)
 # Conjunto de dados do 'V Reunião de Classificação, Correlação e Aplicação de Levantamentos de Solo
@@ -65,26 +72,26 @@ summary_soildata(soildata)
 # Ceará e Bahia'
 soildata <- soildata[dataset_id != "ctb0654", ]
 summary_soildata(soildata)
-# Layers: 60882
+# Layers: 61018
 # Events: 18498
-# Georeferenced events: 14956
+# Georeferenced events: 14957
 
 # ctb0800 (many duplicates of ctb0702)
 # Estudos pedológicos e suas relações ambientais
 soildata <- soildata[dataset_id != "ctb0800", ]
 summary_soildata(soildata)
-# Layers: 60637
+# Layers: 60773
 # Events: 18454
-# Georeferenced events: 14912
+# Georeferenced events: 14913
 
 # ctb0808 (exact duplicate of ctb0574)
 # Conjunto de dados do levantamento semidetalhado 'Levantamento Semidetalhado e Aptidão Agrícola dos
 # Solos do Município do Rio de Janeiro, RJ.'
 soildata <- soildata[dataset_id != "ctb0808", ]
 summary_soildata(soildata)
-# Layers: 60296
+# Layers: 60432
 # Events: 18394
-# Georeferenced events: 14852
+# Georeferenced events: 14853
 
 # LAYER ORDER
 soildata <- soildata[order(id, profund_sup, profund_inf)]
@@ -224,9 +231,9 @@ soildata <- soildata[equal_depth == FALSE]
 nrow(soildata[profund_sup == profund_inf]) # 0 layers
 soildata[, equal_depth := NULL]
 summary_soildata(soildata)
-# Layers: 58171
-# Events: 16988
-# Georeferenced events: 14507
+# Layers: 57891
+# Events: 16868
+# Georeferenced events: 14388
 
 # Layer id
 # Sort each event (id) by layer depth (profund_sup and profund_inf)
@@ -249,9 +256,9 @@ print(soildata[id == "ctb0055-PR_4", .(id, camada_nome, profund_sup, profund_inf
 soildata <- soildata[repeated == FALSE, ]
 soildata[, repeated := NULL]
 summary_soildata(soildata)
-# Layers: 57607
-# Events: 16988
-# Georeferenced events: 14506
+# Layers: 57327
+# Events: 16868
+# Georeferenced events: 14387
 
 # Update layer id
 # Sort each event (id) by layer depth (profund_sup and profund_inf)
