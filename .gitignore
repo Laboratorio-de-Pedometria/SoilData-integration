@@ -1,2 +1,3 @@
 data/*.txt
 res/fig/*.png
+data/*.geojson
