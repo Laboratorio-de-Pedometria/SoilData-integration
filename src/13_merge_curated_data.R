@@ -42,7 +42,8 @@ if (!dir.exists(dir_path)) {
     path = path.expand(dir_path), pattern = "^ctb[0-9]{4}\\.csv$",
     full.names = TRUE, recursive = TRUE
   )
-  length(curated_path) # 28 datasets
+  length(curated_path)
+  # 28 datasets
   print(curated_path)
 }
 
@@ -129,6 +130,10 @@ dev.off()
 
 ####################################################################################################
 # Export cleaned data
+summary_soildata(soildata)
+# Layers: 61145
+# Events: 18537
+# Georeferenced events: 14995
 # Number of datasets
 length(soildata[, unique(dataset_id)])
 # 263 datasets
