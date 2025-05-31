@@ -20,7 +20,14 @@ if (!require("geobr")) {
 source("src/00_helper_functions.R")
 
 # Download Brazilian state boundaries
-brazil <- geobr::read_state()
+# Check if the file already exists to avoid re-downloading
+if (!file.exists("data/brazil_states.geojson")) {
+  brazil <- geobr::read_state()
+  # Save the data to a file for future use
+  sf::st_write(brazil, "data/brazil_states.geojson", delete_dsn = TRUE)
+} else {
+  brazil <- sf::st_read("data/brazil_states.geojson")
+}
 
 # Rename columns following previous standards
 rename <- c(
@@ -50,7 +57,8 @@ files_event <- list.files(
   pattern = "-evento.txt$",
   full.names = TRUE, recursive = TRUE
 )
-length(files_event) # 7 data sets
+length(files_event)
+# 7 data sets
 print(files_event)
 data_event <- list()
 for (i in seq_along(files_event)) {
@@ -61,7 +69,8 @@ for (i in seq_along(files_event)) {
   data.table::setnames(data_event[[i]], old = rename[, 1], new = rename[, 2], skip_absent = TRUE)
 }
 data_event <- data.table::rbindlist(data_event, fill = TRUE)
-nrow(data_event) # 1662 events
+nrow(data_event)
+# 1662 events
 
 # Standardize coordinate reference system
 target_crs <- 4326
@@ -109,7 +118,8 @@ files_layer <- list.files(
   pattern = "-camada.txt$",
   full.names = TRUE, recursive = TRUE
 )
-length(files_layer) # 7 data sets
+length(files_layer)
+# 7 data sets
 print(files_layer)
 data_layer <- list()
 for (i in seq_along(files_layer)) {
@@ -121,7 +131,8 @@ for (i in seq_along(files_layer)) {
 }
 data_layer <- data.table::rbindlist(data_layer, fill = TRUE)
 data_layer[, camada_nome := camada_id]
-nrow(data_layer) # 2134 layers
+nrow(data_layer)
+# 2134 layers
 
 # Merge data from events and layers
 soildata_01 <- merge(data_event, data_layer, by = c("dataset_id", "id"))
