@@ -199,9 +199,9 @@ summary_soildata(rondonia)
 soildata <- data.table::fread("data/10_soildata.txt", sep = "\t", na.strings = c("", "NA"))
 soildata[, coord_datum_epsg := 4326]
 summary_soildata(soildata)
-# Layers: 50470
-# Events: 14043
-# Georeferenced events: 11012
+# Layers: 50400
+# Events: 13973
+# Georeferenced events: 10942
 if (FALSE) {
   x11()
   plot(soildata[, c("coord_x", "coord_y")])
@@ -223,5 +223,5 @@ summary_soildata(soildata)
 # Events: 14120
 # Georeferenced events: 10990
 
-# Write data to disk
+# Write data to disk ###############################################################################
 data.table::fwrite(soildata, "data/11_soildata.txt", sep = "\t")
