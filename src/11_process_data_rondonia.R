@@ -37,9 +37,11 @@ event34[, dataset_id34 := dataset_id]
 event34[, dataset_id := NULL]
 event34[, data_coleta := as.Date(data_coleta, origin = "1899-12-30")]
 # event34[, data_coleta := NULL]
-sapply(list(event33 = event33, event34 = event34), nrow) # 2998 and 107 events
+sapply(list(event33 = event33, event34 = event34), nrow)
+# 2998 and 107 events
 eventRO <- merge(event33, event34, all = TRUE)
-nrow(eventRO) # 2999 events after merge
+nrow(eventRO)
+# 2999 events after merge
 eventRO[, dataset_id := "ctb0033"]
 eventRO[, coord_datum_epsg := NULL]
 eventRO[, coord_datum_epsg := "EPSG:4326"]
@@ -55,7 +57,8 @@ eventRO[, estado_id := "RO"]
 cols <- intersect(names(eventRO), tolower(names(eventRO)))
 eventRO <- eventRO[, ..cols]
 eventRO[, data_coleta_ano := as.integer(format(data_coleta, "%Y"))]
-nrow(eventRO[is.na(data_coleta_ano), ]) # 87 events missing the sampling date
+nrow(eventRO[is.na(data_coleta_ano), ])
+# 87 events missing the sampling date
 # Set the sampling date to 1996 for events with missing data
 eventRO[is.na(data_coleta_ano), data_coleta_ano := 1996]
 eventRO[!is.na(data_coleta_ano), data_coleta_ano_fonte := "original"]
@@ -125,14 +128,16 @@ layer34 <- data.table::as.data.table(layer34)
 layer34[, dataset_id34 := dataset_id]
 layer34[, dataset_id := NULL]
 layer34[, camada_id_febr := camada_id_alt]
-sapply(list(layer33, layer34), nrow) # 10 779 and 419 layers
+sapply(list(layer33, layer34), nrow)
+# 10 779 and 419 layers
 # Merge layers from ctb0033 and ctb0034
 layerRO <- merge(layer33, layer34,
   by = c("evento_id_febr", "camada_id_febr"),
   suffixes = c("", ".IGNORE"),
   all = TRUE
 )
-nrow(layerRO) # 10 785 layers after merge
+nrow(layerRO)
+# 10785 layers after merge
 layerRO[, dataset_id := "ctb0033"]
 colnames(layerRO)
 new_names <- c(
@@ -154,7 +159,8 @@ layerRO[, dataset_id34 := NULL]
 
 # Merge events and layers
 rondonia <- merge(eventRO, layerRO, all = TRUE)
-nrow(rondonia) # 10 789 layers
+nrow(rondonia)
+# 10789 layers
 
 # Standardize measurement units
 rondonia[, areia := areia * 10]
@@ -166,8 +172,10 @@ rondonia[, carbono := carbono * 10]
 # Deal with the identification of events containing duplicated layers
 # These are extra samples for soil fertility assessment collected nearby the soil profile
 rondonia[, EXTRA := duplicated(profund_sup), by = observacao_id]
-nrow(rondonia[EXTRA == TRUE, ]) # 63 duplicated layers
-nrow(unique(rondonia[EXTRA == TRUE, "observacao_id"])) # 24 events with duplicated layers
+nrow(rondonia[EXTRA == TRUE, ])
+# 63 duplicated layers
+nrow(unique(rondonia[EXTRA == TRUE, "observacao_id"]))
+# 24 events with duplicated layers
 # Rename the duplicated layers by pasting the layer id (a letter) to the observation id, for
 # example, RO0600C.
 rondonia[EXTRA == TRUE, observacao_id := paste0(observacao_id, camada_id_febr)]
@@ -213,15 +221,17 @@ rondonia[, dataset_titulo := "Zoneamento Socioeconômico-Ecológico do Estado de
 rondonia[, dataset_licenca := "CC-BY-4.0"]
 rondonia[, organizacao_nome := "Governo do Estado de Rondônia"]
 # Then remove existing data from Rondônia (morphological descriptions)
-length(unique(soildata[, id])) # 13973 events
+length(unique(soildata[, id]))
+# 13973 events
 soildata <- soildata[dataset_id != "ctb0032", ]
-length(unique(soildata[, id])) # 11059 events
+length(unique(soildata[, id]))
+# 11059 events
 col_ro <- intersect(names(soildata), names(rondonia))
 soildata <- data.table::rbindlist(list(soildata, rondonia[, ..col_ro]), fill = TRUE)
+
+# Write data to disk ###############################################################################
 summary_soildata(soildata)
 # Layers: 50315
 # Events: 14120
 # Georeferenced events: 10990
-
-# Write data to disk ###############################################################################
 data.table::fwrite(soildata, "data/11_soildata.txt", sep = "\t")
