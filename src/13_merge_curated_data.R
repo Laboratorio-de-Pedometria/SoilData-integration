@@ -23,7 +23,14 @@ if (!require("geobr")) {
 source("src/00_helper_functions.R")
 
 # Download Brazilian state boundaries
-brazil <- geobr::read_state()
+# Check if the file already exists to avoid re-downloading
+if (!file.exists("data/brazil_states.geojson")) {
+  brazil <- geobr::read_state()
+  # Save the data to a file for future use
+  sf::st_write(brazil, "data/brazil_states.geojson", delete_dsn = TRUE)
+} else {
+  brazil <- sf::st_read("data/brazil_states.geojson")
+}
 
 # Read curated data
 dir_path <- "~/ownCloud/SoilData"
@@ -64,9 +71,9 @@ curated_data <- curated_data[, ..read_cols]
 curated_data[, id := paste0(dataset_id, "-", observacao_id)]
 curated_data[!is.na(data_ano), data_fonte := NA_character_]
 summary_soildata(curated_data)
-# Layers: 9969
+# Layers: 10105
 # Events: 3780
-# Georeferenced events: 3365
+# Georeferenced events: 3366
 
 # Read SoilData data processed in the previous script
 soildata <- data.table::fread("data/12_soildata.txt", sep = "\t", na.strings = c("", "NA"))
@@ -103,9 +110,9 @@ summary_soildata(soildata)
 # Merge curated data with SoilData
 soildata <- rbind(soildata, curated_data, fill = TRUE)
 summary_soildata(soildata)
-# Layers: 61009
+# Layers: 61145
 # Events: 18537
-# Georeferenced events: 14994
+# Georeferenced events: 14995
 
 # FIGURE 13.2
 # Check spatial distribution after merging curated data
