@@ -8,9 +8,10 @@
 # Create function to describe a data.frame. Use an argument na.rm = TRUE.
 summary_soildata <- function(x, na.rm = TRUE) {
   cat("Column names:")
-  cat("\n", paste(names(x)), collapse = " ")
+  cat("\n", paste(sort(names(x))), collapse = " ")
   cat("\nLayers:", nrow(x))
   cat("\nEvents:", nrow(unique(x[, "id"])))
   cat("\nGeoreferenced events:", nrow(unique(x[!is.na(coord_x) & !is.na(coord_y), "id"])))
+  cat("\nDatasets:", length(unique(x[, dataset_id])))
   cat("\n")
 }
