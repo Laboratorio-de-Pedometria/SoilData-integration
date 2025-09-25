@@ -3,6 +3,14 @@
 # author: Alessandro Samuel-Rosa and Taciara Zborowski Horst
 # data: 2025
 # licence: MIT
+# summary: This script processes soil data from the Socioeconomic-Ecological Zoning of the State 
+#          of Rondônia, specifically from datasets ctb0033 and ctb0034. It downloads and merges 
+#          event and layer data from the FEBR repository, standardizes column names and measurement 
+#          units, and manually corrects the coordinates of two mislocated events. The script also 
+#          handles duplicated layers, which are extra samples for fertility assessment, by creating 
+#          new event identifiers and jittering their coordinates. Finally, it removes any existing 
+#          data from Rondônia in the main dataset and merges the newly processed data, saving the 
+#          result to a new file.
 rm(list = ls())
 
 # Load required packages
@@ -74,12 +82,7 @@ str(eventRO)
 # author (ASR).
 
 # RO2656
-# Ao consultar as coordenadas originais do ponto RO2656, registradas no SoilData, e visualizar as
-# mesmas no GoogleMaps, verificamos que realmente o ponto cai dentro de um curso de água na divisa
-# entre Brasil e Bolívia. O estudo da documentação do trabalho revelou que pode haver um erro
-# posicional de aproximadamente 100 m. Segundo a descrição textual da localização, o perfil de solo
-# foi coletado na "Beira Rio Guapore". Novas coordenadas, coletadas no Google Maps, serão atribuídas
-# manualmente ao ponto.
+# By consulting the original coordinates of point RO2656, recorded in SoilData, and visualizing them on Google Maps, we verified that the point indeed falls within a watercourse on the border between Brazil and Bolivia. The study of the work's documentation revealed that there may be a positional error of approximately 100 m. According to the textual description of the location, the soil profile was collected at the "Beira Rio Guapore". New coordinates, collected on Google Maps, will be manually assigned to the point.
 # More information about the location can be found at:
 # https://github.com/Laboratorio-de-Pedometria/mapbiomas-soil-train-prep/issues/5
 # RO2656: -61.306907, -13.485739
@@ -97,9 +100,11 @@ cura_info <- paste0(
 eventRO[observacao_id == id, observacao_cura := cura_info]
 
 # RO2953: -9.765833 -65.73528 (original)
-# The sample location is in Bolivia, close to the Brazilian border
-# It is possible that the authors of the data collected the soil samples in Bolivian territory,
-# for example, due to ease of access.
+# The sample location is in Bolivia, near the Brazilian border.
+# It is possible that the authors collected the soil samples in Bolivian territory, possibly for easier access.
+# The original coordinates for point RO2953 are in Bolivian territory, close to the border with Brazil.
+# Documentation review suggests a positional error of approximately 100 m.
+# New coordinates, obtained from Google Maps, have been manually assigned to this point.
 # There is no additional information in the dataset to confirm this hypothesis.
 # The coordinates were changed to a location in Rondônia, Brazil.
 # -9.764905, -65.735686
@@ -107,15 +112,10 @@ eventRO[observacao_id == id, observacao_cura := cura_info]
 id <- "RO2953"
 eventRO[observacao_id == id, coord_x := -65.735686]
 eventRO[observacao_id == id, coord_y := -9.764905]
-cura_info <- paste0(
-  "2024-06-05 (ASR): As coordenadas originais do ponto RO2953 (",
-  eventRO[observacao_id == id, coord_x], ", ",
-  eventRO[observacao_id == id, coord_y], ") estão em território boliviano, próximo à divisa com o Brasil. ",
-  " O estudo da documentação do trabalho revelou que pode haver um erro posicional de aproximadamente 100 m. ",
-  " Novas coordenadas, coletadas no Google Maps, foram atribuídas manualmente ao ponto."
-)
-eventRO[observacao_id == id, observacao_cura := cura_info]
-rm(id, cura_info)
+eventRO[observacao_id == id, coord_fonte := "Google Maps (curadoria)"]
+# Add 100 m to coord_precisao
+eventRO[observacao_id == id, coord_precisao := coord_precisao + 100]
+rm(id)
 
 # Download current version from FEBR: layers
 # ctb0033
@@ -129,7 +129,7 @@ layer34[, dataset_id34 := dataset_id]
 layer34[, dataset_id := NULL]
 layer34[, camada_id_febr := camada_id_alt]
 sapply(list(layer33, layer34), nrow)
-# 10 779 and 419 layers
+# 10779 and 419 layers
 # Merge layers from ctb0033 and ctb0034
 layerRO <- merge(layer33, layer34,
   by = c("evento_id_febr", "camada_id_febr"),
@@ -177,11 +177,14 @@ nrow(rondonia[EXTRA == TRUE, ])
 nrow(unique(rondonia[EXTRA == TRUE, "observacao_id"]))
 # 24 events with duplicated layers
 # Rename the duplicated layers by pasting the layer id (a letter) to the observation id, for
-# example, RO0600C.
+# example, RO0600C. This will create a new event for each duplicated layer, enabling to identify
+# the source of the sample.
 rondonia[EXTRA == TRUE, observacao_id := paste0(observacao_id, camada_id_febr)]
 rondonia[, id := paste0(dataset_id, "-", observacao_id)]
-
-# Add random perturbation to the coordinates of extra samples to pass checks for duplicated events
+# Next we add a random perturbation to the coordinates of extra samples only to pass checks for
+# duplicated events. We use a small perturbation of 1 m, which is negligible for most practical
+# purposes. The coordinates are transformed to UTM zone 20S (EPSG:32720) before applying the
+# perturbation and then transformed back to WGS84 (EPSG:4326).
 # Use sf::st_jitter() with amount = 1 m, where runif(1, -amount, amount)
 amount <- 1
 extra_coords <- rondonia[
@@ -196,6 +199,18 @@ extra_coords <- sf::st_transform(extra_coords, crs = 4326)
 extra_coords <- sf::st_coordinates(extra_coords)
 rondonia[EXTRA == TRUE & !is.na(coord_x) & !is.na(coord_y), coord_x := extra_coords[, "X"]]
 rondonia[EXTRA == TRUE & !is.na(coord_x) & !is.na(coord_y), coord_y := extra_coords[, "Y"]]
+# In coord_fonte, append " + amount m jitter" to the existing text.
+rondonia[
+  EXTRA == TRUE & !is.na(coord_x) & !is.na(coord_y),
+  coord_fonte := paste0(coord_fonte, " + ", amount, " m jitter")
+]
+rondonia[, .N, by = coord_fonte]
+# In coord_precisao, add 1 to the existing value if it a number larger than 0.
+rondonia[
+  EXTRA == TRUE & !is.na(coord_x) & !is.na(coord_y) & !is.na(coord_precisao) & coord_precisao > 0,
+  coord_precisao := coord_precisao + 1
+]
+rondonia[, summary(coord_precisao)]
 rondonia[, EXTRA := NULL]
 rm(extra_coords, amount)
 summary_soildata(rondonia)
