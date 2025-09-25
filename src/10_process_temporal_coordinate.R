@@ -3,6 +3,13 @@
 # author: Alessandro Samuel-Rosa and Taciara Zborowski Horst
 # data: 2025
 # licence: MIT
+# summary: This script processes the temporal coordinate (sampling year) of the Brazilian Soil 
+#          Dataset. It starts by extracting the year from the full date. Missing sampling years are 
+#          then recovered using data from a collaborative spreadsheet. For the remaining missing 
+#          years, an estimated sampling year is attributed based on information about the source 
+#          soil survey project. A new variable is created to indicate the source of the sampling 
+#          year (original or estimated). Finally, the temporal distribution of the samples is 
+#          plotted, and the processed dataset is saved to a file.
 rm(list = ls())
 
 # Install and load required packages
@@ -34,8 +41,10 @@ if (!file.exists(file_path)) {
 } else {
   br_soil2023 <- data.table::fread(file_path, dec = ".", sep = ";")
 }
-nrow(unique(br_soil2023[, c("dataset_id", "observacao_id")])) # 14 043 events
-nrow(br_soil2023) # 50 470 layers
+nrow(unique(br_soil2023[, c("dataset_id", "observacao_id")]))
+# 14043 events
+nrow(br_soil2023)
+# 50470 layers
 
 # Process time coordinate (sampling year)
 br_soil2023[, observacao_data := as.Date(observacao_data, format = "%Y-%m-%d")]
@@ -46,15 +55,17 @@ br_soil2023[data_coleta_ano < 1950, data_coleta_ano := NA_integer_]
 
 # Temporal distribution of samples with known sampling date
 nrow(unique(br_soil2023[, c("dataset_id", "observacao_id")]))
+# 14043 events
 nrow(unique(br_soil2023[is.na(data_coleta_ano), c("dataset_id", "observacao_id")]))
-# 14 043 events, 4848 without sampling date
+# 4848 without sampling date
 br_soil2023[, na_year := FALSE]
 br_soil2023[is.na(data_coleta_ano), na_year := TRUE]
 missing_time <- is.na(br_soil2023[["data_coleta_ano"]])
+# Plot histogram
 file_path <- "res/fig/101_temporal_distribution_before_rescue.png"
 png(file_path, width = 8, height = 5, units = "in", res = 300)
 hist(br_soil2023[["data_coleta_ano"]], sub = paste0("n = ", sum(!missing_time)), 
-  main = "Temporal distribution of samples with known sampling date before data rescue",
+  main = "Temporal distribution of samples with known sampling date\nbefore data rescue",
   xlab = "Year"
 )
 rug(br_soil2023[["data_coleta_ano"]])
@@ -87,8 +98,8 @@ print(recovered_time)
 
 # Check the range of values
 # Any error present in the downloaded data is corrected in the Google Sheets spreadsheet
-# Result: between 1957 and 2007
 range(recovered_time[["data_coleta_ano"]], na.rm = TRUE)
+# 1957 2007
 
 # Fill up the original table using the data recovered by our team of data curators
 recovered_time[, dados_id := gsub("https://www.pedometria.org/febr/", "", dados_id)]
@@ -104,10 +115,11 @@ nrow(unique(br_soil2023[is.na(data_coleta_ano), c("dataset_id", "observacao_id")
 br_soil2023[, na_year := FALSE]
 br_soil2023[is.na(data_coleta_ano), na_year := TRUE]
 missing_time <- is.na(br_soil2023[["data_coleta_ano"]])
+# Plot histogram
 file_path <- "res/fig/102_temporal_distribution_after_rescue.png"
 png(file_path, width = 8, height = 5, units = "in", res = 300)
 hist(br_soil2023[["data_coleta_ano"]], sub = paste0("n = ", sum(!missing_time)), 
-  main = "Temporal distribution of samples with known sampling date after data rescue",
+  main = "Temporal distribution of samples with known sampling date\nafter data rescue",
   xlab = "Year"
 )
 rug(br_soil2023[["data_coleta_ano"]])
@@ -598,6 +610,7 @@ nrow(br_soil2023)
 
 # Temporal distribution of samples with known sampling date after data rescue and estimation
 missing_time <- is.na(br_soil2023[["data_coleta_ano"]])
+# Plot histogram
 file_path <- "res/fig/103_temporal_distribution_after_estimation.png"
 png(file_path, width = 8, height = 5, units = "in", res = 300)
 x <- br_soil2023[, data_coleta_ano[1], by = c("dataset_id", "observacao_id")][, V1]
@@ -615,10 +628,11 @@ br_soil2023[data_coleta_ano == year_min, data_coleta_ano := NA_integer_]
 
 # Check for consisteny of data_coleta_ano and data_coleta_ano_fonte
 # Should be an empty table
-br_soil2023[
-  is.na(data_coleta_ano) & !is.na(data_coleta_ano_fonte), 
+nrow(br_soil2023[
+  is.na(data_coleta_ano) & !is.na(data_coleta_ano_fonte),
   .(dataset_id, observacao_id, data_coleta_ano, data_coleta_ano_fonte)
-]
+]) == 0
+# TRUE
 
 # Write data to disk ###############################################################################
 summary_soildata(br_soil2023)
