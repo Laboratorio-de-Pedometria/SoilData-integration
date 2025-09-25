@@ -3,17 +3,28 @@
 # author: Alessandro Samuel-Rosa and Taciara Zborowski Horst
 # data: 2025
 # licence: MIT
+# summary: This script integrates external soil datasets into the main Brazilian Soil Dataset. It 
+#          begins by loading event and layer data from a local repository. The script standardizes 
+#          column names and ensures all geographic coordinates are in the WGS84 (EPSG:4326) 
+#          reference system. It then loads the main dataset processed in the previous step, merges 
+#          the new external data, and generates comparison plots of the spatial distribution before 
+#          and after the merge. Finally, it populates missing metadata (title, license, 
+#          organization) for the newly integrated datasets and saves the combined dataset to a 
+#          file.
 rm(list = ls())
 
 # Install and load required packages
 if (!require("data.table")) {
   install.packages("data.table")
+  library(data.table)
 }
 if (!require("sf")) {
   install.packages("sf")
+  library(sf)
 }
 if (!require("geobr")) {
   install.packages("geobr")
+  library(geobr)
 }
 
 # Source helper functions
@@ -156,6 +167,7 @@ if (!"coord_datum_epsg" %in% colnames(soildata_02)) {
 # Check spatial distribution before merging external data
 soildata_02_sf <- soildata_02[!is.na(coord_x) & !is.na(coord_y)]
 soildata_02_sf <- sf::st_as_sf(soildata_02_sf, coords = c("coord_x", "coord_y"), crs = 4326)
+# Plot spatial distribution
 file_path <- "res/fig/121_spatial_distribution_before_external_data.png"
 png(file_path, width = 480 * 3, height = 480 * 3, res = 72 * 3)
 plot(brazil["code_state"],
@@ -164,6 +176,10 @@ plot(brazil["code_state"],
 )
 plot(soildata_02_sf["estado_id"], cex = 0.3, add = TRUE, pch = 20)
 dev.off()
+summary_soildata(soildata_02)
+# Layers: 50315
+# Events: 14120
+# Georeferenced events: 10990
 
 # Merge SoilData data with external data
 soildata_01[, observacao_id := id]
@@ -177,6 +193,7 @@ summary_soildata(soildata)
 # Check spatial distribution after merging external data
 soildata_sf <- soildata[!is.na(coord_x) & !is.na(coord_y)]
 soildata_sf <- sf::st_as_sf(soildata_sf, coords = c("coord_x", "coord_y"), crs = 4326)
+# Plot spatial distribution
 file_path <- "res/fig/122_spatial_distribution_after_external_data.png"
 png(file_path, width = 480 * 3, height = 480 * 3, res = 72 * 3)
 plot(brazil["code_state"],
