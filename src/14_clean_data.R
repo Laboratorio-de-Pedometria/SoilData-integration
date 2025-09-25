@@ -3,6 +3,15 @@
 # author: Alessandro Samuel-Rosa and Taciara Zborowski Horst
 # data: 2025
 # licence: MIT
+# summary: This script performs a comprehensive cleaning of the integrated Brazilian Soil Dataset. 
+#          It addresses various data quality issues, including the removal of duplicated datasets 
+#          and records, correction of inconsistent layer depth intervals (e.g., top depth greater 
+#          than bottom depth, negative depths), and standardization of layer names. The script also 
+#          handles duplicated events (i.e., multiple events with the same spatial and temporal 
+#          coordinates) by jittering their coordinates to ensure uniqueness. It cleans and 
+#          normalizes soil property data such as particle size distribution, fine earth content, 
+#          and bulk density. Finally, it applies manual corrections to specific records, generates 
+#          a plot of the final spatial distribution, and saves the cleaned dataset to a file.
 rm(list = ls())
 
 # Install and load required packages
@@ -30,12 +39,15 @@ summary_soildata(soildata)
 # Layers: 61145
 # Events: 18537
 # Georeferenced events: 14995
+# Datasets: 263
 
 # Clean datasets
 
 # ctb0002 and ctb0838
 # Some records in the ctb0002 dataset are duplicated in the ctb0838 dataset. They have about the
 # same coordinates (coord_x, coord_y) and supposedly the same soil classification (taxon_sibcs).
+# These data come from the same source/author (Elias Mendes da Costa) and thus are known
+# duplicates.
 cols <- c("dataset_id", "observacao_id", "coord_x", "coord_y", "taxon_sibcs")
 ctb0002 <- soildata[dataset_id == "ctb0002", ..cols]
 ctb0002[, coord_x := round(coord_x, 4)]
@@ -52,6 +64,7 @@ summary_soildata(soildata)
 # Layers: 61130
 # Events: 18522
 # Georeferenced events: 14980
+# Datasets: 263
 
 # ctb0029
 # Carbono e matéria orgânica em amostras do solo do Estado do Rio Grande do Sul por diferentes
@@ -65,38 +78,49 @@ summary_soildata(soildata)
 # Layers: 61126
 # Events: 18518
 # Georeferenced events: 14976
+# Datasets: 263
 
 # ctb0654 (exact duplicate of ctb0608)
 # Conjunto de dados do 'V Reunião de Classificação, Correlação e Aplicação de Levantamentos de Solo
 #  - guia de excursão de estudos de solos nos Estados de Pernambuco, Paraíba, Rio Grande do Norte,
 # Ceará e Bahia'
+# These datasets are exact duplicates. We remove ctb0654.
 soildata <- soildata[dataset_id != "ctb0654", ]
 summary_soildata(soildata)
 # Layers: 61018
 # Events: 18498
 # Georeferenced events: 14957
+# Datasets: 262
 
 # ctb0800 (many duplicates of ctb0702)
 # Estudos pedológicos e suas relações ambientais
+# Ideally we should check each duplicated event to decide which one to keep. But this is a
+# time-consuming task. So we just remove all records from ctb0800. These data need to be checked
+# in the future.
 soildata <- soildata[dataset_id != "ctb0800", ]
 summary_soildata(soildata)
 # Layers: 60773
 # Events: 18454
 # Georeferenced events: 14913
+# Datasets: 261
 
 # ctb0808 (exact duplicate of ctb0574)
 # Conjunto de dados do levantamento semidetalhado 'Levantamento Semidetalhado e Aptidão Agrícola dos
 # Solos do Município do Rio de Janeiro, RJ.'
+# These datasets are exact duplicates. We remove ctb0808.
 soildata <- soildata[dataset_id != "ctb0808", ]
 summary_soildata(soildata)
 # Layers: 60432
 # Events: 18394
 # Georeferenced events: 14853
+# Datasets: 260
 
 # LAYER ORDER
 soildata <- soildata[order(id, profund_sup, profund_inf)]
 
 # Correct layer names (if necessary)
+# Here we only correct a few known cases. Correction needs to be done in the source data in the
+# future.
 soildata[camada_nome == "", camada_nome := NA_character_]
 soildata[
   id == "ctb0770-100" & camada_nome == "B21H",
@@ -108,6 +132,10 @@ soildata[
 ]
 
 # Incorrect depth limits: profund_sup > profund_inf
+# Check layers with incorrect depth limits (profund_sup > profund_inf). These layers need to be
+# corrected manually. We print the layers with incorrect depth limits and then correct them. Here we
+# simply reverse the depth limits. The corrections need to be checked in the source data in the
+# future.
 cols <- c("id", "camada_nome", "profund_sup", "profund_inf")
 soildata[profund_sup > profund_inf, ..cols]
 soildata[id == "ctb0033-RO1154" & profund_sup == 80, `:=` (
@@ -132,6 +160,8 @@ soildata[id == "ctb0033-RO3542" & profund_sup == 110, `:=`(
 # "negative_depth" (TRUE/FALSE). If a profile has negative depth limits, add the absolute value of
 # the negative depth limit to the depth limits (profund_sup and profund_inf) of all layers of that
 # profile.
+# This means that we standardize the topsoil layer to start at 0 cm depth. We still need to 
+# think about the best way to handle negative depth limits (organic layers).
 negative_depths <- soildata[, .(min_depth = min(profund_sup)), by = id][min_depth < 0]
 print(negative_depths)
 if (nrow(negative_depths) > 0) {
@@ -151,7 +181,8 @@ nrow(soildata[profund_sup == profund_inf])
 # 222 layers
 soildata[, equal_depth := any(profund_sup == profund_inf), by = id]
 print(soildata[equal_depth == TRUE, ..cols])
-# Add a fixed depth to R, D, and C layers with equal depth limits
+# Add a fixed depth (20 cm) to R, D, and C layers with equal depth limits
+# We need to check these corrections in the source data in the future.
 plus_depth <- 20
 soildata[
   profund_sup == profund_inf & grepl("R|D|C", camada_nome),
@@ -163,6 +194,7 @@ soildata[, equal_depth := any(profund_sup == profund_inf), by = id]
 # View(soildata[equal_depth == TRUE, ..cols])
 # Some events from dataset_id = ctb0033 have a single layer and the depth limit is equal to zero.
 # We remove these layers.
+# We need to check these corrections in the source data in the future.
 soildata[, n_layers := .N, by = id]
 soildata[
   dataset_id == "ctb0033" & profund_sup == profund_inf & profund_sup == 0 & n_layers == 1,
@@ -177,6 +209,7 @@ soildata[, n_layers := NULL]
 print(soildata[equal_depth == TRUE, ..cols])
 # Some events with profund_sup == profund_inf and profund_sup == 0 are from ctb0631.
 # Actually, these layers have not a depth limit recorded. So we set them to NA.
+# We need to check these corrections in the source data in the future.
 soildata[
   dataset_id == "ctb0631" & profund_sup == profund_inf & profund_sup == 0,
   .(id, camada_nome, profund_sup, profund_inf, carbono)
@@ -185,7 +218,9 @@ soildata <- soildata[!(dataset_id == "ctb0631" & profund_sup == profund_inf & pr
 nrow(soildata[profund_sup == profund_inf])
 # 36 layers
 print(soildata[equal_depth == TRUE, ..cols])
-# For some datasets, we add a fixed depth to the lowermost layer
+# For some datasets, we add a fixed depth to the lowermost layer. This decision is based on
+# visual inspection of the data. These corrections need to be checked in the source data in the
+# future.
 # ctb0691, ctb0787, ctb0675, ctb0603, ctb0645, ctb0033, ctb0678, ctb0691
 soildata[
   dataset_id == "ctb0691" & profund_sup == profund_inf, profund_inf := profund_inf + plus_depth
@@ -218,13 +253,14 @@ soildata[
   id == "ctb0717-38" & profund_sup == profund_inf, profund_inf := profund_inf + plus_depth
 ]
 # Some layers have equal values for profund_sup and profund_inf, but they are not R, D, or C layers.
+# We need to check these layers in the source data in the future. Here we simply remove these layers.
 soildata <- soildata[!(id == "ctb0809-Exame-8" & profund_sup == profund_inf)]
 # Check
 nrow(soildata[profund_sup == profund_inf])
 # 15 layers
 soildata[, equal_depth := any(profund_sup == profund_inf), by = id]
 print(soildata[equal_depth == TRUE, ..cols])
-# For some datasets, we add a fixed depth to the uppermost layer
+# For some datasets, we add a fixed depth to the uppermost layer# 
 soildata[id == "ctb0775-9" & camada_nome == "B21" & profund_sup == 150 & profund_inf == 150, `:=`(
   profund_sup = 100,
   profund_inf = 150
@@ -240,6 +276,7 @@ summary_soildata(soildata)
 # Layers: 57891
 # Events: 16868
 # Georeferenced events: 14388
+# Datasets: 255
 
 # Layer id
 # Sort each event (id) by layer depth (profund_sup and profund_inf)
@@ -265,6 +302,7 @@ summary_soildata(soildata)
 # Layers: 57327
 # Events: 16868
 # Georeferenced events: 14387
+# Datasets: 255
 
 # Update layer id
 # Sort each event (id) by layer depth (profund_sup and profund_inf)
@@ -295,7 +333,7 @@ soildata[id == "ctb0565-Perfil-08" & camada_nome == "BC1", `:=`(
   esqueleto = 0,
   terrafina = 1000
 )]
-# There datasets have been checks
+# These datasets have been checked
 ctb_ok <- c(
   "ctb0006", "ctb0011", "ctb0017", "ctb0025", "ctb0033", "ctb0038", "ctb0044", "ctb0562",
   "ctb0600", "ctb0605", "ctb0606"
@@ -304,11 +342,14 @@ cols <- c("id", "camada_nome", "profund_sup", "profund_inf", "esqueleto", "terra
 # View(soildata[!(dataset_id %in% ctb_ok) & esqueleto > 800, ..cols])
 # Filter out samples with skeleton > 1000.
 # Some layers have esqueleto > 1000. This is not possible.
+# We filter out these layers. These layers need to be checked in the source data in the
+# future.
 soildata <- soildata[is.na(esqueleto) | esqueleto < 1000]
 summary_soildata(soildata)
 # Layers: 57326
 # Events: 16868
 # Georeferenced events: 14387
+# Datasets: 255
 
 # Clean camada_nome
 soildata[, camada_nome := as.character(camada_nome)]
@@ -327,6 +368,9 @@ soildata[, silte := round(silte / 10)]
 soildata[, areia := round(areia / 10)]
 soildata[, psd := round(argila + silte + areia)]
 # Correct the particle size fractions
+# Some layers have incorrect particle size fractions. We correct these layers based on visual
+# inspection of the source documents. These corrections need to be implemented in the source data
+# in the future.
 soildata[
   id == "ctb0591-P-13-Sao-Mateus-do-Sul" & camada_nome == "BW1" & argila == 37, `:=` (
     argila = 100 - 16 - 9,
@@ -369,31 +413,35 @@ ctb_zero_clay <- c(
   "ctb0705"
 )
 soildata[argila == 0 & !dataset_id %in% ctb_zero_clay, .N]
-# 23 layers (they need to be checked)
+# 23 layers (they need to be checked in the source data in the future)
 # Print the layers with clay == 0
 cols <- c("id", "camada_nome", "argila", "silte", "areia")
 soildata[argila == 0 & !dataset_id %in% ctb_zero_clay, ..cols]
 # silt
 soildata[silte == 0, .N]
-# 85 layers (they need to be checked)
+# 85 layers (they need to be checked in the source data in the future)
 # Print the layers with silt == 0
 soildata[silte == 0, ..cols]
 # sand
 soildata[areia == 0, .N]
-# 138 layers (they need to be checked)
+# 138 layers (they need to be checked in the source data in the future)
 # Print the layers with sand == 0
 soildata[areia == 0, ..cols]
 
 # Check if the sum of the three fractions is 100%
+# We also check for values close to 100% (90-110%), which may be due to rounding errors.
 soildata[psd != 100, .N]
 # 2242 layers
 psd_lims <- 90:110
 soildata[!is.na(psd) & !(psd %in% psd_lims), .N]
-# 2 layers
+# 2 layers, both from ctb0025-Perfil-38. We drop these layers. They need to be checked in the
+# source data in the future.
+soildata <- soildata[!(id == "ctb0025-Perfil-38" & camada_nome == "Bt2")]
+soildata <- soildata[!(id == "ctb0025-Perfil-38" & camada_nome == "BC")]
 cols <- c("id", "camada_nome", "argila", "silte", "areia", "psd")
 soildata[!is.na(psd) & !(psd %in% psd_lims), ..cols]
 # If the sum of the three fractions is different from 100%, adjust their values, adding the
-# difference to the silt fraction.
+# difference to the silt fraction. We only consider layers with psd between 90 and 110%.
 soildata[psd != 100, argila := round(argila / psd * 100)]
 soildata[psd != 100, areia := round(areia / psd * 100)]
 soildata[psd != 100, silte := 100 - argila - areia]
@@ -402,6 +450,9 @@ soildata[psd != 100, psd]
 soildata[, psd := NULL]
 
 # Correct bulk density values
+# Some layers have incorrect bulk density values. We correct these layers based on inspection of 
+# the source documents. These corrections need to be implemented in the source data
+# in the future.
 soildata[id == "ctb0562-Perfil-13" & camada_id == 2, dsi := ifelse(dsi == 2.6, 0.86, dsi)]
 soildata[id == "ctb0562-Perfil-14" & camada_id == 1, dsi := ifelse(dsi == 2.53, 1.09, dsi)]
 soildata[id == "ctb0562-Perfil-14" & camada_id == 2, dsi := ifelse(dsi == 2.6, 0.9, dsi)]
@@ -420,12 +471,13 @@ soildata[id == "ctb0702-P-46" & camada_id == 1, dsi := ifelse(dsi == 2.08, 1.08,
 soildata[id == "ctb0572-Perfil-063" & camada_id == 2, dsi := ifelse(dsi == 0.34, 1.84, dsi)]
 soildata[id == "ctb0605-P-06" & camada_id == 2, dsi := ifelse(dsi == 0.31, 1.32, dsi)]
 summary_soildata(soildata)
-# Layers: 57326
+# Layers: 57324
 # Events: 16868
 # Georeferenced events: 14387
+# Datasets: 255
 
 # Clean events
-# Correct date (there is a typo in the spreadsheet)
+# Correct date (there is a typo in the spreadsheet). We checked the original document.
 soildata[id == "ctb0585-Perfil-9", data_ano := ifelse(all(data_ano == 1993), 1983, data_ano)]
 
 # Get unique events
@@ -460,11 +512,17 @@ ctb0010_sf <- data.table(
   coord_x = sf::st_coordinates(ctb0010_sf)[, "X"],
   coord_y = sf::st_coordinates(ctb0010_sf)[, "Y"]
 )
-# Jitter coordinates
+
+# HERE
+
+# Jitter coordinates by 1 meter to separate overlapping points and pass the duplication test.
+# In coord_fonte, append " + amount m jitter" to the existing text.
+# In coord_precisao, add 1 to the existing value if it a number larger than 0.
+amount <- 1
 set.seed(1984) # For reproducibility
-ctb0010_sf[, coord_x := coord_x + runif(1, -1, 1), by = observacao_id]
+ctb0010_sf[, coord_x := coord_x + runif(amount, -amount, amount), by = observacao_id]
 set.seed(2001)
-ctb0010_sf[, coord_y := coord_y + runif(1, -1, 1), by = observacao_id]
+ctb0010_sf[, coord_y := coord_y + runif(amount, -amount, amount), by = observacao_id]
 ctb0010_sf <- sf::st_as_sf(ctb0010_sf, coords = c("coord_x", "coord_y"), crs = 32720)
 # Transform back to WGS84
 ctb0010_sf <- sf::st_transform(ctb0010_sf, crs = 4326)
