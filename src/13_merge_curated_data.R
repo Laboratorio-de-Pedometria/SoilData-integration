@@ -3,6 +3,13 @@
 # author: Alessandro Samuel-Rosa and Taciara Zborowski Horst
 # data: 2025
 # licence: MIT
+# summary: This script integrates manually curated soil datasets into the main Brazilian Soil 
+#          Dataset. It reads multiple curated CSV files from a local directory, standardizes their 
+#          columns, and combines them into a single data table. It then loads the main dataset 
+#          processed in the previous step and plots its spatial distribution. To prevent 
+#          duplication, any datasets present in the curated data are first removed from the main 
+#          dataset before the curated data is merged. Finally, the script plots the spatial 
+#          distribution of the newly combined dataset and saves the final result to a file.
 rm(list = ls())
 
 # Install and load required packages
@@ -58,7 +65,7 @@ read_cols <- c(
   "dataset_id",
   "observacao_id",
   "data_ano",
-  # "data_fonte",
+  "data_fonte",
   "coord_x", "coord_y", "coord_precisao", "coord_fonte", "coord_datum",
   "pais_id", "estado_id", "municipio_id",
   "amostra_area",
@@ -87,6 +94,7 @@ summary_soildata(soildata)
 # Check spatial distribution before merging curated data
 soildata_sf <- soildata[!is.na(coord_x) & !is.na(coord_y)]
 soildata_sf <- sf::st_as_sf(soildata_sf, coords = c("coord_x", "coord_y"), crs = 4326)
+# Plot spatial distribution
 file_path <- "res/fig/131_spatial_distribution_before_curated_data.png"
 png(file_path, width = 480 * 3, height = 480 * 3, res = 72 * 3)
 plot(brazil["code_state"],
@@ -119,6 +127,7 @@ summary_soildata(soildata)
 # Check spatial distribution after merging curated data
 soildata_sf <- soildata[!is.na(coord_x) & !is.na(coord_y)]
 soildata_sf <- sf::st_as_sf(soildata_sf, coords = c("coord_x", "coord_y"), crs = 4326)
+# Plot spatial distribution
 file_path <- "res/fig/132_spatial_distribution_after_curated_data.png"
 png(file_path, width = 480 * 3, height = 480 * 3, res = 72 * 3)
 plot(brazil["code_state"],
@@ -134,7 +143,5 @@ summary_soildata(soildata)
 # Layers: 61145
 # Events: 18537
 # Georeferenced events: 14995
-# Number of datasets
-length(soildata[, unique(dataset_id)])
-# 263 datasets
+# Datasets: 263
 data.table::fwrite(soildata, "data/13_soildata.txt", sep = "\t")
