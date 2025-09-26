@@ -82,22 +82,21 @@ str(eventRO)
 # author (ASR).
 
 # RO2656
-# By consulting the original coordinates of point RO2656, recorded in SoilData, and visualizing them on Google Maps, we verified that the point indeed falls within a watercourse on the border between Brazil and Bolivia. The study of the work's documentation revealed that there may be a positional error of approximately 100 m. According to the textual description of the location, the soil profile was collected at the "Beira Rio Guapore". New coordinates, collected on Google Maps, will be manually assigned to the point.
+# By consulting the original coordinates of point RO2656, recorded in SoilData, and visualizing them
+# on Google Maps, we verified that the point indeed falls within a watercourse on the border between
+# Brazil and Bolivia. The study of the work's documentation revealed that there may be a positional
+# error of approximately 100 m. According to the textual description of the location, the soil
+# profile was collected at the "Beira Rio Guapore". New coordinates, collected on Google Maps, will
+# be manually assigned to the point.
 # More information about the location can be found at:
 # https://github.com/Laboratorio-de-Pedometria/mapbiomas-soil-train-prep/issues/5
 # RO2656: -61.306907, -13.485739
 id <- "RO2656"
 eventRO[observacao_id == id, coord_x := -61.306907]
 eventRO[observacao_id == id, coord_y := -13.485739]
-cura_info <- paste0(
-  "2024-06-05 (ASR): As coordenadas originais do ponto RO2656 (",
-  eventRO[observacao_id == id, coord_x], ", ",
-  eventRO[observacao_id == id, coord_y], ") caem dentro de um curso de água na divisa entre Brasil e Bolívia. ",
-  " O estudo da documentação do trabalho revelou que pode haver um erro posicional de aproximadamente 100 m. ",
-  " Segundo a descrição textual da localização, o perfil de solo foi coletado na Beira Rio Guapore. ",
-  " Novas coordenadas, coletadas no Google Maps, foram atribuídas manualmente ao ponto."
-)
-eventRO[observacao_id == id, observacao_cura := cura_info]
+eventRO[observacao_id == id, coord_fonte := "Google Maps (curadoria)"]
+# Add 100 m to coord_precisao
+eventRO[observacao_id == id, coord_precisao := coord_precisao + 100]
 
 # RO2953: -9.765833 -65.73528 (original)
 # The sample location is in Bolivia, near the Brazilian border.
