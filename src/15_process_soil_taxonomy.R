@@ -1,5 +1,8 @@
 # title: SoilData Integration
 # subtitle: Process Soil Taxonomy data
+# description: This script processes soil classification data (taxonomy) for datasets with missing
+# information. It downloads data from the FEBR repository, cleans the soil classification strings,
+# and updates the main `soildata` table.
 # author: Alessandro Samuel-Rosa and Taciara Zborowski Horst
 # data: 2025
 # licence: MIT
@@ -23,21 +26,27 @@ source("src/00_helper_functions.R")
 # Read SoilData data processed in the previous script
 soildata <- data.table::fread("data/14_soildata.txt", sep = "\t", na.strings = c("NA", ""))
 summary_soildata(soildata)
-# Layers: 57079
+# Layers: 57077
 # Events: 16824
 # Georeferenced events: 14334
+# Datasets: 255
 
 # Datasets with missing soil classification or not included in the original FEBR repository
+# These datasets do not have soil classification information (taxon_sibcs) in the current
+# soildata. Some of them were not included in the old FEBR repository (e.g., ctb0061, ctb0062).
+# We will try to update the soil classification information for these datasets.
 no_taxon <- c(
   "ctb0033", "ctb0035", "ctb0053", "ctb0055", "ctb0059", "ctb0024", "ctb0040",
   "ctb0049", "ctb0056", "ctb0057", "ctb0058", "ctb0060", "ctb0061", "ctb0062"
 )
 # Check which of the remaining datasets are missing soil classification
-missing_taxon <- soildata[!(dataset_id %in% no_taxon) & taxon_sibcs == "",
+missing_taxon <- soildata[!(dataset_id %in% no_taxon) & taxon_sibcs == "" | is.na(taxon_sibcs),
   .N,
   by = dataset_id
 ][order(-N)]
+# Keep only datasets with more than 50 samples missing soil classification
 missing_taxon <- missing_taxon[N > 50]
+print(missing_taxon)
 
 # Download data from the FEBR repository
 # Check if the file already exists to avoid re-downloading
@@ -97,70 +106,130 @@ taxon_data[, taxon_sibcs := gsub(" a .*", "", taxon_sibcs)]
 taxon_data[, taxon_sibcs := gsub(" A\\.", "", taxon_sibcs)]
 # Keep only the strings before the string " ou "
 taxon_data[, taxon_sibcs := gsub(" ou .*", "", taxon_sibcs)]
-# Keep only the strings before the string " / "
-taxon_data[, taxon_sibcs := gsub(" / .*", "", taxon_sibcs)]
-# Keep only the strings before the word "textura"
-taxon_data[, taxon_sibcs := gsub("textura", "", taxon_sibcs)]
-taxon_data[, taxon_sibcs := gsub("Textura", "", taxon_sibcs)]
-taxon_data[, taxon_sibcs := gsub("texutra", "", taxon_sibcs)]
-# Keep only the strings before the word "Substrato"
-taxon_data[, taxon_sibcs := gsub("Substrato.*", "", taxon_sibcs)]
-# Keep only the strings before the word "argilosa"
-taxon_data[, taxon_sibcs := gsub("argilosa.*", "", taxon_sibcs)]
-# Keep only the strings before the word "arenosa"
-taxon_data[, taxon_sibcs := gsub("arenosa.*", "", taxon_sibcs)]
-# Keep only the strings before the word "muito"
-taxon_data[, taxon_sibcs := gsub("muito.*", "", taxon_sibcs)]
-# Keep only the strings before the word "média"
-taxon_data[, taxon_sibcs := gsub("média.*", "", taxon_sibcs)]
-# Keep only the strings before the word "media"
-taxon_data[, taxon_sibcs := gsub("media.*", "", taxon_sibcs)]
-# Keep only the strings before the word "mádia/"
-taxon_data[, taxon_sibcs := gsub("mádia/.*", "", taxon_sibcs)]
-# Keep only the strings before the word "siltosa"
-taxon_data[, taxon_sibcs := gsub("siltosa.*", "", taxon_sibcs)]
-# Keep only the strings before the word "cascalhento"
-taxon_data[, taxon_sibcs := gsub("cascalhento.*", "", taxon_sibcs)]
-# Keep only the strings before the word "hístico"
-taxon_data[, taxon_sibcs := gsub("hístico.*", "", taxon_sibcs)]
+# Keep only the strings before the word "textura", "Textura", or "texutra"
+taxon_data[, taxon_sibcs := gsub("textura.*", "", taxon_sibcs)]
+taxon_data[, taxon_sibcs := gsub("Textura.*", "", taxon_sibcs)]
+taxon_data[, taxon_sibcs := gsub("texutra.*", "", taxon_sibcs)]
+# Keep only the strings before the word "(?)"
+taxon_data[, taxon_sibcs := gsub("\\(\\?\\).*", "", taxon_sibcs)]
 # Keep only the strings before the word "fase"
 taxon_data[, taxon_sibcs := gsub("fase.*", "", taxon_sibcs)]
-# Keep only the strings before the word "unidade"
-taxon_data[, taxon_sibcs := gsub("unidade.*", "", taxon_sibcs)]
 # Keep only the strings before the word "floresta"
 taxon_data[, taxon_sibcs := gsub("floresta.*", "", taxon_sibcs)]
-# Keep only the strings before the word "orgânica"
-taxon_data[, taxon_sibcs := gsub("orgânica.*", "", taxon_sibcs)]
-# Keep only the strings before the word "campo"
-taxon_data[, taxon_sibcs := gsub("campo.*", "", taxon_sibcs)]
-# Keep only the strings before the word "(?)"
-taxon_data[, taxon_sibcs := gsub("\\(\\?\\)", "", taxon_sibcs)]
-# Keep only the strings before the symbol "?"
-taxon_data[, taxon_sibcs := gsub("\\?", "", taxon_sibcs)]
-# Remove "&#10;"
-taxon_data[, taxon_sibcs := gsub("&#10;", "", taxon_sibcs)]
-# argila de atividade baixa -> Tb
-taxon_data[, taxon_sibcs := gsub("argila de atividade baixa", "Tb", taxon_sibcs)]
-# argila de atividade baica -> Tb
-taxon_data[, taxon_sibcs := gsub("argila de atividade baica", "Tb", taxon_sibcs)]
-# argila de atividade alta -> Ta
-taxon_data[, taxon_sibcs := gsub("argila de atividade alta", "Ta", taxon_sibcs)]
-# argila atividade alta -> Ta
-taxon_data[, taxon_sibcs := gsub("argila atividade alta", "Ta", taxon_sibcs)]
-# Remove extra spaces
-taxon_data[, taxon_sibcs := gsub("\\s+", " ", taxon_sibcs)]
-# Drop period at the end of the string
-taxon_data[, taxon_sibcs := gsub("\\.$", "", taxon_sibcs)]
-# Drop commas
-taxon_data[, taxon_sibcs := gsub(",", "", taxon_sibcs)]
-# Remove "(sem definição de subgrupo)"
+# Keep only the strings before the word "relevo"
+taxon_data[, taxon_sibcs := gsub("relevo.*", "", taxon_sibcs)]
+# Replace "t?ofico" with "trófico"
+taxon_data[, taxon_sibcs := gsub("t?ofico", "trófico", taxon_sibcs)]
+# Replace "VERMELHO ? AMARELO" with "VERMELHO-AMARELO"
+taxon_data[, taxon_sibcs := gsub("VERMELHO ? AMARELO", "VERMELHO-AMARELO", taxon_sibcs)]
+# Replace "argila - de " with "argila de"
+taxon_data[, taxon_sibcs := gsub("argila - de ", "argila de", taxon_sibcs)]
+# Replace "EUTRÓFICO&#10;Tb" with "EUTRÓFICO Tb"
+taxon_data[, taxon_sibcs := gsub("EUTRÓFICO&#10;Tb", "EUTRÓFICO Tb", taxon_sibcs)]
+# Replace "EQUIVALENTE&#10;EUTRÓFICO" with "EQUIVALENTE EUTRÓFICO"
+taxon_data[, taxon_sibcs := gsub("EQUIVALENTE&#10;EUTRÓFICO", "EQUIVALENTE EUTRÓFICO", taxon_sibcs)]
+# Replace "Alítico &#10;" with "Alítico"
+taxon_data[, taxon_sibcs := gsub("Alítico &#10;", "Alítico", taxon_sibcs)]
+# Replace "Distrófico&#10;" with "Distrófico"
+taxon_data[, taxon_sibcs := gsub("Distrófico&#10;", "Distrófico", taxon_sibcs)]
+# Replace "Eutrófico&#10;" with "Eutrófico"
+taxon_data[, taxon_sibcs := gsub("Eutrófico&#10;", "Eutrófico", taxon_sibcs)]
+# Replace "VERMELHO-AMARELO-Ortox" with "VERMELHO-AMARELO Orto"
+taxon_data[, taxon_sibcs := gsub("VERMELHO-AMARELO-Ortox", "VERMELHO-AMARELO Orto", taxon_sibcs)]
+# Replace "intermediário&#10;para" with "intermediário para"
+taxon_data[, taxon_sibcs := gsub("intermediário&#10;para", "intermediário para", taxon_sibcs)]
+# Remove the following strings if they appear:
+# (> 10mS/cm em superfície)
+# "(sem definição de subgrupo)"
+# (algo intermediária para Plintossolo?)
+# ? NITOSSOLO BRUNO DISTRÓFICO HÚMICO ?
+# ? ARGISSOLO VERMELHO Alumínico típico ?
+# (rúbrico)?
+# ? léptico?
+# ?plíntico?
+# (húmico? distrófico)
+# ?)
+#  A&#10;moderado
+taxon_data[, taxon_sibcs := gsub("\\(> 10mS/cm em superfície\\)", "", taxon_sibcs)]
 taxon_data[, taxon_sibcs := gsub("\\(sem definição de subgrupo\\)", "", taxon_sibcs)]
+taxon_data[, taxon_sibcs := gsub("\\(algo intermediária para Plintossolo\\?\\)", "", taxon_sibcs)]
+taxon_data[, taxon_sibcs := gsub("\\? NITOSSOLO BRUNO DISTRÓFICO HÚMICO \\?", "", taxon_sibcs)]
+taxon_data[, taxon_sibcs := gsub("\\? ARGISSOLO VERMELHO Alumínico típico \\?", "", taxon_sibcs)]
+taxon_data[, taxon_sibcs := gsub("\\(rúbrico\\)?", "", taxon_sibcs)]
+taxon_data[, taxon_sibcs := gsub("\\? léptico\\?", "", taxon_sibcs)]
+taxon_data[, taxon_sibcs := gsub("\\?plíntico\\?", "", taxon_sibcs)]
+taxon_data[, taxon_sibcs := gsub("\\(húmico? distrófico\\)", "", taxon_sibcs)]
+taxon_data[, taxon_sibcs := gsub("\\?", "", taxon_sibcs)]
+taxon_data[, taxon_sibcs := gsub(" A&#10;moderado", "", taxon_sibcs)]
+# Remove "Vertic Argiustoll"
+taxon_data[, taxon_sibcs := gsub("Vertic Argiustoll", "", taxon_sibcs)]
+# Remove "Arenic Histic"
+taxon_data[, taxon_sibcs := gsub("Arenic Histic", "", taxon_sibcs)]
+# Remove "HUMIC GLEI"
+taxon_data[, taxon_sibcs := gsub("HUMIC GLEI", "", taxon_sibcs)]
+# Remove entire string if contains "Tropud"
+taxon_data[, taxon_sibcs := gsub("Tropud.*", "", taxon_sibcs)]
+# Remove entire string if contains "Typic"
+taxon_data[, taxon_sibcs := gsub("Typic.*", "", taxon_sibcs)]
+# Remove entire string if contains "Tropaq"
+taxon_data[, taxon_sibcs := gsub("Tropaq.*", "", taxon_sibcs)]
+# Remove entire string if contains "orthox"
+taxon_data[, taxon_sibcs := gsub("orthox.*", "", taxon_sibcs)]
+# Remove entire string if contains "Quartzipsamment"
+taxon_data[, taxon_sibcs := gsub("Quartzipsamment.*", "", taxon_sibcs)]
+# Remove entire string if contains "Oxic"
+taxon_data[, taxon_sibcs := gsub("Oxic.*", "", taxon_sibcs)]
 # Remove "(proposta de inclusão subgrupo)"
 taxon_data[, taxon_sibcs := gsub("\\(proposta de inclusão subgrupo\\)", "", taxon_sibcs)]
-# Remove "aterro com calhaus"
-taxon_data[, taxon_sibcs := gsub("aterro com calhaus", "", taxon_sibcs)]
-# trim
+# Remove "(Regosol Eutrófico com Fragispan)"
+taxon_data[, taxon_sibcs := gsub("\\(Regosol Eutrófico com Fragispan\\)", "", taxon_sibcs)]
+# Remove "(Unidade Semi-árida)"
+taxon_data[, taxon_sibcs := gsub("\\(Unidade Semi-árida\\)", "", taxon_sibcs)]
+# Remove "variação BÚZIO"
+taxon_data[, taxon_sibcs := gsub("variação BÚZIO", "", taxon_sibcs)]
+# Remove "(com B" at the end of the string
+taxon_data[, taxon_sibcs := gsub("\\(com B$", "", taxon_sibcs)]
+# Remove "(com" at the end of the string
+taxon_data[, taxon_sibcs := gsub("\\(com$", "", taxon_sibcs)]
+# Remove "com" at the end of the string
+taxon_data[, taxon_sibcs := gsub("com$", "", taxon_sibcs)]
+# Remove "com B" at the end of the string
+taxon_data[, taxon_sibcs := gsub("com B$", "", taxon_sibcs)]
+# Remove "*" at any position
+taxon_data[, taxon_sibcs := gsub("\\*", "", taxon_sibcs)]
+# Remove period and comma at the end of the string
+taxon_data[, taxon_sibcs := gsub("\\.$", "", taxon_sibcs)]
+taxon_data[, taxon_sibcs := gsub(",$", "", taxon_sibcs)]
+# Replace multiple spaces with a single space
+taxon_data[, taxon_sibcs := gsub("\\s+", " ", taxon_sibcs)]
+# Remove leading and trailing spaces
 taxon_data[, taxon_sibcs := trimws(taxon_sibcs)]
+# Remove period at any position
+taxon_data[, taxon_sibcs := gsub("\\.", "", taxon_sibcs)]
+# Remove comma at the end of the string
+taxon_data[, taxon_sibcs := gsub(",$", "", taxon_sibcs)]
+# Remove "- " at the beginning of the string
+taxon_data[, taxon_sibcs := gsub("^- ", "", taxon_sibcs)]
+# Remove "A moderado"
+taxon_data[, taxon_sibcs := gsub("A moderado", "", taxon_sibcs)]
+# Remove "-" at the end of the string
+taxon_data[, taxon_sibcs := gsub("-$", "", taxon_sibcs)]
+# Remove " - Estação"
+taxon_data[, taxon_sibcs := gsub(" - Estação", "", taxon_sibcs)]
+# Remove "com B" at the end of the string
+taxon_data[, taxon_sibcs := gsub("com B$", "", taxon_sibcs)]
+# Remove parentheses " )" at the end of the string
+taxon_data[, taxon_sibcs := gsub(" \\)$", "", taxon_sibcs)]
+# Remove leading and trailing spaces
+taxon_data[, taxon_sibcs := trimws(taxon_sibcs)]
+# Replace "argila de atividade baixa" with "Tb"
+taxon_data[, taxon_sibcs := gsub("argila de atividade baixa", "Tb", taxon_sibcs)]
+# Replace "argila de atividade baica" with "Tb"
+taxon_data[, taxon_sibcs := gsub("argila de atividade baica", "Tb", taxon_sibcs)]
+# Replace "argila de atividade alta" with "Ta"
+taxon_data[, taxon_sibcs := gsub("argila de atividade alta", "Ta", taxon_sibcs)]
+# Replace "argila atividade alta" with "Ta"
+taxon_data[, taxon_sibcs := gsub("argila atividade alta", "Ta", taxon_sibcs)]
 
 # Check the unique values of taxon_sibcs
 taxon_data[, sample(unique(taxon_sibcs))]
@@ -171,8 +240,17 @@ taxon_data[dataset_id == "ctb0768", id := gsub("-perfil", "", id)]
 
 # Update soildata with taxon_data
 soildata <- soildata[taxon_data, taxon_sibcs := i.taxon_sibcs, on = "id"]
-
-# Clean data
+# Replace "LOW" with NA
+soildata[taxon_sibcs == "LOW", taxon_sibcs := NA_character_]
+# Replace "Hapl" with NA
+soildata[taxon_sibcs == "Hapl", taxon_sibcs := NA_character_]
+# Replace common abbreviations in taxon_sibcs
+# Print strings with max length smaller than 5 characters
+soildata[nchar(taxon_sibcs) < 5 & taxon_sibcs != "", taxon_sibcs]
+# RQo -> Neossolo Quartzarênico
+soildata[, taxon_sibcs := gsub("RQo", "Neossolo Quartzarênico", taxon_sibcs,
+  ignore.case = TRUE
+)]
 # LVa -> Latossolo Vermelho Amarelo
 soildata[, taxon_sibcs := gsub("LVa ", "Latossolo Vermelho Amarelo", taxon_sibcs,
   ignore.case = TRUE
@@ -207,9 +285,14 @@ soildata[, taxon_sibcs := gsub("TRe ", "Terra Roxa estruturada", taxon_sibcs,
 )]
 
 # Check if the taxon_sibcs was updated
-soildata[!(dataset_id %in% no_taxon) & taxon_sibcs == "", .N, by = dataset_id][order(-N)]
+# How does it compare to the previous missing_taxon?
+print(missing_taxon)
+soildata[dataset_id %in% missing_taxon$dataset_id & taxon_sibcs == "" | is.na(taxon_sibcs),
+  .N,
+  by = dataset_id
+][order(-N)]
 
-# tmp: For Wenceslau
+# tmp: For Wenceslau Geraldes Teixeira (Embrapa Solos)
 if (FALSE) {
   # Remove all records for well drained soils based on soil classification
   # Drop soildata records with "VERMELHO" in taxon_sibcs
@@ -253,7 +336,8 @@ if (FALSE) {
 
 # Write data to disk ###############################################################################
 summary_soildata(soildata)
-# Layers: 57079
+# Layers: 57077
 # Events: 16824
 # Georeferenced events: 14334
+# Datasets: 255
 data.table::fwrite(soildata, "data/15_soildata.txt", sep = "\t")
