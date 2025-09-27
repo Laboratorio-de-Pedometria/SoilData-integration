@@ -83,6 +83,9 @@ summary_soildata(curated_data)
 # Events: 3780
 # Georeferenced events: 3366
 
+# Fix known issues in curated data
+curated_data[dataset_id == "ctb0063", data_ano := ifelse(data_ano == 1, 2000, data_ano)]
+
 # Read SoilData data processed in the previous script
 soildata <- data.table::fread("data/12_soildata.txt", sep = "\t", na.strings = c("", "NA"))
 summary_soildata(soildata)
