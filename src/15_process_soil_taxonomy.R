@@ -41,7 +41,7 @@ summary_soildata(soildata)
 # Thus, we will not try to update the soil classification information for these datasets.
 no_taxon <- c(
   "ctb0035", "ctb0053", "ctb0055", "ctb0059", "ctb0024", "ctb0040",
-  "ctb0049", "ctb0056", "ctb0057", "ctb0058", "ctb0060", "ctb0061", "ctb0062"
+  "ctb0049", "ctb0056", "ctb0057", "ctb0058", "ctb0060", "ctb0061", "ctb0062", "ctb0063"
 )
 # Check which of the remaining datasets are missing soil classification
 # We will try to update only these datasets
@@ -143,6 +143,8 @@ taxon_data[, taxon_sibcs := gsub("Eutrófico&#10;", "Eutrófico", taxon_sibcs)]
 taxon_data[, taxon_sibcs := gsub("VERMELHO-AMARELO-Ortox", "VERMELHO-AMARELO Orto", taxon_sibcs)]
 # Replace "intermediário&#10;para" with "intermediário para"
 taxon_data[, taxon_sibcs := gsub("intermediário&#10;para", "intermediário para", taxon_sibcs)]
+# Replace "HÚMIDO" with "HÚMICO"
+taxon_data[, taxon_sibcs := gsub("HÚMIDO", "HÚMICO", taxon_sibcs)]
 # Remove the following strings if they appear:
 # (> 10mS/cm em superfície)
 # "(sem definição de subgrupo)"
