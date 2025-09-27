@@ -1,17 +1,18 @@
 # title: SoilData Integration
 # subtitle: Clean data
-# author: Alessandro Samuel-Rosa and Taciara Zborowski Horst
-# data: 2025
+# author: Alessandro Samuel-Rosa
+# date: 2025
 # licence: MIT
 # summary: This script performs a comprehensive cleaning of the integrated Brazilian Soil Dataset. 
 #          It addresses various data quality issues, including the removal of duplicated datasets 
 #          and records, correction of inconsistent layer depth intervals (e.g., top depth greater 
-#          than bottom depth, negative depths), and standardization of layer names. The script also 
+#          than bottom depth, negative depths), and standardization of layer names. It also 
 #          handles duplicated events (i.e., multiple events with the same spatial and temporal 
 #          coordinates) by jittering their coordinates to ensure uniqueness. It cleans and 
-#          normalizes soil property data such as particle size distribution, fine earth content, 
-#          and bulk density. Finally, it applies manual corrections to specific records, generates 
-#          a plot of the final spatial distribution, and saves the cleaned dataset to a file.
+#          normalizes soil property data, including particle size distribution, fine earth content, 
+#          and bulk density. Finally, it applies manual corrections to specific records, corrects 
+#          coordinates for points outside Brazil, generates a plot of the final spatial 
+#          distribution, and saves the cleaned dataset.
 rm(list = ls())
 
 # Install and load required packages

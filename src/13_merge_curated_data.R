@@ -1,15 +1,15 @@
 # title: SoilData Integration
 # subtitle: Merge curated data
-# author: Alessandro Samuel-Rosa and Taciara Zborowski Horst
-# data: 2025
+# author: Alessandro Samuel-Rosa
+# date: 2025
 # licence: MIT
 # summary: This script integrates manually curated soil datasets into the main Brazilian Soil 
 #          Dataset. It reads multiple curated CSV files from a local directory, standardizes their 
-#          columns, and combines them into a single data table. It then loads the main dataset 
-#          processed in the previous step and plots its spatial distribution. To prevent 
-#          duplication, any datasets present in the curated data are first removed from the main 
-#          dataset before the curated data is merged. Finally, the script plots the spatial 
-#          distribution of the newly combined dataset and saves the final result to a file.
+#          columns, and combines them into a single data table. It then loads the main dataset, 
+#          plots its spatial distribution, and adjusts its column names for consistency. To prevent 
+#          duplication, any datasets already present in the curated data are removed from the main 
+#          dataset before the merge. Finally, the script plots the spatial distribution of the 
+#          newly combined dataset and saves the final result to a file.
 rm(list = ls())
 
 # Install and load required packages

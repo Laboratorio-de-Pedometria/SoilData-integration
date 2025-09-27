@@ -1,22 +1,26 @@
 # title: SoilData Integration
 # subtitle: Process data from Rondônia
-# author: Alessandro Samuel-Rosa and Taciara Zborowski Horst
-# data: 2025
+# author: Alessandro Samuel-Rosa
+# date: 2025
 # licence: MIT
 # summary: This script processes soil data from the Socioeconomic-Ecological Zoning of the State 
-#          of Rondônia, specifically from datasets ctb0033 and ctb0034. It downloads and merges 
-#          event and layer data from the FEBR repository, standardizes column names and measurement 
-#          units, and manually corrects the coordinates of two mislocated events. The script also 
-#          handles duplicated layers, which are extra samples for fertility assessment, by creating 
-#          new event identifiers and jittering their coordinates. Finally, it removes any existing 
-#          data from Rondônia in the main dataset and merges the newly processed data, saving the 
-#          result to a new file.
+#          of Rondônia. It downloads and merges event and layer data from datasets ctb0033 and 
+#          ctb0034 from the FEBR repository. It also uses dataset ctb0032 to obtain soil 
+#          classification information. The script standardizes column names and measurement units, 
+#          and manually corrects the coordinates of two mislocated events. It also handles 
+#          duplicated layers (extra samples for fertility assessment) by creating new event 
+#          identifiers and jittering their coordinates. Finally, it removes existing data from 
+#          Rondônia in the main dataset and merges the newly processed data, saving the result.
 rm(list = ls())
 
 # Load required packages
 if (!require("data.table")) {
   install.packages("data.table")
   library("data.table")
+}
+if (!require("openxlsx")) {
+  install.packages("openxlsx")
+  library("openxlsx")
 }
 if (!require("sf")) {
   install.packages("sf")
@@ -34,6 +38,39 @@ source("src/00_helper_functions.R")
 
 # Zoneamento Socioeconômico-Ecológico do Estado de Rondônia (ctb0033 and ctb0034)
 # Download current version from FEBR: events
+# ctb0032
+event32 <- febr::observation("ctb0032", "all")
+event32 <- data.table::as.data.table(event32)
+event32 <- event32[, .(evento_id_febr, LOCALSERIE)]
+# drop all columns, except evento_id_febr and LOCALSERIE
+# Read file with soil classification codes and names
+# Read "~/ownCloud/febr-repo/processamento/ctb0032/base/LOCALSERIE.xlsx"
+LOCALSERIE <- read.xlsx(
+  "~/ownCloud/febr-repo/processamento/ctb0032/base/LOCALSERIE.xlsx",
+  sheet = 1, colNames = TRUE
+)
+LOCALSERIE <- data.table::as.data.table(LOCALSERIE)
+# LOCALSERIE_C_3: soil code (LOCALSERIE)
+# LOCSERIESD_C_70: soil name
+# Match LOCALSERIE in event32 with LOCALSERIE to get soil names
+event32 <- merge(event32, LOCALSERIE, by.x = "LOCALSERIE", by.y = "LOCALSERIE_C_3", all.x = TRUE)
+# Rename LOCSERIESD_C_70 to taxon_sibcs
+event32[, taxon_sibcs := LOCSERIESD_C_70]
+event32[, LOCALSERIE := NULL]
+event32[, LOCSERIESD_C_70 := NULL]
+# For some codes, there is no matching name. So we check the source documentation to fill in the
+# missing names.
+event32[is.na(taxon_sibcs), sort(evento_id_febr)]
+# 312
+event32[evento_id_febr == "RO1020", taxon_sibcs := "Latossolo Amarelo distrófico"]
+event32[evento_id_febr == "RO1030", taxon_sibcs := "Solos Glei distróficos"]
+event32[evento_id_febr == "RO1049", taxon_sibcs := "Solos Glei distróficos"]
+event32[evento_id_febr == "RO1057", taxon_sibcs := "Solos Glei distróficos"]
+event32[evento_id_febr == "RO1071", taxon_sibcs := "Solos Aluviais distróficos"]
+event32[evento_id_febr == "RO1112", taxon_sibcs := "Solos Aluviais distróficos"]
+event32[evento_id_febr == "RO1144", taxon_sibcs := "Solos Litólicos distróficos"]
+event32[evento_id_febr == "RO1147", taxon_sibcs := "Podzólico Vermelho-Amarelo tb distrófico A moderado"]
+# (THERE ARE MORE MISSING NAMES, BUT WE WILL LEAVE THEM AS NA FOR NOW)
 # ctb0033
 event33 <- febr::observation("ctb0033", "all")
 event33 <- data.table::as.data.table(event33)
@@ -48,6 +85,7 @@ event34[, data_coleta := as.Date(data_coleta, origin = "1899-12-30")]
 sapply(list(event33 = event33, event34 = event34), nrow)
 # 2998 and 107 events
 eventRO <- merge(event33, event34, all = TRUE)
+eventRO <- merge(eventRO, event32, by = "evento_id_febr", all.x = TRUE)
 nrow(eventRO)
 # 2999 events after merge
 eventRO[, dataset_id := "ctb0033"]
@@ -248,4 +286,5 @@ summary_soildata(soildata)
 # Layers: 50315
 # Events: 14120
 # Georeferenced events: 10990
+# Datasets: 235
 data.table::fwrite(soildata, "data/11_soildata.txt", sep = "\t")

@@ -1,16 +1,16 @@
 # title: SoilData Integration
 # subtitle: Merge external data
-# author: Alessandro Samuel-Rosa and Taciara Zborowski Horst
-# data: 2025
+# author: Alessandro Samuel-Rosa
+# date: 2025
 # licence: MIT
 # summary: This script integrates external soil datasets into the main Brazilian Soil Dataset. It 
 #          begins by loading event and layer data from a local repository. The script standardizes 
-#          column names and ensures all geographic coordinates are in the WGS84 (EPSG:4326) 
-#          reference system. It then loads the main dataset processed in the previous step, merges 
-#          the new external data, and generates comparison plots of the spatial distribution before 
-#          and after the merge. Finally, it populates missing metadata (title, license, 
-#          organization) for the newly integrated datasets and saves the combined dataset to a 
-#          file.
+#          column names, cleans the sampling year data, and ensures all geographic coordinates are 
+#          in the WGS84 (EPSG:4326) reference system. It then loads the main dataset processed in 
+#          the previous step, merges the new external data, and generates comparison plots of the 
+#          spatial distribution before and after the merge. Finally, it populates missing metadata 
+#          (title, license, organization) for the newly integrated datasets and saves the combined 
+#          dataset to a file.
 rm(list = ls())
 
 # Install and load required packages
