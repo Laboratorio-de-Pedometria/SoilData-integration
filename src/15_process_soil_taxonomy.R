@@ -1,11 +1,15 @@
 # title: SoilData Integration
 # subtitle: Process Soil Taxonomy data
-# description: This script processes soil classification data (taxonomy) for datasets with missing
-# information. It downloads data from the FEBR repository, cleans the soil classification strings,
-# and updates the main `soildata` table.
-# author: Alessandro Samuel-Rosa and Taciara Zborowski Horst
-# data: 2025
+# author: Alessandro Samuel-Rosa
+# date: 2025
 # licence: MIT
+# summary: This script processes and updates soil classification data (taxonomy) for datasets with
+#          missing information. It identifies datasets with a significant number of missing
+#          taxonomy entries and downloads the relevant data from the FEBR repository. The script
+#          then consolidates soil classification information from multiple columns into a single
+#          `taxon_sibcs` field, performs extensive cleaning and standardization of the classification
+#          strings, and expands common abbreviations. Finally, it merges these updates back into the
+#          main `soildata` table and saves the result.
 rm(list = ls())
 
 # Install and load required packages
@@ -32,14 +36,15 @@ summary_soildata(soildata)
 # Datasets: 255
 
 # Datasets with missing soil classification or not included in the original FEBR repository
-# These datasets do not have soil classification information (taxon_sibcs) in the current
-# soildata. Some of them were not included in the old FEBR repository (e.g., ctb0061, ctb0062).
-# We will try to update the soil classification information for these datasets.
+# The following datasets do not have soil classification information (taxon_sibcs) in the current
+# soildata or were not included in the old FEBR repository (e.g., ctb0061, ctb0062).
+# Thus, we will not try to update the soil classification information for these datasets.
 no_taxon <- c(
-  "ctb0033", "ctb0035", "ctb0053", "ctb0055", "ctb0059", "ctb0024", "ctb0040",
+  "ctb0035", "ctb0053", "ctb0055", "ctb0059", "ctb0024", "ctb0040",
   "ctb0049", "ctb0056", "ctb0057", "ctb0058", "ctb0060", "ctb0061", "ctb0062"
 )
 # Check which of the remaining datasets are missing soil classification
+# We will try to update only these datasets
 missing_taxon <- soildata[!(dataset_id %in% no_taxon) & taxon_sibcs == "" | is.na(taxon_sibcs),
   .N,
   by = dataset_id
