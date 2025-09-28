@@ -107,11 +107,19 @@ plot(brazil["code_state"],
 plot(soildata_sf["estado_id"], cex = 0.3, add = TRUE, pch = 20)
 dev.off()
 
-# Merge curated data with SoilData
-# Adjust column names
+# PREPARE FOR MERGE
+# Adjust soildata column names
 data.table::setnames(soildata, old = "data_coleta_ano", new = "data_ano")
 data.table::setnames(soildata, old = "data_coleta_ano_fonte", new = "data_fonte")
 data.table::setnames(soildata, old = "coord_datum_epsg", new = "coord_datum")
+
+# Append dataset_titulo, organizacao_nome, and dataset_licenca to curated_data
+# from soildata (first occurrence of each dataset_id)
+curated_data <- merge(curated_data,
+  unique(soildata[, .(dataset_id, dataset_titulo, organizacao_nome, dataset_licenca)]),
+  by = "dataset_id", all.x = TRUE
+)
+
 # Filter out duplicated datasets
 curated_ctb <- curated_data[, unique(dataset_id)]
 soildata <- soildata[!dataset_id %in% curated_ctb]
@@ -119,6 +127,7 @@ summary_soildata(soildata)
 # Layers: 51040
 # Events: 14757
 # Georeferenced events: 11629
+
 # Merge curated data with SoilData
 soildata <- rbind(soildata, curated_data, fill = TRUE)
 summary_soildata(soildata)
