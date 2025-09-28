@@ -3,7 +3,12 @@
 # author: Alessandro Samuel-Rosa
 # date: 2025
 # licence: MIT
-# summary: 
+# summary: This script performs data validation and cleaning on the integrated soil dataset. It 
+#          starts by removing obsolete columns and standardizing column names. It then applies a 
+#          series of validation rules to ensure data integrity, such as inferring missing sample 
+#          types, cleaning coordinate datums, and checking for plausible ranges in soil properties 
+#          like bulk density (dsi) and pH based on soil classification and horizon type. Values 
+#          outside expected ranges are set to NA.
 
 rm(list = ls())
 
@@ -80,7 +85,6 @@ paste(colnames(soildata), collapse = ", ")
 if (length(unique(soildata$dataset_id)) > length(unique(soildata$dataset_titulo))) {
   print(soildata[is.na(dataset_titulo) | dataset_titulo == "", unique(dataset_id)])
 }
-
 
 # amostra_tipo
 # If amostra_quanti == 1, then amostra_tipo should be "SIMPLES"
