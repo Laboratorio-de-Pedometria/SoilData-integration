@@ -4,12 +4,12 @@
 # date: 2025
 # licence: MIT
 # summary: This script integrates manually curated soil datasets into the main Brazilian Soil 
-#          Dataset. It reads multiple curated CSV files from a local directory, standardizes their 
-#          columns, and combines them into a single data table. It then loads the main dataset, 
-#          plots its spatial distribution, and adjusts its column names for consistency. To prevent 
-#          duplication, any datasets already present in the curated data are removed from the main 
-#          dataset before the merge. Finally, the script plots the spatial distribution of the 
-#          newly combined dataset and saves the final result to a file.
+#          Dataset. It reads curated CSV files, standardizes them, and merges them with the main 
+#          dataset, removing duplicates to prevent redundancy. For datasets still missing metadata 
+#          (like title and license) after the merge, it queries the Dataverse API to fetch and 
+#          populate these details. The script also generates spatial distribution plots before and 
+#          after the merge to visualize the impact of the integration. The final, enriched dataset 
+#          is then saved to a file.
 rm(list = ls())
 
 # Install and load required packages
@@ -134,6 +134,41 @@ summary_soildata(soildata)
 # Layers: 61145
 # Events: 18537
 # Georeferenced events: 14995
+
+# Check for missing
+missing_title <- soildata[is.na(dataset_titulo), unique(dataset_id)]
+print(missing_title)
+# "ctb0020" "ctb0021" "ctb0024" "ctb0035" "ctb0037" "ctb0038" "ctb0039"
+# "ctb0040" "ctb0041" "ctb0044" "ctb0046" "ctb0047" "ctb0048" "ctb0049"
+# "ctb0050" "ctb0051" "ctb0052" "ctb0053" "ctb0054" "ctb0062" "ctb0063"
+unique(soildata[dataset_id %in% missing_title, .(dataset_id, dataset_titulo, dataset_licenca)])
+
+# Query SoilData API: get DOIs for ctbs with missing titles and licenses
+missing_title_doi <- ctb_query(missing_title, doi = TRUE)
+length(missing_title_doi) == length(missing_title)
+# Query SoilData API: get details for ctbs with missing titles and licenses
+missing_title_details <- lapply(missing_title_doi,
+  dataverse::get_dataset,
+  server = "https://soildata.mapbiomas.org/dataverse/soildata"
+)
+length(missing_title_details) == length(missing_title)
+
+# Set titles and licenses for missing datasets
+for (i in seq_along(missing_title_details)) {
+  citation_fields <- missing_title_details[[i]]$metadataBlocks$citation$fields
+  ctb_id <- citation_fields$value[citation_fields$typeName == "otherId"][[1]]$otherIdValue$value
+  print(ctb_id)
+  ctb_title <- citation_fields$value[citation_fields$typeName == "title"][[1]]
+  print(ctb_title)
+  ctb_license <- missing_title_details[[i]]$license$name
+  if (is.null(ctb_license)) {
+    ctb_license <- missing_title_details[[i]]$termsOfUse
+  }
+  print(ctb_license)
+  soildata[dataset_id == ctb_id, dataset_titulo := ctb_title]
+  soildata[dataset_id == ctb_id, dataset_licenca := ctb_license]
+}
+soildata[dataset_id %in% missing_title, .(dataset_id, dataset_titulo, dataset_licenca)]
 
 # FIGURE 13.2
 # Check spatial distribution after merging curated data
