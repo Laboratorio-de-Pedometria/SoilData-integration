@@ -102,13 +102,55 @@ soildata[, .N, by = .(amostra_quanti)][order(amostra_quanti)]
 # cross table between amostra_tipo and amostra_quanti
 table(soildata$amostra_tipo, soildata$amostra_quanti, useNA = "ifany")
 
+# dataset_licenca
+# if "CC-BY-4.0", then "CC BY 4.0"
+soildata[dataset_licenca == "CC-BY-4.0", dataset_licenca := "CC BY 4.0"]
+# if "CC BY-NC", then "CC BY-NC 4.0"
+soildata[dataset_licenca == "CC BY-NC", dataset_licenca := "CC BY-NC 4.0"]
+# statistics
+soildata[, .N, by = .(dataset_licenca)][order(dataset_licenca)]
+
+# pais_id
+# if BR, then Brasil
+soildata[pais_id == "BR", pais_id := "Brasil"]
+# if NA of "", then Brasil
+soildata[is.na(pais_id) | pais_id == "", pais_id := "Brasil"]
+# statistics
+soildata[, .N, by = .(pais_id)][order(pais_id)]
+
+# estado_id
+# Check if the number of unique values in estado_id is 27 (26 states + Federal District)
+soildata[estado_id == "", estado_id := NA_character_]
+# statistics
+soildata[, .N, by = .(estado_id)][order(estado_id)]
+
+# organizacao_nome
+# drop column
+soildata[, organizacao_nome := NA_character_]
+
 # coord_datum
-# If coord_datum is not NA, but coord_x or coord_y are NA, set coord_datum to NA
-soildata[!is.na(coord_datum) & (is.na(coord_x) | is.na(coord_y)), coord_datum := NA_character_]
 # If coord_datum == "", set to NA
 soildata[coord_datum == "", coord_datum := NA_character_]
+# If coord_datum is not NA, but coord_x or coord_y are NA, set coord_datum to NA
+soildata[!is.na(coord_datum) & ((is.na(coord_x) | is.na(coord_y))), coord_datum := NA_character_]
 # If coord_datum == 4326, set to "EPSG:4326"
 soildata[coord_datum == "4326", coord_datum := "EPSG:4326"]
+# If coord_datum == NA but coord_x and coord_y are not NA, set coord_datum to "EPSG:4326"
+soildata[is.na(coord_datum) & !is.na(coord_x) & !is.na(coord_y), coord_datum := "EPSG:4326"]
+# statistics
+soildata[!(is.na(coord_x) | is.na(coord_y)), .N, by = .(coord_datum)][order(coord_datum)]
+
+# ano_fonte
+# If ano_fonte == "", set to NA
+soildata[ano_fonte == "", ano_fonte := NA_character_]
+# If ano_fonte is NA but data_ano is not NA, set ano_fonte to "original"
+soildata[is.na(ano_fonte) & !is.na(data_ano), ano_fonte := "original"]
+# statistics
+soildata[, .N, by = .(ano_fonte)][order(ano_fonte)]
+
+# data_ano
+# Many datasets still have no information for data_ano (sampling year)
+soildata[, .N, by = .(data_ano)][order(data_ano)]
 
 # Minimum soil density (dsi)
 dsi_min <- 0.5
@@ -120,9 +162,9 @@ min(soildata$dsi, na.rm = TRUE) >= dsi_min
 soildata[
   dsi < dsi_min & !grepl(dsi_min_taxon, taxon_sibcs, ignore.case = TRUE) &
   !grepl(dsi_min_layer, camada_nome, ignore.case = TRUE),
-  .(taxon_sibcs, camada_nome, dsi, ctc, carbono, id)
+  .(taxon_sibcs, camada_nome, dsi, ctc, carbono, dataset_id, observacao_id)
 ]
-# Set those dsi values to NA
+# Set those dsi values to NA: we cannot find justification for such low values
 soildata[
   dsi < dsi_min & !grepl(dsi_min_taxon, taxon_sibcs, ignore.case = TRUE) &
   !grepl(dsi_min_layer, camada_nome, ignore.case = TRUE),
@@ -139,7 +181,7 @@ max(soildata$dsi, na.rm = TRUE) <= dsi_max
 soildata[
   dsi > dsi_max & !grepl(dsi_max_taxon, taxon_sibcs, ignore.case = TRUE) &
   !grepl(dsi_max_layer, camada_nome, ignore.case = TRUE),
-  .(taxon_sibcs, camada_nome, dsi, areia, carbono, id)
+  .(taxon_sibcs, camada_nome, dsi, areia, carbono, dataset_id, observacao_id)
 ]
 # The values appear to be correct, so we will not change them.
 
@@ -151,9 +193,9 @@ max(soildata$ph, na.rm = TRUE) <= ph_max
 # Check for pH values greater than 9 and not in "carbonático|NÁTRICO|Sódico|SOLODIZADO" soils
 soildata[
   ph > ph_max & !grepl(ph_max_taxon, taxon_sibcs, ignore.case = TRUE),
-  .(taxon_sibcs, camada_nome, ph, ctc, carbono, id)
+  .(taxon_sibcs, camada_nome, ph, ctc, carbono, dataset_id, observacao_id)
 ]
-# Set those pH values to NA
+# Set those pH values to NA: we cannot find justification for such high values
 soildata[
   ph > ph_max & !grepl(ph_max_taxon, taxon_sibcs, ignore.case = TRUE),
   ph := NA_real_
@@ -167,9 +209,9 @@ min(soildata$ph, na.rm = TRUE) >= ph_min
 # Check for pH values less than 2 and not in "Tiomórfico|Húmico" soils
 soildata[
   ph < ph_min & !grepl(ph_min_taxon, taxon_sibcs, ignore.case = TRUE),
-  .(taxon_sibcs, camada_nome, ph, ctc, carbono, id)
+  .(taxon_sibcs, camada_nome, ph, ctc, carbono, dataset_id, observacao_id)
 ]
-# Set those pH values to NA
+# Set those pH values to NA: we cannot find justification for such low values
 soildata[
   ph < ph_min & !grepl(ph_min_taxon, taxon_sibcs, ignore.case = TRUE),
   ph := NA_real_
@@ -184,22 +226,3 @@ all((soildata$terrafina + soildata$esqueleto) == 100, na.rm = TRUE)
 # Sum clay, silt and sand
 # Check if the sum is 100
 all((soildata$argila + soildata$silte + soildata$areia) == 100, na.rm = TRUE)
-
-# estado_id
-# Check if the number of unique values in estado_id is 27 (26 states + Federal District)
-soildata[estado_id == "", estado_id := NA_character_]
-length(unique(na.omit(soildata$estado_id))) == 27
-
-
-
-
-
-# Summary statistics ##############################################################################
-# estado_id
-soildata[, .N, by = .(estado_id)][order(estado_id)]
-
-# ano_fonte
-soildata[, .N, by = .(ano_fonte)][order(ano_fonte)]
-
-# data_ano
-soildata[, .N, by = .(data_ano)][order(data_ano)]
