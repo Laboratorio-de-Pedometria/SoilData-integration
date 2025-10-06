@@ -29,6 +29,16 @@ if (!require("geobr")) {
 # Source helper functions
 source("src/00_helper_functions.R")
 
+# Read the Brazilian state boundaries
+# Check if the file already exists to avoid re-downloading
+if (!file.exists("data/brazil_states.geojson")) {
+  brazil <- geobr::read_state(simplified = FALSE)
+  # Save the data to a file for future use
+  sf::st_write(brazil, "data/brazil_states.geojson")
+} else {
+  brazil <- sf::st_read("data/brazil_states.geojson")
+}
+
 # Read the Brazilian Soil Dataset v2023
 # Check if file "data/00_brazilian_soil_dataset_2023.txt" exists. If not, read the Brazilian 
 # Soil Dataset v2023 from the SoilData repository using the 'dataverse' package. Next, write the 
@@ -123,7 +133,44 @@ soildata[, .N, by = .(pais_id)][order(pais_id)]
 soildata[estado_id == "", estado_id := NA_character_]
 # statistics
 soildata[, .N, by = .(estado_id)][order(estado_id)]
+# Intersect with Brazilian states
+soildata_sf <- unique(soildata[
+  is.na(estado_id) & !(is.na(coord_x) | is.na(coord_y)),
+  .(dataset_id, observacao_id, coord_x, coord_y)
+])
+soildata_sf <- sf::st_as_sf(soildata_sf,
+  coords = c("coord_x", "coord_y"),
+  crs = 4326, remove = FALSE, na.fail = FALSE
+)
+soildata_sf <- sf::st_transform(soildata_sf, crs = sf::st_crs(brazil))
+soildata_sf <- sf::st_join(
+  soildata_sf, brazil[, c("abbrev_state")],
+  join = sf::st_within, left = TRUE
+)
+# Extract data.table
+soildata_sf <- data.table::as.data.table(soildata_sf)[, .(dataset_id, observacao_id, abbrev_state)]
+# Update estado_id in soildata, keeping all of its existing values and adding new ones
+soildata <- merge(soildata, soildata_sf, by = c("dataset_id", "observacao_id"), all.x = TRUE)
+soildata[is.na(estado_id), estado_id := abbrev_state]
+soildata[, abbrev_state := NULL]
+# Set manual corrections for estado_id based on dataset_id and observacao_id
+soildata[dataset_id == "ctb0053", estado_id := ifelse(is.na(estado_id), "RO", estado_id), by = observacao_id]
+soildata[dataset_id == "ctb0711" & observacao_id == "48", estado_id := ifelse(is.na(estado_id), "AM", estado_id)]
+soildata[dataset_id == "ctb0831", estado_id := ifelse(is.na(estado_id), "PR", estado_id), by = observacao_id]
+# statistics
+soildata[, .N, by = .(estado_id)][order(estado_id)]
+# dataset_id: ctb0770
+# observacao_id: E110 and E84
+# soildata[is.na(estado_id), .(dataset_id, observacao_id,  coord_x, coord_y)]
 
+# municipio_id
+# Replace "" and "-" with NA
+soildata[municipio_id == "", municipio_id := NA_character_]
+soildata[municipio_id == "-", municipio_id := NA_character_]
+# statistics
+soildata[, .N, by = .(municipio_id)]
+
+# Drop column
 # organizacao_nome
 # drop column
 soildata[, organizacao_nome := NA_character_]
@@ -206,7 +253,7 @@ ph_min <- 2L
 ph_min_taxon <- "TIOMÓRFICO|Húmico"
 # Check if the minimum pH is greater than or equal to 2
 min(soildata$ph, na.rm = TRUE) >= ph_min
-# Check for pH values less than 2 and not in "Tiomórfico|Húmico" soils
+# Check for pH values less than MIN and not in "Tiomórfico|Húmico" soils
 soildata[
   ph < ph_min & !grepl(ph_min_taxon, taxon_sibcs, ignore.case = TRUE),
   .(taxon_sibcs, camada_nome, ph, ctc, carbono, dataset_id, observacao_id)
@@ -226,3 +273,53 @@ all((soildata$terrafina + soildata$esqueleto) == 100, na.rm = TRUE)
 # Sum clay, silt and sand
 # Check if the sum is 100
 all((soildata$argila + soildata$silte + soildata$areia) == 100, na.rm = TRUE)
+
+# Minimum ctc
+ctc_min <- 1L
+ctc_min_taxon <- "FLÚVICO|arênico|Álic|Distrófico|ESPODOS|Aluvia|fraco|Quartzosas|PODZOL|Latos"
+ctc_min_layer <- "C|E|A2"
+# Check if the minimum ctc is greater than or equal to MIN
+min(soildata$ctc, na.rm = TRUE) >= ctc_min
+# Check for pH values less than ctc_min and not in ctc_min_taxon soils and ctc_min_layer layers
+# and areia < 50 and ph > 5
+soildata[
+  ctc < ctc_min & !grepl(ctc_min_taxon, soildata$taxon_sibcs, ignore.case = TRUE) &
+  !grepl(ctc_min_layer, soildata$camada_nome, ignore.case = FALSE) & areia < 50 & ph > 5,
+  .(taxon_sibcs, camada_nome, ctc, ph, carbono, areia, dataset_id, observacao_id)
+]
+# Set those ctc values to NA: we cannot find justification for such low values
+soildata[
+  ctc < ctc_min & !grepl(ctc_min_taxon, soildata$taxon_sibcs, ignore.case = TRUE) &
+  !grepl(ctc_min_layer, soildata$camada_nome, ignore.case = FALSE) & areia < 50 & ph > 5,
+  ctc := NA_real_
+]
+
+# Maximum ctc
+ctc_max <- 100
+ctc_max_taxon <- "Organossolo|Húmico|vertiso|ORGÂNICO"
+ctc_max_layer <- "O|H|v|t"
+# Check if the maximum ctc is less than or equal to MAX
+max(soildata$ctc, na.rm = TRUE) <= ctc_max
+# Check for ctc values greater than ctc_max and not in ctc_max_taxon soils and ctc_max_layer layers
+soildata[
+  ctc > ctc_max & !grepl(ctc_max_taxon, soildata$taxon_sibcs, ignore.case = TRUE) &
+  !grepl(ctc_max_layer, soildata$camada_nome, ignore.case = TRUE) & ph < 5,
+  .(taxon_sibcs, camada_nome, ctc, ph, carbono, argila, dataset_id, observacao_id)
+]
+# Manual corrections
+soildata[
+  dataset_id == "ctb0718" & observacao_id == "55" & camada_nome == "A3",
+  ctc := ifelse(ctc == 140.4, 144.4, ctc)
+]
+# We will not change other values, as they appear to be correct.
+
+# Export
+# Save data in TXT format
+summary_soildata(soildata)
+# Layers: 57077
+# Events: 16824
+# Georeferenced events: 14334
+# Datasets: 255
+data.table::fwrite(soildata,
+  file = "data/brazilian-soil-dataset-2024.txt", sep = "\t", dec = ".", row.names = FALSE, na = "NA"
+)
