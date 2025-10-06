@@ -131,6 +131,10 @@ taxon_data[, taxon_sibcs := gsub("VERMELHO ? AMARELO", "VERMELHO-AMARELO", taxon
 taxon_data[, taxon_sibcs := gsub("argila - de ", "argila de", taxon_sibcs)]
 # Replace "EUTRÓFICO&#10;Tb" with "EUTRÓFICO Tb"
 taxon_data[, taxon_sibcs := gsub("EUTRÓFICO&#10;Tb", "EUTRÓFICO Tb", taxon_sibcs)]
+# Replace "ESPOSDOSSOLO" with "ESPODOSSOLO"
+taxon_data[, taxon_sibcs := gsub("ESPOSDOSSOLO", "ESPODOSSOLO", taxon_sibcs)]
+# Replace "AmareloTb" with "Amarelo Tb"
+taxon_data[, taxon_sibcs := gsub("AmareloTb", "Amarelo Tb", taxon_sibcs)]
 # Replace "EQUIVALENTE&#10;EUTRÓFICO" with "EQUIVALENTE EUTRÓFICO"
 taxon_data[, taxon_sibcs := gsub("EQUIVALENTE&#10;EUTRÓFICO", "EQUIVALENTE EUTRÓFICO", taxon_sibcs)]
 # Replace "Alítico &#10;" with "Alítico"
