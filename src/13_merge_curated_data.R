@@ -32,9 +32,9 @@ source("src/00_helper_functions.R")
 # Download Brazilian state boundaries
 # Check if the file already exists to avoid re-downloading
 if (!file.exists("data/brazil_states.geojson")) {
-  brazil <- geobr::read_state()
+  brazil <- geobr::read_state(simplified = FALSE)
   # Save the data to a file for future use
-  sf::st_write(brazil, "data/brazil_states.geojson", delete_dsn = TRUE)
+  sf::st_write(brazil, "data/brazil_states.geojson")
 } else {
   brazil <- sf::st_read("data/brazil_states.geojson")
 }
