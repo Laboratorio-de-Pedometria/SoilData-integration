@@ -13,17 +13,14 @@
 rm(list = ls())
 
 # Install and load required packages
-if (!require("data.table")) {
+if (!requireNamespace("data.table")) {
   install.packages("data.table")
-  library(data.table)
 }
-if (!require("sf")) {
+if (!requireNamespace("sf")) {
   install.packages("sf")
-  library(sf)
 }
-if (!require("geobr")) {
+if (!requireNamespace("geobr")) {
   install.packages("geobr")
-  library(geobr)
 }
 
 # Source helper functions
@@ -264,15 +261,12 @@ soildata[
   ph := NA_real_
 ]
 
-# Sum of terrafina and esqueleto == 100
-soildata[, terrafina := round(terrafina / 10)]
-soildata[, esqueleto := round(esqueleto / 10)]
-# Check if the sum is 100
-all((soildata$terrafina + soildata$esqueleto) == 100, na.rm = TRUE)
+# Sum of terrafina and esqueleto == 1000 g/kg
+all((soildata$terrafina + soildata$esqueleto) == 1000, na.rm = TRUE)
 
 # Sum clay, silt and sand
-# Check if the sum is 100
-all((soildata$argila + soildata$silte + soildata$areia) == 100, na.rm = TRUE)
+# Check if the sum is 1000 g/kg
+all((soildata$argila + soildata$silte + soildata$areia) == 1000, na.rm = TRUE)
 
 # Minimum ctc
 ctc_min <- 1L
@@ -281,16 +275,16 @@ ctc_min_layer <- "C|E|A2"
 # Check if the minimum ctc is greater than or equal to MIN
 min(soildata$ctc, na.rm = TRUE) >= ctc_min
 # Check for pH values less than ctc_min and not in ctc_min_taxon soils and ctc_min_layer layers
-# and areia < 50 and ph > 5
+# and areia < 500 and ph > 5
 soildata[
   ctc < ctc_min & !grepl(ctc_min_taxon, soildata$taxon_sibcs, ignore.case = TRUE) &
-  !grepl(ctc_min_layer, soildata$camada_nome, ignore.case = FALSE) & areia < 50 & ph > 5,
+  !grepl(ctc_min_layer, soildata$camada_nome, ignore.case = FALSE) & areia < 500 & ph > 5,
   .(taxon_sibcs, camada_nome, ctc, ph, carbono, areia, dataset_id, observacao_id)
 ]
 # Set those ctc values to NA: we cannot find justification for such low values
 soildata[
   ctc < ctc_min & !grepl(ctc_min_taxon, soildata$taxon_sibcs, ignore.case = TRUE) &
-  !grepl(ctc_min_layer, soildata$camada_nome, ignore.case = FALSE) & areia < 50 & ph > 5,
+  !grepl(ctc_min_layer, soildata$camada_nome, ignore.case = FALSE) & areia < 500 & ph > 5,
   ctc := NA_real_
 ]
 
