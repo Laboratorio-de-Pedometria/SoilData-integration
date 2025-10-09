@@ -16,9 +16,8 @@
 rm(list = ls())
 
 # Install and load required packages
-if (!require("data.table")) {
+if (!requireNamespace("data.table")) {
   install.packages("data.table")
-  library(data.table)
 }
 
 # Source helper functions
@@ -363,45 +362,45 @@ soildata[grepl(",OOE+O", camada_nome, fixed = TRUE), camada_nome := NA_character
 sort(unique(soildata[, camada_nome]))
 
 # Particle size distribution
-# Transform the particle size fractions from g/kg to %. Then check if their sum is 100%
-soildata[, argila := round(argila / 10)]
-soildata[, silte := round(silte / 10)]
-soildata[, areia := round(areia / 10)]
-soildata[, psd := round(argila + silte + areia)]
+# Check if the sum of the three fractions is 1000 g/kg
+soildata[, argila := round(argila)]
+soildata[, silte := round(silte)]
+soildata[, areia := round(areia)]
+soildata[, psd := argila + silte + areia]
 # Correct the particle size fractions
 # Some layers have incorrect particle size fractions. We correct these layers based on visual
 # inspection of the source documents. These corrections need to be implemented in the source data
 # in the future.
 soildata[
-  id == "ctb0591-P-13-Sao-Mateus-do-Sul" & camada_nome == "BW1" & argila == 37, `:=` (
-    argila = 100 - 16 - 9,
-    silte = 16,
-    areia = 9
+  id == "ctb0591-P-13-Sao-Mateus-do-Sul" & camada_nome == "BW1" & argila == 597, `:=` (
+    argila = 1000 - 160 - 90,
+    silte = 160,
+    areia = 90
   )
 ]
 soildata[
   id == "ctb0591-P-13-Sao-Mateus-do-Sul" & camada_nome == "BW2" & argila == 0, `:=` (
-    argila = 100 - 14 - 10,
-    silte = 14,
-    areia = 10
+    argila = 1000 - 140 - 100,
+    silte = 140,
+    areia = 100
   )
 ]
 soildata[
-  id == "ctb0591-P-13-Sao-Mateus-do-Sul" & camada_nome == "BW3" & argila == 4, `:=` (
-    argila = 100 - 13 - 10,
-    silte = 13,
-    areia = 10
+  id == "ctb0591-P-13-Sao-Mateus-do-Sul" & camada_nome == "BW3" & argila == 148, `:=`(
+    argila = 1000 - 130 - 100,
+    silte = 130,
+    areia = 100
   )
 ]
 soildata[
   id == "ctb0620-Á-de-Chapecó-3" & camada_nome == "Ap" & argila == 0, `:=`(
-    argila = 100 - 36 - 2,
-    silte = 36,
-    areia = 2
+    argila = 1000 - 360 - 20,
+    silte = 360,
+    areia = 20
   )
 ]
 soildata[
-  id == "ctb0646-PERFIL-20" & camada_nome == "C2" & argila == 0, `:=` (
+  id == "ctb0646-PERFIL-20" & camada_nome == "C2" & argila == 0, `:=`(
     argila = NA_real_,
     silte = NA_real_,
     areia = NA_real_
@@ -429,11 +428,11 @@ soildata[areia == 0, .N]
 # Print the layers with sand == 0
 soildata[areia == 0, ..cols]
 
-# Check if the sum of the three fractions is 100%
+# Check if the sum of the three fractions is 1000 g/kg
 # We also check for values close to 100% (90-110%), which may be due to rounding errors.
-soildata[psd != 100, .N]
-# 2242 layers
-psd_lims <- 90:110
+soildata[psd != 1000, .N]
+# 188 layers
+psd_lims <- 900:1100
 soildata[!is.na(psd) & !(psd %in% psd_lims), .N]
 # 2 layers, both from ctb0025-Perfil-38. We drop these layers. They need to be checked in the
 # source data in the future.
@@ -441,13 +440,13 @@ soildata <- soildata[!(id == "ctb0025-Perfil-38" & camada_nome == "Bt2")]
 soildata <- soildata[!(id == "ctb0025-Perfil-38" & camada_nome == "BC")]
 cols <- c("id", "camada_nome", "argila", "silte", "areia", "psd")
 soildata[!is.na(psd) & !(psd %in% psd_lims), ..cols]
-# If the sum of the three fractions is different from 100%, adjust their values, adding the
-# difference to the silt fraction. We only consider layers with psd between 90 and 110%.
-soildata[psd != 100, argila := round(argila / psd * 100)]
-soildata[psd != 100, areia := round(areia / psd * 100)]
-soildata[psd != 100, silte := 100 - argila - areia]
+# If the sum of the three fractions is different from 1000 g/kg, adjust their values, adding the
+# difference to the silt fraction. We only consider layers with psd between 900 and 1100 g/kg.
+soildata[psd != 1000, argila := round(argila / psd * 1000)]
+soildata[psd != 1000, areia := round(areia / psd * 1000)]
+soildata[psd != 1000, silte := 1000 - argila - areia]
 soildata[, psd := round(argila + silte + areia)]
-soildata[psd != 100, psd]
+soildata[psd != 1000, psd]
 soildata[, psd := NULL]
 
 # Correct bulk density values
