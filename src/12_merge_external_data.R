@@ -113,6 +113,7 @@ summary_soildata(data_event)
 # Layers: 1662
 # Events: 1662
 # Georeferenced events: 1662
+# Datasets: 7
 
 # Clean sampling date (just to make sure)
 data_event[data_coleta_ano < 1950, data_coleta_ano := NA_integer_]
@@ -122,6 +123,7 @@ summary_soildata(data_event)
 # Layers: 1662
 # Events: 1662
 # Georeferenced events: 1662
+# Datasets: 7
 
 # Layers
 files_layer <- list.files(
@@ -158,6 +160,7 @@ summary_soildata(soildata_01)
 # Layers: 1941
 # Events: 1051
 # Georeferenced events: 1051
+# Datasets: 7
 
 # Read SoilData data processed in the previous scripts
 soildata_02 <- data.table::fread("data/11_soildata.txt", sep = "\t", na.strings = c("", "NA"))
@@ -180,6 +183,7 @@ summary_soildata(soildata_02)
 # Layers: 50315
 # Events: 14120
 # Georeferenced events: 10990
+# Datasets: 235
 
 # Merge SoilData data with external data
 soildata_01[, observacao_id := id]
@@ -189,6 +193,7 @@ summary_soildata(soildata)
 # Layers: 52256
 # Events: 15171
 # Georeferenced events: 12041
+# Datasets: 242
 
 # Check spatial distribution after merging external data
 soildata_sf <- soildata[!is.na(coord_x) & !is.na(coord_y)]
