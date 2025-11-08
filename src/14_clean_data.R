@@ -353,12 +353,55 @@ summary_soildata(soildata)
 
 # Clean camada_nome
 soildata[, camada_nome := as.character(camada_nome)]
-soildata[is.na(camada_nome) | camada_nome == "" & profund_sup == 0, camada_nome := "A"]
-soildata[is.na(camada_nome) | camada_nome == "" & profund_sup != 0, camada_nome := NA_character_]
+# ignore
+# soildata[is.na(camada_nome) | camada_nome == "" & profund_sup == 0, camada_nome := "A"]
+# ignore
+# soildata[is.na(camada_nome) | camada_nome == "" & profund_sup != 0, camada_nome := NA_character_]
 soildata[, camada_nome := gsub("p1", "pl", camada_nome, ignore.case = FALSE)]
 soildata[, camada_nome := gsub("Çg", "Cg", camada_nome, ignore.case = FALSE)]
-soildata[, camada_nome := gsub("0", "O", camada_nome, ignore.case = FALSE)]
+# ignore
+# soildata[, camada_nome := gsub("0", "O", camada_nome, ignore.case = FALSE)]
 soildata[grepl(",OOE+O", camada_nome, fixed = TRUE), camada_nome := NA_character_]
+# Convert starting "ll" and "ii" to Roman letters in layer names (camada_nome)
+soildata[, camada_nome := sub("^ll", "II", camada_nome)]
+soildata[, camada_nome := sub("^ii", "II", camada_nome)]
+# bw -> Bw
+soildata[, camada_nome := sub("^bw", "Bw", camada_nome)]
+# O-2O -> 0-20
+soildata[, camada_nome := sub("^O-2O", "0-20", camada_nome)]
+# 3O-5O -> 30-50
+soildata[, camada_nome := sub("^3O-5O", "30-50", camada_nome)]
+# 3O-2O -> 30-20
+soildata[, camada_nome := sub("^3O-2O", "30-20", camada_nome)]
+# B21CN -> B21cn
+soildata[, camada_nome := sub("^B21CN", "B21cn", camada_nome)]
+# Bcn21 -> B21cn
+soildata[, camada_nome := sub("^Bcn21", "B21cn", camada_nome)]
+# B2TPL -> B2tpl
+soildata[, camada_nome := sub("^B2TPL", "B2tpl", camada_nome)]
+# B31PL -> B31pl
+soildata[, camada_nome := sub("^B31PL", "B31pl", camada_nome)]
+# B3PL -> B3pl
+soildata[, camada_nome := sub("^B3PL", "B3pl", camada_nome)]
+# 0-20cm
+soildata[, camada_nome := gsub("0-20cm", "0-20", camada_nome, ignore.case = FALSE)]
+# 20-40cm
+soildata[, camada_nome := gsub("20-40cm", "20-40", camada_nome, ignore.case = FALSE)]
+# 40-60cm
+soildata[, camada_nome := gsub("40-60cm", "40-60", camada_nome, ignore.case = FALSE)]
+# o -> O
+soildata[, camada_nome := gsub("^o$", "O", camada_nome, ignore.case = FALSE)]
+# bHS -> Bhs
+soildata[, camada_nome := gsub("^bHS", "bhs", camada_nome, ignore.case = FALSE)]
+# T -> t
+soildata[, camada_nome := gsub("T", "t", camada_nome, ignore.case = FALSE)]
+# NULL -> NA
+soildata[camada_nome == "NULL", camada_nome := NA_character_]
+# C2G -> C2g
+soildata[, camada_nome := gsub("C2G", "C2g", camada_nome, ignore.case = FALSE)]
+# ^g$ -> G
+soildata[, camada_nome := gsub("^g$", "G", camada_nome, ignore.case = FALSE)]
+# Print unique layer names
 sort(unique(soildata[, camada_nome]))
 
 # Particle size distribution
@@ -413,18 +456,18 @@ ctb_zero_clay <- c(
   "ctb0705"
 )
 soildata[argila == 0 & !dataset_id %in% ctb_zero_clay, .N]
-# 23 layers (they need to be checked in the source data in the future)
+# 12 layers (they need to be checked in the source data in the future)
 # Print the layers with clay == 0
 cols <- c("id", "camada_nome", "argila", "silte", "areia")
 soildata[argila == 0 & !dataset_id %in% ctb_zero_clay, ..cols]
 # silt
 soildata[silte == 0, .N]
-# 85 layers (they need to be checked in the source data in the future)
+# 57 layers (they need to be checked in the source data in the future)
 # Print the layers with silt == 0
 soildata[silte == 0, ..cols]
 # sand
 soildata[areia == 0, .N]
-# 138 layers (they need to be checked in the source data in the future)
+# 102 layers (they need to be checked in the source data in the future)
 # Print the layers with sand == 0
 soildata[areia == 0, ..cols]
 
