@@ -308,12 +308,12 @@ soildata[
 # We will not change other values, as they appear to be correct.
 
 # Export
-# Save data in TXT format
+# Save data in TXT format, saving in "res/tab/"
 summary_soildata(soildata)
 # Layers: 57077
 # Events: 16824
 # Georeferenced events: 14334
 # Datasets: 255
-data.table::fwrite(soildata,
-  file = "data/brazilian-soil-dataset-2024.txt", sep = "\t", dec = ".", row.names = FALSE, na = "NA"
-)
+file_path <- "res/tab/brazilian-soil-dataset-2024.txt"
+data.table::fwrite(soildata, file = file_path, sep = "\t", dec = ".", row.names = FALSE, na = "NA")
+# Load to SoilData repository!
