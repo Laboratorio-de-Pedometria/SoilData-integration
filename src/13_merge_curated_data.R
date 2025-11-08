@@ -50,7 +50,7 @@ if (!dir.exists(dir_path)) {
     full.names = TRUE, recursive = TRUE
   )
   length(curated_path)
-  # 28 datasets
+  # 29 datasets
   print(curated_path)
 }
 
@@ -82,6 +82,7 @@ summary_soildata(curated_data)
 # Layers: 10105
 # Events: 3780
 # Georeferenced events: 3366
+# Datasets: 29
 
 # Fix known issues in curated data
 curated_data[dataset_id == "ctb0063", data_ano := ifelse(data_ano == 1, 2000, data_ano)]
@@ -92,6 +93,7 @@ summary_soildata(soildata)
 # Layers: 52256
 # Events: 15171
 # Georeferenced events: 12041
+# Datasets: 242
 
 # FIGURE 13.1
 # Check spatial distribution before merging curated data
@@ -127,6 +129,7 @@ summary_soildata(soildata)
 # Layers: 51040
 # Events: 14757
 # Georeferenced events: 11629
+# Datasets: 234
 
 # Merge curated data with SoilData
 soildata <- rbind(soildata, curated_data, fill = TRUE)
@@ -134,6 +137,7 @@ summary_soildata(soildata)
 # Layers: 61145
 # Events: 18537
 # Georeferenced events: 14995
+# Datasets: 263
 
 # Check for missing
 missing_title <- soildata[is.na(dataset_titulo), unique(dataset_id)]
