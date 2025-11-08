@@ -241,6 +241,48 @@ taxon_data[, taxon_sibcs := gsub("argila de atividade baica", "Tb", taxon_sibcs)
 taxon_data[, taxon_sibcs := gsub("argila de atividade alta", "Ta", taxon_sibcs)]
 # Replace "argila atividade alta" with "Ta"
 taxon_data[, taxon_sibcs := gsub("argila atividade alta", "Ta", taxon_sibcs)]
+# PVA -> Argissolo Vermelho-Amarelo
+taxon_data[, taxon_sibcs := gsub("^PVA$", "Argissolo Vermelho-Amarelo", taxon_sibcs)]
+# QUARTZARENICORTICO -> Quartzarênico Órtico
+taxon_data[, taxon_sibcs := gsub("QUARTZARÊNICÓRTICO", "Quartzarênico Órtico", taxon_sibcs)]
+# BRUNIZEN -> BRUNIZEM
+taxon_data[, taxon_sibcs := gsub("BRUNIZÉN", "BRUNIZÉM", taxon_sibcs)]
+# CHENOSSOLO -> Chernossolo
+taxon_data[, taxon_sibcs := gsub("CHENOSSOLO", "Chernossolo", taxon_sibcs)]
+# CONCRECIONERIO -> Concrecionário
+taxon_data[, taxon_sibcs := gsub("CONCRECIONÉRIO", "Concrecionário", taxon_sibcs)]
+# GLEIOSSOLO -> Gleissolo
+taxon_data[, taxon_sibcs := gsub("GLEIOSSOLO", "Gleissolo", taxon_sibcs)]
+# GLEY -> Glei
+taxon_data[, taxon_sibcs := gsub("GLEY", "Glei", taxon_sibcs)]
+# LATERIRA -> LATERITA
+taxon_data[, taxon_sibcs := gsub("LATERIRA", "LATERITA", taxon_sibcs)]
+# LATERICO -> LATERÍTICO
+taxon_data[, taxon_sibcs := gsub("LATERICO", "LATERÍTICO", taxon_sibcs)]
+# LATERIA -> LATERITA
+taxon_data[, taxon_sibcs := gsub("LATERIA", "LATERITA", taxon_sibcs)]
+# LATOSOLO -> Latossolo
+taxon_data[, taxon_sibcs := gsub("LATOSOLO", "Latossolo", taxon_sibcs)]
+# NEO0SSOLO -> Neossolo
+taxon_data[, taxon_sibcs := gsub("NEO0SSOLO", "Neossolo", taxon_sibcs)]
+# NEOSSOLOQUARTZARENICO -> Neossolo Quartzarênico
+taxon_data[, taxon_sibcs := gsub("NEOSSOLOQUARTZARÊNICO", "Neossolo Quartzarênico", taxon_sibcs)]
+# PLANOSSONLO -> Planossolo
+taxon_data[, taxon_sibcs := gsub("PLANOSSONLO", "Planossolo", taxon_sibcs)]
+# PLITOSSOLO -> Plintossolo
+taxon_data[, taxon_sibcs := gsub("PLITOSSOLO", "Plintossolo", taxon_sibcs)]
+# PLINNTOSSOLO -> Plintossolo
+taxon_data[, taxon_sibcs := gsub("PLINNTOSSOLO", "Plintossolo", taxon_sibcs)]
+# PODOZOLICO -> Podzólico
+taxon_data[, taxon_sibcs := gsub("PODOZÓLICO", "Podzólico", taxon_sibcs)]
+# POZOLICO -> Podzólico
+taxon_data[, taxon_sibcs := gsub("POZÓLICO", "Podzólico", taxon_sibcs)]
+# PODZOUCO -> Podzólico
+taxon_data[, taxon_sibcs := gsub("PODZOUCO", "Podzólico", taxon_sibcs)]
+# VERTISOLO -> Vertissolo
+taxon_data[, taxon_sibcs := gsub("VERTISOLO", "Vertissolo", taxon_sibcs)]
+# VERMELHO-AMARELDISTROFICO -> VERMELHO-AMARELO DISTRÓFICO
+taxon_data[, taxon_sibcs := gsub("VERMELHO-AMARELDISTROFICO", "VERMELHO-AMARELO DISTRÓFICO", taxon_sibcs)]
 
 # Check the unique values of taxon_sibcs
 taxon_data[, sample(unique(taxon_sibcs))]
