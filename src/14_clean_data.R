@@ -181,9 +181,9 @@ nrow(soildata[profund_sup == profund_inf])
 # 222 layers
 soildata[, equal_depth := any(profund_sup == profund_inf), by = id]
 print(soildata[equal_depth == TRUE, ..cols])
-# Add a fixed depth (20 cm) to R, D, and C layers with equal depth limits
+# Add a fixed depth (10 cm) to R, D, and C layers with equal depth limits
 # We need to check these corrections in the source data in the future.
-plus_depth <- 20
+plus_depth <- 10
 soildata[
   profund_sup == profund_inf & grepl("R|D|C", camada_nome),
   profund_inf := profund_inf + plus_depth
