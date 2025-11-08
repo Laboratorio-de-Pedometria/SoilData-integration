@@ -179,6 +179,7 @@ layerRO[, dataset_id := "ctb0033"]
 colnames(layerRO)
 new_names <- c(
   evento_id_febr = "observacao_id",
+  camada_id_febr = "camada_nome",
   ph_2.5h2o_eletrodo = "ph",
   carbono_xxx_xxx = "carbono",
   areia.05mm2_xxx_xxx = "areia",
@@ -216,7 +217,7 @@ nrow(unique(rondonia[EXTRA == TRUE, "observacao_id"]))
 # Rename the duplicated layers by pasting the layer id (a letter) to the observation id, for
 # example, RO0600C. This will create a new event for each duplicated layer, enabling to identify
 # the source of the sample.
-rondonia[EXTRA == TRUE, observacao_id := paste0(observacao_id, camada_id_febr)]
+rondonia[EXTRA == TRUE, observacao_id := paste0(observacao_id, camada_nome)]
 rondonia[, id := paste0(dataset_id, "-", observacao_id)]
 # Next we add a random perturbation to the coordinates of extra samples only to pass checks for
 # duplicated events. We use a small perturbation of 1 m, which is negligible for most practical
@@ -258,10 +259,13 @@ summary_soildata(rondonia)
 # Read SoilData data processed in the previous script
 soildata <- data.table::fread("data/10_soildata.txt", sep = "\t", na.strings = c("", "NA"))
 soildata[, coord_datum_epsg := 4326]
+# order rows by dataset_id, observacao_id, profund_sup and profund_inf
+soildata <- soildata[order(dataset_id, observacao_id, profund_sup, profund_inf), ]
 summary_soildata(soildata)
 # Layers: 50400
 # Events: 13973
 # Georeferenced events: 10942
+# Datasets: 235
 if (FALSE) {
   x11()
   plot(soildata[, c("coord_x", "coord_y")])
@@ -280,6 +284,12 @@ length(unique(soildata[, id]))
 # 11059 events
 col_ro <- intersect(names(soildata), names(rondonia))
 soildata <- data.table::rbindlist(list(soildata, rondonia[, ..col_ro]), fill = TRUE)
+# ATENTION: ctb0032 has morphological descriptions and soil horizons are designated by 
+# camada_nome like "A", "B1", "B2", "C", etc. In ctb0033 and ctb0034, the layers are not necessarily
+# coincident with soil horizons, and camada_nome is letter A, B, C, or D. So, after merging the
+# datasets, we remain with the A-B-C-D names for layers. In the future, we need to harmonize this.
+# Here what we will do is replace A-B-C-D with the depth intervals.
+soildata[dataset_id == "ctb0033", camada_nome := paste0(profund_sup, "-", profund_inf)]
 
 # Write data to disk ###############################################################################
 summary_soildata(soildata)
