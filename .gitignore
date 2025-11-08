@@ -2,4 +2,4 @@ data/*.txt
 res/fig/*.png
 data/*.geojson
 data/*.rds
-res/tab/brazilian-soil-dataset-2024.txt
+res/tab/*.txt

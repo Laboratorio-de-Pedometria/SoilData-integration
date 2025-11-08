@@ -31,7 +31,7 @@ source("src/00_helper_functions.R")
 # file to 'data/00_brazilian_soil_dataset_2023.txt'. The dataset is available at
 # https://doi.org/10.60502/SoilData/TUI25K. If the file already exists, read it using the
 # 'data.table' package.
-file_path <- "data/00_brazilian_soil_dataset_2023.txt"
+file_path <- "res/tab/brazilian-soil-dataset-2023.txt"
 if (!file.exists(file_path)) {
   br_soil2023 <- dataverse::get_dataframe_by_name("brazilian-soil-dataset-2023.txt",
     server = "https://soildata.mapbiomas.org/dataverse/soildata",
