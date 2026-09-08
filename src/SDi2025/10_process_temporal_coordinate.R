@@ -45,14 +45,20 @@ summary_soildata(br_soil2024)
 # Layers: 57077
 # Events: 16824
 # Georeferenced events: 14334
+# Dated events: 15545
 # Datasets: 255
 
 # Process time coordinate (sampling year)
-br_soil2024[, observacao_data := as.Date(observacao_data, format = "%Y-%m-%d")]
-br_soil2024[, data_coleta_ano := as.integer(format(observacao_data, "%Y"))]
+# br_soil2024[, observacao_data := as.Date(observacao_data, format = "%Y-%m-%d")]
+# br_soil2024[, data_coleta_ano := as.integer(format(observacao_data, "%Y"))]
+# observacao_data is now deprecated
+# data_coleta_ano is now data_ano
 
-# Clean odd sampling date
-br_soil2024[data_coleta_ano < 1950, data_coleta_ano := NA_integer_]
+# Clean odd sampling date, if any, i.e. data_ano < 1950
+if(nrow(br_soil2024[data_ano < 1950]) > 0) {
+  warning("There are events with sampling year < 1950. These will be set to NA.")
+  br_soil2024[data_ano < 1950, data_ano := NA_integer_]
+}
 
 # Temporal distribution of samples with known sampling date
 nrow(unique(br_soil2023[, c("dataset_id", "observacao_id")]))
