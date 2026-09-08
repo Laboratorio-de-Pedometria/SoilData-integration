@@ -3,3 +3,4 @@ res/fig/*.png
 data/*.geojson
 data/*.rds
 res/tab/*.txt
+.Rhistory
