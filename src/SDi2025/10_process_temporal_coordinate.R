@@ -23,7 +23,7 @@ if (!require("dataverse")) {
 }
 
 # Source helper functions
-source("src/00_helper_functions.R")
+source("src/SDi2025/00_helper_functions.R")
 
 # Read the Brazilian Soil Dataset v2024
 # Check if file "data/00_brazilian_soil_dataset_2024.txt" exists. If not, read the Brazilian 
@@ -41,10 +41,11 @@ if (!file.exists(file_path)) {
 } else {
   br_soil2024 <- data.table::fread(file_path, dec = ".", sep = ";")
 }
-nrow(unique(br_soil2024[, c("dataset_id", "observacao_id")]))
-# 14043 events
-nrow(br_soil2024)
-# 50470 layers
+summary_soildata(br_soil2024)
+# Layers: 57077
+# Events: 16824
+# Georeferenced events: 14334
+# Datasets: 255
 
 # Process time coordinate (sampling year)
 br_soil2024[, observacao_data := as.Date(observacao_data, format = "%Y-%m-%d")]
