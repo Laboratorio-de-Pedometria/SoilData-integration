@@ -4,6 +4,10 @@
 # data: 2026
 # licence: MIT
 
+# Create directories for results if they do not exist ##############################################
+if (!dir.exists("res/tab")) dir.create("res/tab", recursive = TRUE, showWarnings = FALSE)
+if (!dir.exists("res/fig")) dir.create("res/fig", recursive = TRUE, showWarnings = FALSE)
+
 # Describe soil data ###############################################################################
 # Create function to describe a data.frame. Use an argument na.rm = TRUE.
 summary_soildata <- function(x, na.rm = TRUE) {
@@ -80,3 +84,4 @@ ctb_query <- function (ctb, doi = TRUE, per_page = 1000) {
 #   details_result <- jsonlite::fromJSON(details_url)
 #   return(details_result)
 # }
+
