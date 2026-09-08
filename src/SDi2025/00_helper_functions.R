@@ -23,6 +23,7 @@ summary_soildata <- function(x, na.rm = TRUE) {
   cat("\nLayers:", nrow(x))
   cat("\nEvents:", nrow(unique(x[, "id"])))
   cat("\nGeoreferenced events:", nrow(unique(x[!is.na(coord_x) & !is.na(coord_y), "id"])))
+  cat("\nDated events:", nrow(unique(x[!is.na(data_ano), "id"])))
   cat("\nDatasets:", length(unique(x[, dataset_id])))
   cat("\n")
   if (temp_id) {
