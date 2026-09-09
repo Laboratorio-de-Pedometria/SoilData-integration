@@ -81,8 +81,13 @@ if (n_below_target > 0) {
 # Temporal distribution of samples with known sampling date
 nrow(unique(br_soil2023[, c("dataset_id", "observacao_id")]))
 # 14043 events
+nrow(unique(br_soil2023[!is.na(data_ano), c("dataset_id", "observacao_id")]))
+# 9223 events with known sampling date
 nrow(unique(br_soil2023[is.na(data_ano), c("dataset_id", "observacao_id")]))
-# 4848 without sampling date
+# 4847 events without sampling date
+
+9223 + 4847
+
 br_soil2023[, na_year := FALSE]
 br_soil2023[is.na(data_ano), na_year := TRUE]
 missing_time <- is.na(br_soil2023[["data_ano"]])
