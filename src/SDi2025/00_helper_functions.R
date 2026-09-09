@@ -22,8 +22,10 @@ summary_soildata <- function(x, na.rm = TRUE) {
   cat("\n", paste(sort(names(x))), collapse = " ")
   cat("\nLayers:", nrow(x))
   cat("\nEvents:", nrow(unique(x[, "id"])))
-  cat("\nGeoreferenced events:", nrow(unique(x[!is.na(coord_x) & !is.na(coord_y), "id"])))
-  cat("\nDated events:", nrow(unique(x[!is.na(data_ano), "id"])))
+  geo <- nrow(unique(x[!is.na(coord_x) & !is.na(coord_y), "id"]))
+  cat("\nGeoreference:", geo, "(yes) /", nrow(unique(x[, "id"])) - geo, "(no)")
+  year <- nrow(unique(x[!is.na(data_ano), "id"]))
+  cat("\nDate:", year, "(yes) /", nrow(unique(x[, "id"])) - year, "(no)")
   cat("\nDatasets:", length(unique(x[, dataset_id])))
   cat("\n")
   if (temp_id) {
