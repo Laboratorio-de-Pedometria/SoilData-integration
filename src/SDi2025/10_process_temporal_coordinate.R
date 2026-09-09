@@ -45,6 +45,7 @@ if (!file.exists(file_path)) {
 } else {
   br_soil2023 <- data.table::fread(file_path, dec = ".", sep = ";")
 }
+str(br_soil2023)
 
 # Process time coordinate (sampling year)
 br_soil2023[, observacao_data := as.Date(observacao_data, format = "%Y-%m-%d")]
@@ -57,8 +58,13 @@ summary_soildata(br_soil2023)
 # Date: 9223 (yes) / 4820 (no)
 # Datasets: 235
 
-# Clean odd sampling date
-br_soil2023[data_coleta_ano < 1950, data_coleta_ano := NA_integer_]
+# If necessary, clean odd sampling date
+target_year <- 1950
+if (any(br_soil2023[["data_coleta_ano"]] < target_year, na.rm = TRUE)) {
+  warning("Some sampling years are < ", target_year, ". Setting them to NA.")
+} else {
+  cat("All sampling years are >= ", target_year, ". No changes made.\n", sep = "")
+}
 
 # Temporal distribution of samples with known sampling date
 nrow(unique(br_soil2023[, c("dataset_id", "observacao_id")]))
