@@ -25,32 +25,37 @@ if (!require("dataverse")) {
 }
 
 # Source helper functions
-source("src/00_helper_functions.R")
+source("src/SDi2025/00_helper_functions.R")
 
-# Read the Brazilian Soil Dataset v2023
-# Check if file "data/00_brazilian_soil_dataset_2023.txt" exists. If not, read the Brazilian 
-# Soil Dataset v2023 from the SoilData repository using the 'dataverse' package. Next, write the 
-# file to 'data/00_brazilian_soil_dataset_2023.txt'. The dataset is available at
-# https://doi.org/10.60502/SoilData/TUI25K. If the file already exists, read it using the
-# 'data.table' package.
+# Read the Brazilian Soil Dataset v2023 (ALWAYS START FROM v2023) ##############
+# Check if file "data/00_brazilian_soil_dataset_2023.txt" exists. If not, read
+# the Brazilian Soil Dataset v2023 from the SoilData repository using the
+# 'dataverse' package. Next, write the downloaded file to
+# 'data/00_brazilian_soil_dataset_2023.txt'. The dataset is available at
+# https://doi.org/10.60502/SoilData/TUI25K. If the file already exists, read it
+# using the 'data.table' package.
 file_path <- "res/tab/brazilian-soil-dataset-2023.txt"
 if (!file.exists(file_path)) {
-  br_soil2023 <- dataverse::get_dataframe_by_name("brazilian-soil-dataset-2023.txt",
-    server = "https://soildata.mapbiomas.org/dataverse/soildata",
+  br_soil2023 <- dataverse::get_dataframe_by_name(
+    filename = "brazilian-soil-dataset-2023.txt",
+    server = "https://repositorio.soildata.mapbiomas.org/dataverse/soildata",
     dataset = "10.60502/SoilData/TUI25K", .f = data.table::fread
   )
   data.table::fwrite(br_soil2023, file_path, dec = ".", sep = ";")
 } else {
   br_soil2023 <- data.table::fread(file_path, dec = ".", sep = ";")
 }
-nrow(unique(br_soil2023[, c("dataset_id", "observacao_id")]))
-# 14043 events
-nrow(br_soil2023)
-# 50470 layers
 
 # Process time coordinate (sampling year)
 br_soil2023[, observacao_data := as.Date(observacao_data, format = "%Y-%m-%d")]
-br_soil2023[, data_coleta_ano := as.integer(format(observacao_data, "%Y"))]
+br_soil2023[, data_ano := as.integer(format(observacao_data, "%Y"))]
+# Check data
+summary_soildata(br_soil2023)
+# Layers: 50470
+# Events: 14043
+# Georeference: 11012 (yes) / 3031 (no)
+# Date: 9223 (yes) / 4820 (no)
+# Datasets: 235
 
 # Clean odd sampling date
 br_soil2023[data_coleta_ano < 1950, data_coleta_ano := NA_integer_]
