@@ -39,7 +39,8 @@ if (!file.exists(file_path)) {
   br_soil2023 <- dataverse::get_dataframe_by_name(
     filename = "brazilian-soil-dataset-2023.txt",
     server = "https://repositorio.soildata.mapbiomas.org/dataverse/soildata",
-    dataset = "10.60502/SoilData/TUI25K", .f = data.table::fread
+    dataset = "10.60502/SoilData/TUI25K",
+    .f = data.table::fread
   )
   data.table::fwrite(br_soil2023, file_path, dec = ".", sep = ";")
 } else {
@@ -79,13 +80,12 @@ if (n_below_target > 0) {
 }
 
 # Temporal distribution of samples with known sampling date
-nrow(unique(br_soil2023[, c("dataset_id", "observacao_id")]))
-# 14043 events
-nrow(unique(br_soil2023[!is.na(data_ano), c("dataset_id", "observacao_id")]))
-# 9223 events with known sampling date
-nrow(unique(br_soil2023[is.na(data_ano), c("dataset_id", "observacao_id")]))
-# 4847 events without sampling date
-
+summary_soildata(br_soil2023)
+# Layers: 50470
+# Events: 14043
+# Georeference: 11012 (yes) / 3031 (no)
+# Date: 9223 (yes) / 4820 (no)
+# Datasets: 235
 br_soil2023[, na_year := FALSE]
 br_soil2023[is.na(data_ano), na_year := TRUE]
 missing_time <- is.na(br_soil2023[["data_ano"]])
@@ -99,14 +99,15 @@ hist(br_soil2023[["data_ano"]], sub = paste0("n = ", sum(!missing_time)),
 rug(br_soil2023[["data_ano"]])
 dev.off()
 
-# The following code is commented out because it is not necessary to write the
-# table to disk with
-# events missing date. The data is already available in the Google Sheets spreadsheet.
+# THE FOLLOWING BLOCK IS NOT NECESSARY
+# It is not necessary to write the table to disk with events missing date. The
+# data is already available in the Google Sheets spreadsheet.
 # # Write table to disk with events missing date
 # # Only the surface layer (profund_sup == 0) of each event is exported.
-# # The field dataset_id is reset as a URL to facilitate access to the respective webpage on FEBR.
-# # The recovery of the sampling date will be done collectively by our team of data curators using a
-# # Google Sheets spreadsheet to register the data.
+# # The field dataset_id is reset as a URL to facilitate access to the
+# # respective webpage on FEBR.
+# # The recovery of the sampling date will be done collectively by our team of
+# # data curators using a Google Sheets spreadsheet to register the data.
 # no_time_coord <- br_soil2023[
 #   is.na(data_ano) & profund_sup == 0,
 #   c(
@@ -114,7 +115,10 @@ dev.off()
 #     "data_coleta_dia", "data_coleta_mes", "data_ano"
 #   )
 # ]
-# no_time_coord[, dataset_id := paste0("https://www.pedometria.org/febr/", dataset_id, "/")]
+# no_time_coord[
+#   ,
+#   dataset_id := paste0("https://www.pedometria.org/febr/", dataset_id, "/")
+# ]
 # data.table::fwrite(no_time_coord, "data/no-time-coord.csv", sep = "\t", dec = ",")
 
 # Read Google Sheets spreadsheet containing the recovered sampling dates
