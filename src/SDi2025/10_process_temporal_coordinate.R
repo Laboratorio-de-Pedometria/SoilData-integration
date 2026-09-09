@@ -3,13 +3,15 @@
 # author: Alessandro Samuel-Rosa
 # date: 2025
 # licence: MIT
-# summary: This script processes the temporal coordinate (sampling year) of the Brazilian Soil 
-#          Dataset. It starts by extracting the year from the full date. Missing sampling years are 
-#          then recovered using data from a collaborative spreadsheet. For the remaining missing 
-#          years, an estimated sampling year is attributed based on information about the source 
-#          soil survey project. A new variable is created to indicate the source of the sampling 
-#          year (original or estimated). Finally, the temporal distribution of the samples is 
-#          plotted, and the processed dataset is saved to a file.
+# description: This script processes the temporal coordinate (sampling year) of
+# the Brazilian Soil Dataset. Processing always starts from v2023 and will
+# continue to do so until all datasets originally included in v2023 have
+# completed individual processing in the SoilData-ctb repository. The script
+# extracts the year from the full date, recovers missing sampling years using a
+# collaborative spreadsheet, and attributes estimated years for remaining
+# missing values based on source soil survey information. It also creates a
+# variable indicating the source of the sampling year (original or estimated),
+# plots the temporal distribution of samples, and saves the processed dataset.
 rm(list = ls())
 
 # Install and load required packages
