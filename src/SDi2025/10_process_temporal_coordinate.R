@@ -636,7 +636,7 @@ nrow(unique(br_soil2024[is.na(data_ano), c("dataset_id", "observacao_id")]))
 ctb <- "ctb0029"
 br_soil2024 <- br_soil2024[!(
   dataset_id == ctb & municipio_id %in% c("Santa Maria", "Itaara") &
-    amostra_tipo == "COMPOSTA" & amostra_quanti == 3 & data_coleta_ano == 2009
+    amostra_tipo == "COMPOSTA" & amostra_quanti == 3 & data_ano == 2009
 ), ]
 # Check how many events remain without sampling date
 nrow(unique(br_soil2024[is.na(data_ano), c("dataset_id", "observacao_id")]))
