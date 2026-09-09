@@ -79,6 +79,55 @@ if (n_below_target > 0) {
   cat("All sampling years are >= ", target_year, ". No changes made.\n", sep = "")
 }
 
+# Some events have both known and unknown sampling dates for their layers
+# The reason for this are errors in the source data, specifically, data from
+# different pevents having the same identifier. Issues occurs in:
+# ctb0683: one event
+# ctb0759: nine events
+# ctb0760: 13 events
+# ctb0766: one event
+# ctb0771: one event
+# ctb0809: one event
+# ctb0832 one event.
+# Here we drop the layers without a known sampling date, keeping only the layers
+# with a known sampling date. Further corrections need to be done in the source
+# data.
+event_status <- br_soil2023[, .(
+  has_date = any(!is.na(data_ano)),
+  no_date = any(is.na(data_ano))
+), by = .(dataset_id, observacao_id)]
+print(event_status[has_date == TRUE & no_date == TRUE])
+#     dataset_id observacao_id has_date no_date
+#         <char>        <char>   <lgcl>  <lgcl>
+#  1:    ctb0683             5     TRUE    TRUE
+#  2:    ctb0759            11     TRUE    TRUE
+#  3:    ctb0759            14     TRUE    TRUE
+#  4:    ctb0759            15     TRUE    TRUE
+#  5:    ctb0759            19     TRUE    TRUE
+#  6:    ctb0759            28     TRUE    TRUE
+#  7:    ctb0759            50     TRUE    TRUE
+#  8:    ctb0759            53     TRUE    TRUE
+#  9:    ctb0759             7     TRUE    TRUE
+# 10:    ctb0759             8     TRUE    TRUE
+# 11:    ctb0760             1     TRUE    TRUE
+# 12:    ctb0760            10     TRUE    TRUE
+# 13:    ctb0760            11     TRUE    TRUE
+# 14:    ctb0760             2     TRUE    TRUE
+# 15:    ctb0760             3     TRUE    TRUE
+# 16:    ctb0760             4     TRUE    TRUE
+# 17:    ctb0760             5     TRUE    TRUE
+# 18:    ctb0760             6     TRUE    TRUE
+# 19:    ctb0760       7-EXTRA     TRUE    TRUE
+# 20:    ctb0760             8     TRUE    TRUE
+# 21:    ctb0760       8-EXTRA     TRUE    TRUE
+# 22:    ctb0760             9     TRUE    TRUE
+# 23:    ctb0760       9-EXTRA     TRUE    TRUE
+# 24:    ctb0766            66     TRUE    TRUE
+# 25:    ctb0771            40     TRUE    TRUE
+# 26:    ctb0809       Exame-8     TRUE    TRUE
+# 27:    ctb0832      E-Rio-30     TRUE    TRUE
+
+
 # Temporal distribution of samples with known sampling date
 summary_soildata(br_soil2023)
 # Layers: 50470
@@ -122,29 +171,69 @@ dev.off()
 # data.table::fwrite(no_time_coord, "data/no-time-coord.csv", sep = "\t", dec = ",")
 
 # Read Google Sheets spreadsheet containing the recovered sampling dates
-# It is not necessary to set the table because the spreadsheet contains only one.
+# It is not necessary to set the table because there is only one.
 key <- "1UbuI_oMzFmclztmhZQYsuU0mn_Lx3NhSeBoFw0m4lv0"
 file <- paste0("http://docs.google.com/spreadsheets/d/", key, "/pub?output=csv")
-recovered_time <- data.table::fread(file, header = TRUE, na.strings = c("-", ""), sep = ",")
+recovered_time <-
+  data.table::fread(file, header = TRUE, na.strings = c("-", ""), sep = ",")
 recovered_time[, data_coleta_ano := as.integer(data_coleta_ano)]
 print(recovered_time)
 
-# Check the range of values
-# Any error present in the downloaded data is corrected in the Google Sheets spreadsheet
+# Check the range of recovered values
+# Any error present in the downloaded data is corrected in the Google Sheets
+# spreadsheet
 range(recovered_time[["data_coleta_ano"]], na.rm = TRUE)
-# 1957 2007
+# 1957 2007 This is ok!
 
-# Fill up the original table using the data recovered by our team of data curators
-recovered_time[, dados_id := gsub("https://www.pedometria.org/febr/", "", dados_id)]
+# Fill up the original table using the data recovered by our team
+recovered_time[
+  ,
+  dados_id := gsub("https://www.pedometria.org/febr/", "", dados_id)
+]
 recovered_time[, dados_id := gsub("/", "", dados_id)]
 recovered_time[, id := paste0(dados_id, "-", evento_id_febr)]
 br_soil2023[, id := paste0(dataset_id, "-", observacao_id)]
 idx_recovered <- match(br_soil2023[missing_time, id], recovered_time[["id"]])
-br_soil2023[missing_time, data_ano := recovered_time[idx_recovered, data_coleta_ano]]
+br_soil2023[
+  missing_time,
+  data_ano := recovered_time[idx_recovered, data_coleta_ano]
+]
 
 # Temporal distribution of samples with known sampling date after data rescue
+summary_soildata(br_soil2023)
+nrow(unique(br_soil2023[, c("dataset_id", "observacao_id")]))
+# 14043 events
 nrow(unique(br_soil2023[is.na(data_ano), c("dataset_id", "observacao_id")]))
 # 3396 events remain without a known sampling date
+nrow(unique(br_soil2023[!is.na(data_ano), c("dataset_id", "observacao_id")]))
+# 10653
+
+3396 + 10653
+
+br_soil2023[, id := paste0(dataset_id, "-", observacao_id)]
+n_events <- nrow(unique(br_soil2023[, "id"]))
+n_events
+# 14043
+na_year <- nrow(unique(br_soil2023[is.na(data_ano), "id"]))
+na_year
+# 3396
+n_year <- nrow(unique(br_soil2023[!is.na(data_ano), "id"]))
+n_year
+# 10653
+n_events - n_year
+# 3396
+na_year + n_year
+# 14049
+
+
+
+
+
+
+
+
+
+
 br_soil2023[, na_year := FALSE]
 br_soil2023[is.na(data_ano), na_year := TRUE]
 missing_time <- is.na(br_soil2023[["data_ano"]])
