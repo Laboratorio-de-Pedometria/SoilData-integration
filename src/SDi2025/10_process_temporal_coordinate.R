@@ -133,14 +133,7 @@ summary_soildata(br_soil2023)
 # Date: 9223 (yes) / 4820 (no)
 # Datasets: 235
 
-
 # Temporal distribution of samples with known sampling date
-summary_soildata(br_soil2023)
-# Layers: 50470
-# Events: 14043
-# Georeference: 11012 (yes) / 3031 (no)
-# Date: 9223 (yes) / 4820 (no)
-# Datasets: 235
 br_soil2023[, na_year := FALSE]
 br_soil2023[is.na(data_ano), na_year := TRUE]
 missing_time <- is.na(br_soil2023[["data_ano"]])
@@ -207,39 +200,6 @@ br_soil2023[
 
 # Temporal distribution of samples with known sampling date after data rescue
 summary_soildata(br_soil2023)
-nrow(unique(br_soil2023[, c("dataset_id", "observacao_id")]))
-# 14043 events
-nrow(unique(br_soil2023[is.na(data_ano), c("dataset_id", "observacao_id")]))
-# 3396 events remain without a known sampling date
-nrow(unique(br_soil2023[!is.na(data_ano), c("dataset_id", "observacao_id")]))
-# 10653
-
-3396 + 10653
-
-br_soil2023[, id := paste0(dataset_id, "-", observacao_id)]
-n_events <- nrow(unique(br_soil2023[, "id"]))
-n_events
-# 14043
-na_year <- nrow(unique(br_soil2023[is.na(data_ano), "id"]))
-na_year
-# 3396
-n_year <- nrow(unique(br_soil2023[!is.na(data_ano), "id"]))
-n_year
-# 10653
-n_events - n_year
-# 3396
-na_year + n_year
-# 14049
-
-
-
-
-
-
-
-
-
-
 br_soil2023[, na_year := FALSE]
 br_soil2023[is.na(data_ano), na_year := TRUE]
 missing_time <- is.na(br_soil2023[["data_ano"]])
