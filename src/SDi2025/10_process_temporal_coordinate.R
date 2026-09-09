@@ -89,43 +89,49 @@ if (n_below_target > 0) {
 # ctb0771: one event
 # ctb0809: one event
 # ctb0832 one event.
-# Here we drop the layers without a known sampling date, keeping only the layers
-# with a known sampling date. Further corrections need to be done in the source
-# data.
-event_status <- br_soil2023[, .(
-  has_date = any(!is.na(data_ano)),
-  no_date = any(is.na(data_ano))
-), by = .(dataset_id, observacao_id)]
-print(event_status[has_date == TRUE & no_date == TRUE])
-#     dataset_id observacao_id has_date no_date
-#         <char>        <char>   <lgcl>  <lgcl>
-#  1:    ctb0683             5     TRUE    TRUE
-#  2:    ctb0759            11     TRUE    TRUE
-#  3:    ctb0759            14     TRUE    TRUE
-#  4:    ctb0759            15     TRUE    TRUE
-#  5:    ctb0759            19     TRUE    TRUE
-#  6:    ctb0759            28     TRUE    TRUE
-#  7:    ctb0759            50     TRUE    TRUE
-#  8:    ctb0759            53     TRUE    TRUE
-#  9:    ctb0759             7     TRUE    TRUE
-# 10:    ctb0759             8     TRUE    TRUE
-# 11:    ctb0760             1     TRUE    TRUE
-# 12:    ctb0760            10     TRUE    TRUE
-# 13:    ctb0760            11     TRUE    TRUE
-# 14:    ctb0760             2     TRUE    TRUE
-# 15:    ctb0760             3     TRUE    TRUE
-# 16:    ctb0760             4     TRUE    TRUE
-# 17:    ctb0760             5     TRUE    TRUE
-# 18:    ctb0760             6     TRUE    TRUE
-# 19:    ctb0760       7-EXTRA     TRUE    TRUE
-# 20:    ctb0760             8     TRUE    TRUE
-# 21:    ctb0760       8-EXTRA     TRUE    TRUE
-# 22:    ctb0760             9     TRUE    TRUE
-# 23:    ctb0760       9-EXTRA     TRUE    TRUE
-# 24:    ctb0766            66     TRUE    TRUE
-# 25:    ctb0771            40     TRUE    TRUE
-# 26:    ctb0809       Exame-8     TRUE    TRUE
-# 27:    ctb0832      E-Rio-30     TRUE    TRUE
+br_soil2023[, has_date := any(!is.na(data_ano)), by = .(dataset_id, observacao_id)]
+br_soil2023[, no_date := any(is.na(data_ano)), by = .(dataset_id, observacao_id)]
+print(br_soil2023[has_date == TRUE & no_date == TRUE,
+  by = .(dataset_id, observacao_id), .N
+])
+#     dataset_id observacao_id     N
+#         <char>        <char> <int>
+#  1:    ctb0683             5    16
+#  2:    ctb0759            11    12
+#  3:    ctb0759            14    10
+#  4:    ctb0759            15    21
+#  5:    ctb0759            19    14
+#  6:    ctb0759            28    14
+#  7:    ctb0759            50    30
+#  8:    ctb0759            53    21
+#  9:    ctb0759             7    10
+# 10:    ctb0759             8    12
+# 11:    ctb0760             1    12
+# 12:    ctb0760            10    14
+# 13:    ctb0760            11    16
+# 14:    ctb0760             2    14
+# 15:    ctb0760             3     8
+# 16:    ctb0760             4    10
+# 17:    ctb0760             5    12
+# 18:    ctb0760             6    12
+# 19:    ctb0760       7-EXTRA     4
+# 20:    ctb0760             8     8
+# 21:    ctb0760       8-EXTRA     6
+# 22:    ctb0760             9    10
+# 23:    ctb0760       9-EXTRA     4
+# 24:    ctb0766            66     4
+# 25:    ctb0771            40    27
+# 26:    ctb0809       Exame-8     8
+# 27:    ctb0832      E-Rio-30     6
+# For these events, keep only the layers with a known sampling date and drop the
+# layers without a known sampling date.
+br_soil2023 <- br_soil2023[!(has_date == TRUE & no_date == TRUE & is.na(data_ano))]
+summary_soildata(br_soil2023)
+# Layers: 50286
+# Events: 14043
+# Georeference: 11012 (yes) / 3031 (no)
+# Date: 9223 (yes) / 4820 (no)
+# Datasets: 235
 
 
 # Temporal distribution of samples with known sampling date
