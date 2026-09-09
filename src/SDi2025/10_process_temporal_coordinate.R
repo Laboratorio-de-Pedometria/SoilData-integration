@@ -48,6 +48,7 @@ summary_soildata(br_soil2024)
 # Date: 15545 (yes) / 1279 (no)
 # Datasets: 255
 
+THE FOLLOWING BLOCK IS NOT NEEDED AS THE YEAR NOW IS ALREADY STORED IN A SEPARATE COLUMN
 # Process time coordinate (sampling year)
 # br_soil2024[, observacao_data := as.Date(observacao_data, format = "%Y-%m-%d")]
 # br_soil2024[, data_coleta_ano := as.integer(format(observacao_data, "%Y"))]
@@ -55,19 +56,16 @@ summary_soildata(br_soil2024)
 # data_coleta_ano is now data_ano
 
 # Clean odd sampling date, if any, i.e. data_ano < 1950
-if (nrow(br_soil2024[data_ano < 1950]) > 0) {
-  warning("There are events with sampling year < 1950. These will be set to NA.")
-  br_soil2024[data_ano < 1950, data_ano := NA_integer_]
+target_year <- 1950
+if (nrow(br_soil2024[data_ano < target_year) > 0) {
+  warning("There are events with sampling year < target_year. These will be set to NA.")
+  br_soil2024[data_ano < target_year, data_ano := NA_integer_]
 } else {
-  message("No events with sampling year < 1950.")
+  message("No events with sampling year < target_year.")
   range(br_soil2024[["data_ano"]], na.rm = TRUE)
 }
 
 # Temporal distribution of samples with known sampling date
-nrow(unique(br_soil2024[, c("dataset_id", "observacao_id")]))
-# 16824 events
-nrow(unique(br_soil2024[is.na(data_ano), c("dataset_id", "observacao_id")]))
-# 1279 without sampling date
 br_soil2024[, na_year := FALSE]
 br_soil2024[is.na(data_ano), na_year := TRUE]
 missing_time <- is.na(br_soil2024[["data_ano"]])
@@ -81,13 +79,15 @@ hist(br_soil2024[["data_ano"]], sub = paste0("n = ", sum(!missing_time)),
 rug(br_soil2024[["data_ano"]])
 dev.off()
 
-# The following code is commented out because it is not necessary to write the table to disk with
-# events missing date. The data is already available in the Google Sheets spreadsheet.
-# # Write table to disk with events missing date
-# # Only the surface layer (profund_sup == 0) of each event is exported.
-# # The field dataset_id is reset as a URL to facilitate access to the respective webpage on FEBR.
-# # The recovery of the sampling date will be done collectively by our team of data curators using a
-# # Google Sheets spreadsheet to register the data.
+THE FOLLOWING BLOCK IS COMMENTED OUT BECAUSE IT IS NOT NECESSARY ANYMORE
+# It is not necessary to write the table to disk with events missing date. The data is
+# already available in the Google Sheets spreadsheet.
+# Write table to disk with events missing date
+# Only the surface layer (profund_sup == 0) of each event is exported.
+# The field dataset_id is reset as a URL to facilitate access to the respective webpage 
+# on FEBR. 
+# The recovery of the sampling date will be done collectively by our team of data
+# curators using a Google Sheets spreadsheet to register the data.
 # no_time_coord <- br_soil2024[
 #   is.na(data_coleta_ano) & profund_sup == 0,
 #   c(
@@ -121,8 +121,8 @@ br_soil2024[missing_time, data_ano := recovered_time[idx_recovered, data_coleta_
 
 # Temporal distribution of samples with known sampling date after data rescue
 nrow(unique(br_soil2024[is.na(data_ano), c("dataset_id", "observacao_id")]))
-# 1279 events: the same numer of events remain without a known sampling date, so maybe we can
-# eliminate this curation step as it has already worked its magic in the previous version (SDi2024)
+# 1279 events: the same numer of events remain without a known sampling date, as
+# this curation step was already implemented in the previous version (SDi2024)
 br_soil2024[, na_year := FALSE]
 br_soil2024[is.na(data_ano), na_year := TRUE]
 missing_time <- is.na(br_soil2024[["data_ano"]])
