@@ -125,7 +125,9 @@ print(br_soil2023[has_date == TRUE & no_date == TRUE,
 # 27:    ctb0832      E-Rio-30     6
 # For these events, keep only the layers with a known sampling date and drop the
 # layers without a known sampling date.
-br_soil2023 <- br_soil2023[!(has_date == TRUE & no_date == TRUE & is.na(data_ano))]
+br_soil2023 <- br_soil2023[
+  !(has_date == TRUE & no_date == TRUE & is.na(data_ano))
+]
 summary_soildata(br_soil2023)
 # Layers: 50286
 # Events: 14043
@@ -141,7 +143,7 @@ missing_time <- is.na(br_soil2023[["data_ano"]])
 file_path <- "res/fig/101_temporal_distribution_before_rescue.png"
 png(file_path, width = 8, height = 5, units = "in", res = 300)
 hist(br_soil2023[["data_ano"]], sub = paste0("n = ", sum(!missing_time)), 
-  main = "Temporal distribution of samples with known sampling date\nbefore data rescue",
+  main = paste0("Temporal distribution of samples with known sampling date\n", "before data rescue"),
   xlab = "Year"
 )
 rug(br_soil2023[["data_ano"]])
@@ -207,7 +209,7 @@ missing_time <- is.na(br_soil2023[["data_ano"]])
 file_path <- "res/fig/102_temporal_distribution_after_rescue.png"
 png(file_path, width = 8, height = 5, units = "in", res = 300)
 hist(br_soil2023[["data_ano"]], sub = paste0("n = ", sum(!missing_time)), 
-  main = "Temporal distribution of samples with known sampling date\nafter data rescue",
+  main = paste0("Temporal distribution of samples with known sampling date\n", "after data rescue"),
   xlab = "Year"
 )
 rug(br_soil2023[["data_ano"]])
