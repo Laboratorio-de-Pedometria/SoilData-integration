@@ -51,6 +51,25 @@ summary_soildata <- function(x, na.rm = TRUE) {
   }
 }
 
+# Summarize dates in soil data #################################################
+summary_date <- function(x) {
+  # If 'id' is missing, generate temporary 'id' column by concatenating 'dataset_id' and 'observacao_id'
+  if (!"id" %in% names(x) & all(c("dataset_id", "observacao_id") %in% names(x))) {
+    x[, id := paste0(dataset_id, "_", observacao_id)]
+    temp_id <- TRUE
+  } else {
+    temp_id <- FALSE
+  }
+
+  n_events <- nrow(unique(x[, "id"]))
+  n_date <- nrow(unique(x[!is.na(data_ano), "id"]))
+  cat("Date:", n_date, "(yes) /", n_events - n_date, "(no)\n")
+
+  if (temp_id) {
+    invisible(x[, id := NULL])
+  }
+}
+
 # Query SoilData API by otherIdValue (ctb) #########################################################
 # Function to query SoilData API by otherIdValue (ctb)
 # If doi = TRUE, return only the DOI (global_id), else return the full search_result
