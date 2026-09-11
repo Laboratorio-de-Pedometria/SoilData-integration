@@ -16,8 +16,12 @@ if (!dir.exists("res/fig")) {
 }
 
 # General functions to construct file paths ####################################
+# Append the version to the filename
 fig_path <- function(filename) {
-  file.path("res", "fig", "sdi", filename)
+  file.path("res", "fig", paste0(sdi, "_", filename))
+}
+tab_path <- function(filename) {
+  file.path("res", "tab", paste0(sdi, "_", filename))
 }
 
 # Describe soil data ###########################################################
