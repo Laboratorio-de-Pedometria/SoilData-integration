@@ -307,6 +307,17 @@ br_soil2023[
 summary_date(br_soil2023)
 # Date: 10907 (yes) / 3136 (no)
 
+# ctb0702 has events missing the sampling date that were obtained from the
+# RADAMBRASIL project. We are not sure which of the volumes they belong to, but
+# since all data from RADAMBRASIL is already included here, we can safely drop 
+# these events to avoid duplicates.
+length(br_soil2023[(dataset_id == "ctb0702" & is.na(data_ano)), data_ano])
+# 30 layers
+# Drop records where dataset_id = "ctb0702" AND data_ano is NA
+br_soil2023 <- br_soil2023[!(dataset_id == "ctb0702" & is.na(data_ano))]
+summary_date(br_soil2023)
+# Date: 10907 (yes) / 3129 (no)
+
 
 
 
@@ -668,25 +679,6 @@ br_soil2023[
 # Check how many events remain without sampling date
 summary_date(br_soil2023)
 # Date: 13026 (yes) / 1017 (no)
-
-
-
-
-
-
-
-
-# ctb0702 has events missing the sampling date that were obtained from from the
-# RADAMBRASIL project. We are not sure which of the volumes they belong to, but
-# since all data from RADAMBRASIL is already included here, we can safely drop 
-# these events to avoid duplicates.
-br_soil2023 <- br_soil2023[!(dataset_id == "ctb0702" & is.na(data_ano))]
-summary_date(br_soil2023)
-# Date: 10907 (yes) / 3129 (no)
-
-
-
-
 
 # Set sampling year to year_min for the following datasets:
 # (we checked the source document and found that the sampling year is < 1985; similar to 
