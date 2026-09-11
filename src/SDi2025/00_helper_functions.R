@@ -4,9 +4,16 @@
 # data: 2026
 # licence: MIT
 
-# Create directories for results if they do not exist ##############################################
-if (!dir.exists("res/tab")) dir.create("res/tab", recursive = TRUE, showWarnings = FALSE)
-if (!dir.exists("res/fig")) dir.create("res/fig", recursive = TRUE, showWarnings = FALSE)
+# Set version ##################################################################
+sdi <- "sdi2025"
+
+# Create directories for results if they do not exist ##########################
+if (!dir.exists("res/tab")) { 
+  dir.create("res/tab", recursive = TRUE, showWarnings = FALSE)
+}
+if (!dir.exists("res/fig")) { 
+  dir.create("res/fig", recursive = TRUE, showWarnings = FALSE)
+}
 
 # Describe soil data ###############################################################################
 # Create function to describe a data.frame. Use an argument na.rm = TRUE.
