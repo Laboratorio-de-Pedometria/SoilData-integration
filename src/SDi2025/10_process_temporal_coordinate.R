@@ -67,7 +67,7 @@ br_soil2023[
   data_ano := ifelse(data_ano == 1939, 1997, data_ano)
 ]
 
-# If necessary, clean odd sampling date
+# If necessary, clean any odd sampling date
 target_year <- 1950
 n_below_target <- sum(br_soil2023[["data_ano"]] < target_year, na.rm = TRUE)
 if (n_below_target > 0) {
