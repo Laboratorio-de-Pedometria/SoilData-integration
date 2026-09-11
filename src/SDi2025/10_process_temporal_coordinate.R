@@ -267,6 +267,49 @@ br_soil2023[
 summary_date(br_soil2023)
 # Date: 10810 (yes) / 3233 (no)
 
+# ctb0664 is missing the sampling year, even in the source data. The document
+# was published in 1977, so we set data_ano to 1976.
+br_soil2023[
+  dataset_id == "ctb0664" & is.na(data_ano),
+  `:=`(data_ano = 1976, data_ano_fonte = "estimativa")
+]
+br_soil2023[
+  dataset_id == "ctb0664" & !is.na(data_ano) & is.na(data_ano_fonte),
+  data_ano_fonte := "original"
+]
+summary_date(br_soil2023)
+# Date: 10869 (yes) / 3174 (no)
+
+# ctb0682 was published in 2007, but we do not have access to the source
+# document to check the sampling year. We set data_ano to 2006.
+br_soil2023[
+  dataset_id == "ctb0682" & is.na(data_ano),
+  `:=`(data_ano = 2006, data_ano_fonte = "estimativa")
+]
+br_soil2023[
+  dataset_id == "ctb0682" & !is.na(data_ano) & is.na(data_ano_fonte),
+  data_ano_fonte := "original"
+]
+summary_date(br_soil2023)
+# Date: 10893 (yes) / 3150 (no)
+
+# ctb0697 is Volume 1 of the RADAMBRASIL project, started in 1970. ctb0697 was
+# published in 1973. The sampling year is missing in the source document. We set
+# data_ano to 1971.
+br_soil2023[
+  dataset_id == "ctb0697" & is.na(data_ano),
+  `:=`(data_ano = 1971, data_ano_fonte = "estimativa")
+]
+br_soil2023[
+  dataset_id == "ctb0697" & !is.na(data_ano) & is.na(data_ano_fonte),
+  data_ano_fonte := "original"
+]
+summary_date(br_soil2023)
+# Date: 10907 (yes) / 3136 (no)
+
+
+
+
 # THIS IS FOR VISUALIZATION PURPOSES ONLY -- DELETE LATER ON
 # Define an arbitrarily low year below the actual minimum. Use this year as the
 # value for events with NAs. This allows these data to be shown in the histogram
@@ -626,13 +669,32 @@ br_soil2023[
 summary_date(br_soil2023)
 # Date: 13026 (yes) / 1017 (no)
 
+
+
+
+
+
+
+
+# ctb0702 has events missing the sampling date that were obtained from from the
+# RADAMBRASIL project. We are not sure which of the volumes they belong to, but
+# since all data from RADAMBRASIL is already included here, we can safely drop 
+# these events to avoid duplicates.
+br_soil2023 <- br_soil2023[!(dataset_id == "ctb0702" & is.na(data_ano))]
+summary_date(br_soil2023)
+# Date: 10907 (yes) / 3129 (no)
+
+
+
+
+
 # Set sampling year to year_min for the following datasets:
 # (we checked the source document and found that the sampling year is < 1985; similar to 
 # RADAMBRASIL)
-# ctb0023, ctb0028, ctb0603, ctb0608, ctb0635, ctb0666, ctb0682, ctb0829, ctb0702
+# ctb0023, ctb0028, ctb0603, ctb0608, ctb0635, ctb0666, ctb0829, ctb0702
 target_year <- year_min
 ctb <- c(
-  "ctb0023", "ctb0028", "ctb0603", "ctb0608", "ctb0635", "ctb0666", "ctb0682", "ctb0829",
+  "ctb0023", "ctb0028", "ctb0603", "ctb0608", "ctb0635", "ctb0666", "ctb0829",
   "ctb0702"
 )
 # Set sampling_year to target_year and data_ano_fonte to "estimativa"
