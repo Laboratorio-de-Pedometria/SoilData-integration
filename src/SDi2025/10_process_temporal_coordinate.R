@@ -282,9 +282,10 @@ summary_date(br_soil2023)
 
 # ctb0682 was published in 2007, but we do not have access to the source
 # document to check the sampling year. We set data_ano to 2006.
+target_year <- 2006
 br_soil2023[
   dataset_id == "ctb0682" & is.na(data_ano),
-  `:=`(data_ano = 2006, data_ano_fonte = "estimativa")
+  `:=`(data_ano = target_year, data_ano_fonte = "estimativa")
 ]
 br_soil2023[
   dataset_id == "ctb0682" & !is.na(data_ano) & is.na(data_ano_fonte),
@@ -296,9 +297,10 @@ summary_date(br_soil2023)
 # ctb0697 is Volume 1 of the RADAMBRASIL project, started in 1970. ctb0697 was
 # published in 1973. The sampling year is missing in the source document. We set
 # data_ano to 1971.
+target_year <- 1971
 br_soil2023[
   dataset_id == "ctb0697" & is.na(data_ano),
-  `:=`(data_ano = 1971, data_ano_fonte = "estimativa")
+  `:=`(data_ano = target_year, data_ano_fonte = "estimativa")
 ]
 br_soil2023[
   dataset_id == "ctb0697" & !is.na(data_ano) & is.na(data_ano_fonte),
@@ -317,6 +319,142 @@ length(br_soil2023[(dataset_id == "ctb0702" & is.na(data_ano)), data_ano])
 br_soil2023 <- br_soil2023[!(dataset_id == "ctb0702" & is.na(data_ano))]
 summary_date(br_soil2023)
 # Date: 10907 (yes) / 3129 (no)
+
+# ctb0703 is Volume 4 of the RADAMBRASIL project, started in 1970. ctb0703 was 
+# published in 1974. The sampling year is missing in the source document. We set
+# data_ano to 1972.
+target_year <- 1972
+br_soil2023[
+  dataset_id == "ctb0703" & is.na(data_ano),
+  `:=`(data_ano = target_year, data_ano_fonte = "estimativa")
+]
+br_soil2023[
+  dataset_id == "ctb0703" & !is.na(data_ano) & is.na(data_ano_fonte),
+  data_ano_fonte := "original"
+]
+summary_date(br_soil2023)
+# Date: 10932 (yes) / 3104 (no)
+
+# ctb0704 is Volume 2 of the RADAMBRASIL project, started in 1970. ctb0704 was
+# published in 1973. The sampling year is missing in the source document. We set
+# data_ano to 1971.
+target_year <- 1971
+br_soil2023[
+  dataset_id == "ctb0704" & is.na(data_ano),
+  `:=`(data_ano = target_year, data_ano_fonte = "estimativa")
+]
+br_soil2023[
+  dataset_id == "ctb0704" & !is.na(data_ano) & is.na(data_ano_fonte),
+  data_ano_fonte := "original"
+]
+summary_date(br_soil2023)
+# Date: 10962 (yes) / 3074 (no)
+
+# ctb0705 is Volume 5 of the RADAMBRASIL project, started in 1970. ctb0705 was
+# published in 1974. The sampling year is missing in the source document. We set
+# data_ano to 1972.
+target_year <- 1972
+br_soil2023[
+  dataset_id == "ctb0705" & is.na(data_ano),
+  `:=`(data_ano = target_year, data_ano_fonte = "estimativa")
+]
+br_soil2023[
+  dataset_id == "ctb0705" & !is.na(data_ano) & is.na(data_ano_fonte),
+  data_ano_fonte := "original"
+]
+summary_date(br_soil2023)
+# Date: 10993 (yes) / 3043 (no)
+
+# ctb0706 is Volume 6 of the RADAMBRASIL project, started in 1970. ctb0706 was
+# published in 1974. The sampling year is missing in the source document. We set
+# data_ano to 1972.
+target_year <- 1972
+br_soil2023[
+  dataset_id == "ctb0706" & is.na(data_ano),
+  `:=`(data_ano = target_year, data_ano_fonte = "estimativa")
+]
+br_soil2023[
+  dataset_id == "ctb0706" & !is.na(data_ano) & is.na(data_ano_fonte),
+  data_ano_fonte := "original"
+]
+summary_date(br_soil2023)
+# Date: 11020 (yes) / 3016 (no)
+
+# ctb0707 is Volume 7 of the RADAMBRASIL project, started in 1970. ctb0707 was
+# published in 1975. The sampling year is missing in the source document. We set
+# data_ano to 1973.
+target_year <- 1973
+br_soil2023[
+  dataset_id == "ctb0707" & is.na(data_ano),
+  `:=`(data_ano = target_year, data_ano_fonte = "estimativa")
+]
+br_soil2023[
+  dataset_id == "ctb0707" & !is.na(data_ano) & is.na(data_ano_fonte),
+  data_ano_fonte := "original"
+]
+summary_date(br_soil2023)
+# Date: 11069 (yes) / 2967 (no)
+
+# ctb0709 is Volume 8 of the RADAMBRASIL project, started in 1970. ctb0709 was
+# published in 1975. The sampling year is missing in the source document. We set
+# data_ano to 1973.
+target_year <- 1973
+br_soil2023[
+  dataset_id == "ctb0709" & is.na(data_ano),
+  `:=`(data_ano = target_year, data_ano_fonte = "estimativa")
+]
+br_soil2023[
+  dataset_id == "ctb0709" & !is.na(data_ano) & is.na(data_ano_fonte),
+  data_ano_fonte := "original"
+]
+summary_date(br_soil2023)
+# Date: 11112 (yes) / 2924 (no)
+
+# ctb0710 is Volume 9 of the RADAMBRASIL project, started in 1970. ctb0710 was
+# published in 1975. The sampling year is missing in the source document. We set
+# data_ano to 1973.
+target_year <- 1973
+br_soil2023[
+  dataset_id == "ctb0710" & is.na(data_ano),
+  `:=`(data_ano = target_year, data_ano_fonte = "estimativa")
+]
+br_soil2023[
+  dataset_id == "ctb0710" & !is.na(data_ano) & is.na(data_ano_fonte),
+  data_ano_fonte := "original"
+]
+summary_date(br_soil2023)
+# Date: 11131 (yes) / 2905 (no)
+
+# ctb0711 is Volume 10 of the RADAMBRASIL project, started in 1970. ctb0711 was
+# published in 1976. The sampling year is missing in the source document. We set
+# data_ano to 1974.
+target_year <- 1974
+br_soil2023[
+  dataset_id == "ctb0711" & is.na(data_ano),
+  `:=`(data_ano = target_year, data_ano_fonte = "estimativa")
+]
+br_soil2023[
+  dataset_id == "ctb0711" & !is.na(data_ano) & is.na(data_ano_fonte),
+  data_ano_fonte := "original"
+]
+summary_date(br_soil2023)
+# Date: 11169 (yes) / 2867 (no)
+
+# ctb0713 is Volume 12 of the RADAMBRASIL project, started in 1970. ctb0713 was
+# published in 1976. The sampling year is missing in the source document. We set
+# data_ano to 1974.
+target_year <- 1974
+br_soil2023[
+  dataset_id == "ctb0713" & is.na(data_ano),
+  `:=`(data_ano = target_year, data_ano_fonte = "estimativa")
+]
+br_soil2023[
+  dataset_id == "ctb0713" & !is.na(data_ano) & is.na(data_ano_fonte),
+  data_ano_fonte := "original"
+]
+summary_date(br_soil2023)
+# Date: 11253 (yes) / 2783 (no)
+
 
 
 
