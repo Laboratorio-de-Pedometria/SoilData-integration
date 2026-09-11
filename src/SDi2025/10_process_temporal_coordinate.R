@@ -142,7 +142,7 @@ br_soil2023[, na_year := FALSE]
 br_soil2023[is.na(data_ano), na_year := TRUE]
 missing_time <- is.na(br_soil2023[["data_ano"]])
 # Plot histogram
-file_path <- "res/fig/101_temporal_distribution_before_rescue.png"
+file_path <- fig_path("101_temporal_distribution_before_rescue.png")
 png(file_path, width = 8, height = 5, units = "in", res = 300)
 hist(br_soil2023[["data_ano"]], sub = paste0("n = ", sum(!missing_time)), 
   main = paste0("Temporal distribution of samples with known sampling date\n", "before data rescue"),
