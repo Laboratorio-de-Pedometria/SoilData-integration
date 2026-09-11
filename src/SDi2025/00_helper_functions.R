@@ -15,7 +15,12 @@ if (!dir.exists("res/fig")) {
   dir.create("res/fig", recursive = TRUE, showWarnings = FALSE)
 }
 
-# Describe soil data ###############################################################################
+# General functions to construct file paths ####################################
+fig_path <- function(filename) {
+  file.path("res", "fig", "sdi", filename)
+}
+
+# Describe soil data ###########################################################
 # Create function to describe a data.frame. Use an argument na.rm = TRUE.
 summary_soildata <- function(x, na.rm = TRUE) {
   # If 'id' is missing, generate temporary 'id' column by concatenating 'dataset_id' and 'observacao_id'
