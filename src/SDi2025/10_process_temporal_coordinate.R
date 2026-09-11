@@ -217,9 +217,9 @@ dev.off()
 br_soil2023[, na_year := NULL]
 
 # Attribute the most likely (estimate) temporal coordinate #####################
-# Create a second column "data_coleta_ano_fonte". If we the sampling date is being estimated
-# (target_year), register data_coleta_ano_fonte = "estimativa". If the year is from the original
-# data, it will be "original".
+# Create a second column "data_coleta_ano_fonte". If we the sampling date is
+# being estimated (target_year), register data_coleta_ano_fonte = "estimativa".
+# If the year is from the original data, it will be "original".
 br_soil2023[, data_coleta_ano_fonte := NA_character_]
 
 # Inventário das terras em microbacias hidrográficas, Santa Catarina
@@ -257,20 +257,23 @@ br_soil2023[
 nrow(unique(br_soil2023[is.na(data_ano), c("dataset_id", "observacao_id")]))
 # 3239 events remain without sampling year
 
+# THIS IS FOR VISUALIZATION PURPOSES ONLY -- DELETE LATER ON
 # Define an arbitrarily low year below the actual minimum
-# Use this year as the value for events with NAs (DELETE LATER ON -- THIS IS FOR VISUALIZATION ONLY)
-# This allows these data to be shown in the histogram in a separate column from the other data.
+# Use this year as the value for events with NAs
+# This allows these data to be shown in the histogram in a separate column from
+# the other data.
 year_min <- min(br_soil2023[, data_ano], na.rm = TRUE)
 year_min <- (floor(year_min / 10) * 10) - 2
 print(year_min)
 # 1948
 
 # RADAMBRASIL: set sampling year to year_min
-# For datasets from the RADAMBRASIL project, the sampling year is set to `year_min` because all 
-# sampling occurred before 1985, which is the earliest year modeled by the MapBiomas Soil project. 
-# Although the Brazilian Soil Dataset is not directly defined by the MapBiomas Soil project, this
-# adjustment is necessary due to dependencies in data processing. A more accurate sampling date
-# will be determined or estimated in the future.
+# For datasets from the RADAMBRASIL project, the sampling year is set to
+# `year_min` because all sampling occurred before 1985, which is the earliest
+# year modeled by the MapBiomas Soil project. Although the Brazilian Soil
+# Dataset is not directly defined by the MapBiomas Soil project, this adjustment
+# is necessary due to dependencies in data processing. A more accurate sampling
+# date will be determined or estimated in the future.
 idx <- br_soil2023[
   grepl("RADAMBRASIL", dataset_titulo, ignore.case = TRUE) & is.na(data_ano),
   id
