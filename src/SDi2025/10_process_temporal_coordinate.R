@@ -79,9 +79,9 @@ if (n_below_target > 0) {
   cat("All sampling years are >= ", target_year, ". No changes made.\n", sep = "")
 }
 
-# Some events have both known and unknown sampling dates for their layers
-# The reason for this are errors in the source data, specifically, data from
-# different pevents having the same identifier. Issues occurs in:
+# Some events have both known and unknown sampling dates for their layers. The
+# reason for this are errors in the source data (SISB), specifically, data from
+# different events having the same identifier. Issues occurs in:
 # ctb0683: one event
 # ctb0759: nine events
 # ctb0760: 13 events
@@ -89,7 +89,8 @@ if (n_below_target > 0) {
 # ctb0771: one event
 # ctb0809: one event
 # ctb0832 one event.
-br_soil2023[, has_date := any(!is.na(data_ano)), by = .(dataset_id, observacao_id)]
+br_soil2023[, 
+  has_date := any(!is.na(data_ano)), by = .(dataset_id, observacao_id)]
 br_soil2023[, no_date := any(is.na(data_ano)), by = .(dataset_id, observacao_id)]
 print(br_soil2023[has_date == TRUE & no_date == TRUE,
   by = .(dataset_id, observacao_id), .N
@@ -124,18 +125,19 @@ print(br_soil2023[has_date == TRUE & no_date == TRUE,
 # 26:    ctb0809       Exame-8     8
 # 27:    ctb0832      E-Rio-30     6
 # For these events, keep only the layers with a known sampling date and drop the
-# layers without a known sampling date.
+# layers without a known sampling date. Corrections in the source data will be
+# made in the future.
 br_soil2023 <- br_soil2023[
   !(has_date == TRUE & no_date == TRUE & is.na(data_ano))
 ]
 summary_soildata(br_soil2023)
-# Layers: 50286
-# Events: 14043
+# Layers: 50286 (we lost 184 layers)
+# Events: 14043 (no event was lost)
 # Georeference: 11012 (yes) / 3031 (no)
 # Date: 9223 (yes) / 4820 (no)
 # Datasets: 235
 
-# Temporal distribution of samples with known sampling date
+# FIGURE. Temporal distribution of samples with known sampling date
 br_soil2023[, na_year := FALSE]
 br_soil2023[is.na(data_ano), na_year := TRUE]
 missing_time <- is.na(br_soil2023[["data_ano"]])
