@@ -143,23 +143,30 @@ eventRO <- merge(event33, event34, all = TRUE)
 eventRO <- merge(eventRO, event32, by = "evento_id_febr", all.x = TRUE)
 nrow(eventRO)
 # 2999 events after merge
+
+# Standardize column names and data types
 eventRO[, dataset_id := "ctb0033"]
 eventRO[, coord_datum_epsg := NULL]
-eventRO[, coord_datum_epsg := "EPSG:4326"]
+eventRO[, coord_datum := "EPSG:4326"]
 new_names <- c(
   evento_id_febr = "observacao_id",
   coord_longitude = "coord_x",
   coord_latitude = "coord_y",
   coord_municipio_nome = "municipio_id",
-  coord_estado_sigla = "estado_id"
+  coord_estado_sigla = "estado_id",
+  coord_pais_id = "pais_id"
 )
 data.table::setnames(
   eventRO,
   old = names(new_names), new = new_names, skip_absent = TRUE
 )
 eventRO[, estado_id := "RO"]
+eventRO[, pais_id := "BR"]
 cols <- intersect(names(eventRO), tolower(names(eventRO)))
 eventRO <- eventRO[, ..cols]
+rm(event32, event33, event34, LOCALSERIE, taxon, new_names)
+
+# Standardize the sampling date
 eventRO[, data_ano := as.integer(format(data_coleta, "%Y"))]
 nrow(eventRO[is.na(data_ano), ])
 # 87 events missing the sampling date. These are not soil profiles and thus are
@@ -177,6 +184,7 @@ eventRO[, .N, by = data_ano_fonte]
 #            <char> <int>
 # 1:       original  2912
 # 2:     estimativa    87
+rm(target_year)
 
 # Check spatial distribution of events in Rondônia
 if (FALSE) {
@@ -273,6 +281,7 @@ layerRO[, dataset_id34 := NULL]
 rondonia <- merge(eventRO, layerRO, all = TRUE)
 nrow(rondonia)
 # 10789 layers
+rm(eventRO, layerRO, layer33, layer34)
 
 # Standardize measurement units
 rondonia[, areia := areia * 10]
@@ -369,20 +378,19 @@ if (FALSE) {
   plot(soildata[, c("coord_x", "coord_y")])
 }
 
-# Merge data from Rondônia with the SoilData snapshot
-# First create missing columns in the data from Rondônia
-rondonia[
-  ,
-  dataset_titulo := "Zoneamento Socioeconômico-Ecológico do Estado de Rondônia"
-]
+# Create missing columns in the data from Rondônia
+title <- "Dados de 'Zoneamento Socioeconômico-Ecológico do Estado de Rondônia'"
+rondonia[, dataset_titulo := title]
 rondonia[, dataset_licenca := "CC-BY-4.0"]
 rondonia[, organizacao_nome := "Governo do Estado de Rondônia"]
-# Then remove existing data from Rondônia (morphological descriptions)
+# Remove existing data from Rondônia (morphological descriptions)
 length(unique(soildata[, id]))
 # 13859 events
 soildata <- soildata[dataset_id != "ctb0032", ]
 length(unique(soildata[, id]))
 # 10945 events
+
+# Merge data from Rondônia with the SoilData snapshot
 col_ro <- intersect(names(soildata), names(rondonia))
 soildata <-
   data.table::rbindlist(list(soildata, rondonia[, ..col_ro]), fill = TRUE)
