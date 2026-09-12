@@ -1,7 +1,7 @@
 # title: SoilData Integration
 # subtitle: Process time coordinate
 # author: Alessandro Samuel-Rosa
-# date: 2025
+# date: 2026
 # licence: MIT
 # description: This script processes the temporal coordinate (sampling year) of
 # the Brazilian Soil Dataset. Processing always starts from v2023 and will
