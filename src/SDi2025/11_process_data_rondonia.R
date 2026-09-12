@@ -282,35 +282,46 @@ rondonia[, terrafina := terrafina * 10]
 rondonia[, carbono := carbono * 10]
 
 # Deal with the identification of events containing duplicated layers
-# These are extra samples for soil fertility assessment collected nearby the soil profile
+# These are extra samples for soil fertility assessment collected nearby the
+# soil profile
 rondonia[, EXTRA := duplicated(profund_sup), by = observacao_id]
 nrow(rondonia[EXTRA == TRUE, ])
 # 63 duplicated layers
 nrow(unique(rondonia[EXTRA == TRUE, "observacao_id"]))
 # 24 events with duplicated layers
-# Rename the duplicated layers by pasting the layer id (a letter) to the observation id, for
-# example, RO0600C. This will create a new event for each duplicated layer, enabling to identify
-# the source of the sample.
+# Rename the duplicated layers by pasting the layer id (a letter) to the
+# observation id, for example, RO0600C. This will create a new event for each 
+# duplicated layer, enabling to identify the source of the sample.
 rondonia[EXTRA == TRUE, observacao_id := paste0(observacao_id, camada_nome)]
 rondonia[, id := paste0(dataset_id, "-", observacao_id)]
-# Next we add a random perturbation to the coordinates of extra samples only to pass checks for
-# duplicated events. We use a small perturbation of 1 m, which is negligible for most practical
-# purposes. The coordinates are transformed to UTM zone 20S (EPSG:32720) before applying the
-# perturbation and then transformed back to WGS84 (EPSG:4326).
+# Next we add a random perturbation to the coordinates of extra samples only to 
+# pass checks for duplicated events. We use a small perturbation of 1 m, which 
+# is negligible for most practical purposes. The coordinates are transformed to 
+# UTM zone 20S (EPSG:32720) before applying the perturbation and then 
+# transformed back to WGS84 (EPSG:4326).
 # Use sf::st_jitter() with amount = 1 m, where runif(1, -amount, amount)
 amount <- 1
 extra_coords <- rondonia[
   EXTRA == TRUE & !is.na(coord_x) & !is.na(coord_y),
   c("id", "coord_x", "coord_y")
 ]
-extra_coords <- sf::st_as_sf(extra_coords, coords = c("coord_x", "coord_y"), crs = 4326)
+extra_coords <- sf::st_as_sf(
+  extra_coords,
+  coords = c("coord_x", "coord_y"), crs = 4326
+)
 extra_coords <- sf::st_transform(extra_coords, crs = 32720)
 set.seed(1984)
 extra_coords <- sf::st_jitter(extra_coords, amount = amount)
 extra_coords <- sf::st_transform(extra_coords, crs = 4326)
 extra_coords <- sf::st_coordinates(extra_coords)
-rondonia[EXTRA == TRUE & !is.na(coord_x) & !is.na(coord_y), coord_x := extra_coords[, "X"]]
-rondonia[EXTRA == TRUE & !is.na(coord_x) & !is.na(coord_y), coord_y := extra_coords[, "Y"]]
+rondonia[
+  EXTRA == TRUE & !is.na(coord_x) & !is.na(coord_y),
+  coord_x := extra_coords[, "X"]
+]
+rondonia[
+  EXTRA == TRUE & !is.na(coord_x) & !is.na(coord_y),
+  coord_y := extra_coords[, "Y"]
+]
 # In coord_fonte, append " + amount m jitter" to the existing text.
 rondonia[
   EXTRA == TRUE & !is.na(coord_x) & !is.na(coord_y),
@@ -328,7 +339,9 @@ rm(extra_coords, amount)
 summary_soildata(rondonia)
 # Layers: 10789
 # Events: 3061
-# Georeferenced events: 2962
+# Georeference: 2962 (yes) / 99 (no)
+# Date: 3061 (yes) / 0 (no)
+# Datasets: 1
 
 # Read SoilData data processed in the previous script
 soildata <- data.table::fread("data/10_soildata.txt", sep = "\t", na.strings = c("", "NA"))
