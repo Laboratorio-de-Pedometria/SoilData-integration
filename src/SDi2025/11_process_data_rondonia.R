@@ -344,15 +344,23 @@ summary_soildata(rondonia)
 # Datasets: 1
 
 # Read SoilData data processed in the previous script
-soildata <- data.table::fread("data/10_soildata.txt", sep = "\t", na.strings = c("", "NA"))
-soildata[, coord_datum_epsg := 4326]
+soildata <- data.table::fread(
+  "data/10_soildata.txt",
+  sep = "\t", na.strings = c("", "NA")
+)
+summary_soildata(soildata)
+# Layers: 49769
+# Events: 13859
+# Georeference: 10859 (yes) / 3000 (no)
+# Date: 13707 (yes) / 152 (no)
+# Datasets: 235
+
+# Add a column to indicate the coordinate reference system (CRS)
+soildata[, coord_datum := 4326] # EPSG code for WGS84
+
 # order rows by dataset_id, observacao_id, profund_sup and profund_inf
 soildata <- soildata[order(dataset_id, observacao_id, profund_sup, profund_inf), ]
-summary_soildata(soildata)
-# Layers: 50400
-# Events: 13973
-# Georeferenced events: 10942
-# Datasets: 235
+
 if (FALSE) {
   x11()
   plot(soildata[, c("coord_x", "coord_y")])
