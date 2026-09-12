@@ -102,15 +102,30 @@ taxon <- list(
   RO1351 = "Podzólico Vermelho-Amarelo tb distrófico A moderado",
   RO1352 = "Podzólico Vermelho-Amarelo tb eutrófico A moderado",
   RO1369 = "Cambissolo distrófico",
-  RO1372 = "Cambissolo tb distrófico A proeminente"
+  RO1372 = "Cambissolo tb distrófico A proeminente",
+  RO1375 = "Cambissolo eutrófico",
+  RO1396 = "Cambissolo tm eutrófico A moderado",
+  RO1510 = "Solos Aluviais distróficos",
+  RO1513 = "Solos Aluviais distróficos",
+  RO1522 = "Podzólico Vermelho-Escuro tb eutrófico A proeminente",
+  RO1525 = "Solos Litólicos eutróficos",
+  RO1532 = "Cambissolo ta eutrófico A fraco",
+  RO1545 = "Solos Aluviais distróficos",
+  RO1546 = "Cambissolo tb distrófico A proeminente",
+  RO1560 = "Latossolo Amarelo distrófico",
+  RO1568 = "Areias Quartzosas distróficas",
+  RO1583 = "Latossolo Vermelho-Amarelo distrófico",
+  RO1592 = "Areias Quartzosas distróficas",
+  RO1611 = "Cambissolo eutrófico",
+  RO1616 = "Brunizem",
+  RO1622 = "Solos Litólicos eutróficos"
 )
 # Apply the taxon list to fill in missing soil classification
 for (id in names(taxon)) {
   event32[evento_id_febr == id, taxon_sibcs := taxon[[id]]]
 }
 event32[is.na(taxon_sibcs), .N]
-# 279 (THERE ARE MORE MISSING SOIL CLASSIFICATIONS, BUT WE WILL LEAVE THEM AS NA
-# FOR NOW)
+# 263 still are missing soil classification. We will leave them as NA for now.
 # ctb0033
 event33 <- febr::observation("ctb0033", "all")
 event33 <- data.table::as.data.table(event33)
@@ -138,16 +153,30 @@ new_names <- c(
   coord_municipio_nome = "municipio_id",
   coord_estado_sigla = "estado_id"
 )
-data.table::setnames(eventRO, old = names(new_names), new = new_names, skip_absent = TRUE)
+data.table::setnames(
+  eventRO,
+  old = names(new_names), new = new_names, skip_absent = TRUE
+)
 eventRO[, estado_id := "RO"]
 cols <- intersect(names(eventRO), tolower(names(eventRO)))
 eventRO <- eventRO[, ..cols]
-eventRO[, data_coleta_ano := as.integer(format(data_coleta, "%Y"))]
-nrow(eventRO[is.na(data_coleta_ano), ])
-# 87 events missing the sampling date
+eventRO[, data_ano := as.integer(format(data_coleta, "%Y"))]
+nrow(eventRO[is.na(data_ano), ])
+# 87 events missing the sampling date. These are not soil profiles and thus are
+# not listed in the ANEX F of the source documentation. They may be extra
+# samples collected for soil fertility assessment, and the sampling date was not 
+# recorded. We will set the sampling date to 1996 for these events.
 # Set the sampling date to 1996 for events with missing data
-eventRO[is.na(data_coleta_ano), data_coleta_ano := 1996]
-eventRO[!is.na(data_coleta_ano), data_coleta_ano_fonte := "original"]
+target_year <- 1996
+eventRO[, data_ano_fonte := NA_character_]
+eventRO[!is.na(data_ano), data_ano_fonte := "original"]
+eventRO[is.na(data_ano), data_ano := target_year]
+eventRO[is.na(data_ano_fonte), data_ano_fonte := "estimativa"]
+eventRO[, .N, by = data_ano_fonte]
+#    data_ano_fonte     N
+#            <char> <int>
+# 1:       original  2912
+# 2:     estimativa    87
 if (FALSE) {
   x11()
   plot(eventRO[, c("coord_x", "coord_y")])
