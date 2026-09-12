@@ -358,9 +358,12 @@ summary_soildata(soildata)
 # Add a column to indicate the coordinate reference system (CRS)
 soildata[, coord_datum := 4326] # EPSG code for WGS84
 
-# order rows by dataset_id, observacao_id, profund_sup and profund_inf
-soildata <- soildata[order(dataset_id, observacao_id, profund_sup, profund_inf), ]
+# Order rows by dataset_id, observacao_id, profund_sup, and profund_inf
+soildata <- soildata[
+  order(dataset_id, observacao_id, profund_sup, profund_inf),
+]
 
+# Check the spatial distribution of events in Brazil
 if (FALSE) {
   x11()
   plot(soildata[, c("coord_x", "coord_y")])
