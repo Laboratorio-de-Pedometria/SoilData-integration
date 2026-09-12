@@ -706,9 +706,6 @@ br_soil2023[
 summary_date(br_soil2023)
 # Date: 12133 (yes) / 1796 (no)
 
-
-
-
 # THIS IS FOR VISUALIZATION PURPOSES ONLY -- DELETE LATER ON
 # Define an arbitrarily low year below the actual minimum. Use this year as the
 # value for events with NAs. This allows these data to be shown in the histogram
@@ -718,23 +715,24 @@ year_min <- (floor(year_min / 10) * 10) - 2
 print(year_min)
 # 1948
 
-# RADAMBRASIL: set sampling year to year_min
-# For datasets from the RADAMBRASIL project, the sampling year is set to
-# `year_min` because all sampling occurred before 1985, which is the earliest
-# year modeled by the MapBiomas Soil project. Although the Brazilian Soil
-# Dataset is not directly defined by the MapBiomas Soil project, this adjustment
-# is necessary due to dependencies in data processing. A more accurate sampling
-# date will be determined or estimated in the future.
+# RADAMBRASIL: set sampling year to year_min if still missing after the above
+# operations. This is done because all sampling occurred before 1985, which is 
+# the earliest year modeled by the MapBiomas Soil project. Although the 
+# Brazilian Soil Dataset is not directly defined by the MapBiomas Soil project, 
+# this adjustment is necessary due to dependencies in data processing. A more 
+# accurate sampling date will be determined or estimated in the future.
 idx <- br_soil2023[
   grepl("RADAMBRASIL", dataset_titulo, ignore.case = TRUE) & is.na(data_ano),
   id
 ]
+length(unique(idx))
+# 118 events
 # Set sampling_year to year_min and data_ano_fonte to "estimativa"
 br_soil2023[id %in% idx, data_ano := year_min]
 br_soil2023[id %in% idx, data_ano_fonte := "estimativa"]
 # Check how many events remain without sampling date
 summary_date(br_soil2023)
-# Date: 12227 (yes) / 1816 (no)
+# Date: 12251 (yes) / 1678 (no)
 
 # How many events:
 # 1) have spatial coordinates (coord_x and coord_y) and
@@ -743,7 +741,7 @@ nrow(unique(br_soil2023[
   is.na(data_ano) & !is.na(coord_x) & !is.na(coord_y),
   c("dataset_id", "observacao_id")
 ]))
-# 664 events
+# 574 events
 
 # Set the sampling year to 1999 for the following datasets:
 # (we checked the source document and found that the sampling year is about
@@ -762,7 +760,7 @@ br_soil2023[
 ]
 # Check how many events remain without sampling date
 summary_date(br_soil2023)
-# Date: 12239 (yes) / 1804 (no)
+# Date: 12263 (yes) / 1666 (no)
 
 # Set the sampling year to 1998 for the following datasets:
 # (we checked the source document and found that the sampling year is about
@@ -781,328 +779,277 @@ br_soil2023[
 ]
 # Check how many events remain without sampling date
 summary_date(br_soil2023)
-# Date: 12240 (yes) / 1803 (no)
+# Date: 12264 (yes) / 1665 (no)
 
 # Set the sampling year to 1994 for the following datasets:
 # (we checked the source document and found that the sampling year is about
 # 1994, so this is a reasonable estimate)
 # ctb0779
 target_year <- 1994
-# Set sampling year to target_year and data_ano_fonte to "estimativa"
 br_soil2023[dataset_id == "ctb0779" & is.na(data_ano), `:=`(
   data_ano = target_year,
   data_ano_fonte = "estimativa"
 )]
-# Set data_ano_fonte = original in the remaining events
 br_soil2023[
   dataset_id == "ctb0779" & !is.na(data_ano) & is.na(data_ano_fonte),
   data_ano_fonte := "original"
 ]
-# Check how many events remain without sampling date
 summary_date(br_soil2023)
-# Date: 12257 (yes) / 1786 (no)
+# Date: 12281 (yes) / 1648 (no)
 
 # Set the sampling year to 1991 for the following datasets:
 # (we checked the source document and found that the sampling year is about
 # 1991, so this is a reasonable estimate)
 # ctb0802
 target_year <- 1991
-# Set sampling_year to target_year and data_ano_fonte to "estimativa"
 br_soil2023[dataset_id == "ctb0802" & is.na(data_ano), `:=`(
   data_ano = target_year,
   data_ano_fonte = "estimativa"
 )]
-# Set data_ano_fonte = original in the remaining events
 br_soil2023[
   dataset_id == "ctb0802" & !is.na(data_ano) & is.na(data_ano_fonte),
   data_ano_fonte := "original"
 ]
-# Check how many events remain without sampling date
 summary_date(br_soil2023)
-# Date: 12270 (yes) / 1773 (no)
+# Date: 12294 (yes) / 1635 (no)
 
 # Set the sampling year to 1989 for the following datasets:
 # (we checked the source document and found that the sampling year is about 
 # 1989, so this is a reasonable estimate)
 # ctb0604
 target_year <- 1989
-# Set sampling_year to target_year and data_ano_fonte to "estimativa"
 br_soil2023[dataset_id == "ctb0604" & is.na(data_ano), `:=`(
   data_ano = target_year,
   data_ano_fonte = "estimativa"
 )]
-# Set data_ano_fonte = original in the remaining events
 br_soil2023[
   dataset_id == "ctb0604" & !is.na(data_ano) & is.na(data_ano_fonte),
   data_ano_fonte := "original"
 ]
-# Check how many events remain without sampling date
 summary_date(br_soil2023)
-# Date: 12293 (yes) / 1750 (no)
+# Date: 12317 (yes) / 1612 (no)
 
 # Set the sampling year to 1983 for the following datasets:
 # (we checked the source document and found that the sampling year is about
 # 1983, so this is a reasonable estimate)
 # ctb0658
 target_year <- 1983
-# Set sampling_year to target_year and data_ano_fonte to "estimativa"
 br_soil2023[dataset_id == "ctb0658" & is.na(data_ano), `:=`(
   data_ano = target_year,
   data_ano_fonte = "estimativa"
 )]
-# Set data_ano_fonte = original in the remaining events
 br_soil2023[
   dataset_id == "ctb0658" & !is.na(data_ano) & is.na(data_ano_fonte),
   data_ano_fonte := "original"
 ]
-# Check how many events remain without sampling date
 summary_date(br_soil2023)
-# Date: 12304 (yes) / 1739 (no)
+# Date: 12328 (yes) / 1601 (no)
 
 # Set the sampling year to 1981 for the following datasets:
 # (we checked the source document and found that the sampling year is about 
 # 1981, so this is a reasonable estimate)
 # ctb0655
 target_year <- 1981
-# Set sampling_year to target_year and data_ano_fonte to "estimativa"
 br_soil2023[dataset_id == "ctb0655" & is.na(data_ano), `:=`(
   data_ano = target_year,
   data_ano_fonte = "estimativa"
 )]
-# Set data_ano_fonte = original in the remaining events
 br_soil2023[
   dataset_id == "ctb0655" & !is.na(data_ano) & is.na(data_ano_fonte),
   data_ano_fonte := "original"
 ]
-# Check how many events remain without sampling date
 summary_date(br_soil2023)
-# Date: 12314 (yes) / 1729 (no)
+# Date: 12338 (yes) / 1591 (no)
 
 # Set the sampling year to 1980 for the following datasets:
 # (we checked the source document and found that the sampling year is about 
 # 1980, so this is a reasonable estimate)
 # ctb0810, ctb0814
 target_year <- 1980
-# Set sampling_year to target_year and data_ano_fonte to "estimativa"
 br_soil2023[dataset_id %in% c("ctb0810", "ctb0814") & is.na(data_ano), `:=`(
   data_ano = target_year,
   data_ano_fonte = "estimativa"
 )]
-# Set data_ano_fonte = original in the remaining events
 br_soil2023[
   dataset_id %in% c("ctb0810", "ctb0814") & !is.na(data_ano) & is.na(data_ano_fonte),
   data_ano_fonte := "original"
 ]
-# Check how many events remain without sampling date
 summary_date(br_soil2023)
-# Date: 12429 (yes) / 1614 (no)
+# Date: 12453 (yes) / 1476 (no)
 
 # Set the sampling year to 1978 for the following datasets:
 # (we checked the source document and found that the sampling year is about 
 # 1978, so this is a reasonable estimate)
 # ctb0776, ctb0819
 target_year <- 1978
-# Set sampling_year to target_year and data_ano_fonte to "estimativa"
 br_soil2023[dataset_id %in% c("ctb0776", "ctb0819") & is.na(data_ano), `:=`(
   data_ano = target_year,
   data_ano_fonte = "estimativa"
 )]
-# Set data_ano_fonte = original in the remaining events
 br_soil2023[
   dataset_id %in% c("ctb0776", "ctb0819") & !is.na(data_ano) & is.na(data_ano_fonte),
   data_ano_fonte := "original"
 ]
-# Check how many events remain without sampling date
 summary_date(br_soil2023)
-# Date: 12494 (yes) / 1549 (no)
+# Date: 12518 (yes) / 1411 (no)
 
 # Set the sampling year to 1977 for the following datasets:
 # (we checked the source document and found that the sampling year is about 
 # 1977, so this is a reasonable estimate)
 # ctb0660, ctb0788
 target_year <- 1977
-# Set sampling_year to target_year and data_ano_fonte to "estimativa"
 br_soil2023[dataset_id %in% c("ctb0660", "ctb0788") & is.na(data_ano), `:=`(
   data_ano = target_year,
   data_ano_fonte = "estimativa"
 )]
-# Set data_ano_fonte = original in the remaining events
 br_soil2023[
   dataset_id %in% c("ctb0660", "ctb0788") & !is.na(data_ano) & is.na(data_ano_fonte),
   data_ano_fonte := "original"
 ]
-# Check how many events remain without sampling date
 summary_date(br_soil2023)
-# Date: 12558 (yes) / 1485 (no)
+# Date: 12582 (yes) / 1347 (no)
 
 # Set the sampling year to 1976 for the following datasets:
 # (we checked the source document and found that the sampling year is about 
 # 1976, so this is a reasonable estimate)
 # ctb0648, ctb0785
 target_year <- 1976
-# Set sampling_year to target_year and data_ano_fonte to "estimativa"
 br_soil2023[dataset_id %in% c("ctb0648", "ctb0785") & is.na(data_ano), `:=`(
   data_ano = target_year,
   data_ano_fonte = "estimativa"
 )]
-# Set data_ano_fonte = original in the remaining events
 br_soil2023[
   dataset_id %in% c("ctb0648", "ctb0785") & !is.na(data_ano) & is.na(data_ano_fonte),
   data_ano_fonte := "original"
 ]
-# Check how many events remain without sampling date
 summary_date(br_soil2023)
-# Date: 12659 (yes) / 1384 (no)
+# Date: 12683 (yes) / 1246 (no)
 
 # Set the sampling year to 1974 for the following datasets:
 # (we checked the source document and found that the sampling year is about 
 # 1974, so this is a reasonable estimate)
 # ctb0789, ctb0818
 target_year <- 1974
-# Set sampling_year to target_year and data_ano_fonte to "estimativa"
 br_soil2023[dataset_id %in% c("ctb0789", "ctb0818") & is.na(data_ano), `:=`(
   data_ano = target_year,
   data_ano_fonte = "estimativa"
 )]
-# Set data_ano_fonte = original in the remaining events
 br_soil2023[
   dataset_id %in% c("ctb0789", "ctb0818") & !is.na(data_ano) & is.na(data_ano_fonte),
   data_ano_fonte := "original"
 ]
-# Check how many events remain without sampling date
 summary_date(br_soil2023)
-# Date: 12715 (yes) / 1328 (no)
+# Date: 12739 (yes) / 1190 (no)
 
 # Set the sampling year to 1971 for the following datasets:
 # (we checked the source document and found that the sampling year is about 
 # 1971, so this is a reasonable estimate)
 # ctb0783, ctb0827
 target_year <- 1971
-# Set sampling year to target_year and data_ano_fonte to "estimativa"
 br_soil2023[dataset_id %in% c("ctb0783", "ctb0827") & is.na(data_ano), `:=`(
   data_ano = target_year,
   data_ano_fonte = "estimativa"
 )]
-# Set data_ano_fonte = original in the remaining events
 br_soil2023[
   dataset_id %in% c("ctb0783", "ctb0827") & !is.na(data_ano) & is.na(data_ano_fonte),
   data_ano_fonte := "original"
 ]
-# Check how many events remain without sampling date
 summary_date(br_soil2023)
-# Date: 12848 (yes) / 1195 (no)
+# Date: 12872 (yes) / 1057 (no)
 
 # Set the sampling year to 1970 for the following datasets:
 # (we checked the source document and found that the sampling year is about 
 # 1970, so this is a reasonable estimate)
 # ctb0797
 target_year <- 1970
-# Set sampling_year to target_year and data_ano_fonte to "estimativa"
 br_soil2023[dataset_id == "ctb0797" & is.na(data_ano), `:=`(
   data_ano = target_year,
   data_ano_fonte = "estimativa"
 )]
-# Set data_ano_fonte = original in the remaining events
 br_soil2023[
   dataset_id == "ctb0797" & !is.na(data_ano) & is.na(data_ano_fonte),
   data_ano_fonte := "original"
 ]
-# Check how many events remain without sampling date
 summary_date(br_soil2023)
-# Date: 12905 (yes) / 1138 (no)
+# Date: 12929 (yes) / 1000 (no)
 
 # Set the sampling year to 1969 for the following datasets:
 # (we checked the source document and found that the sampling year is about 
 # 1969, so this is a reasonable estimate)
 # ctb0798
 target_year <- 1969
-# Set sampling_year to target_year and data_ano_fonte to "estimativa"
 br_soil2023[dataset_id == "ctb0798" & is.na(data_ano), `:=`(
   data_ano = target_year,
   data_ano_fonte = "estimativa"
 )]
-# Set data_ano_fonte = original in the remaining events
 br_soil2023[
   dataset_id == "ctb0798" & !is.na(data_ano) & is.na(data_ano_fonte),
   data_ano_fonte := "original"
 ]
-# Check how many events remain without sampling date
 summary_date(br_soil2023)
-# Date: 12916 (yes) / 1127 (no)
+# Date: 12940 (yes) / 989 (no)
 
 # Set the sampling year to 1967 for the following datasets:
 # (we checked the source document and found that the sampling year is about 
 # 1967, so this is a reasonable estimate)
 # ctb0693, ctb0804
 target_year <- 1967
-# Set sampling_year to target_year and data_ano_fonte to "estimativa"
 br_soil2023[dataset_id %in% c("ctb0693", "ctb0804") & is.na(data_ano), `:=`(
   data_ano = target_year,
   data_ano_fonte = "estimativa"
 )]
-# Set data_ano_fonte = original in the remaining events
 br_soil2023[
   dataset_id %in% c("ctb0693", "ctb0804") & !is.na(data_ano) & is.na(data_ano_fonte),
   data_ano_fonte := "original"
 ]
-# Check how many events remain without sampling date
 summary_date(br_soil2023)
-# Date: 12940 (yes) / 1103 (no)
+# Date: 12964 (yes) / 965 (no)
 
 # Set the sampling year to 1959 for the following datasets
 # (we checked the source document and found that the sampling year is about 
 # 1959, so this is a reasonable estimate)
 # ctb0787
 target_year <- 1959
-# Set sampling_year to target_year and data_ano_fonte to "estimativa"
 br_soil2023[dataset_id == "ctb0787" & is.na(data_ano), `:=`(
   data_ano = target_year,
   data_ano_fonte = "estimativa"
 )]
-# Set data_ano_fonte = original in the remaining events
 br_soil2023[
   dataset_id == "ctb0787" & !is.na(data_ano) & is.na(data_ano_fonte),
   data_ano_fonte := "original"
 ]
-# Check how many events remain without sampling date
 summary_date(br_soil2023)
-# Date: 13026 (yes) / 1017 (no)
+# Date: 13050 (yes) / 879 (no)
 
 # Set sampling year to year_min for the following datasets:
-# (we checked the source document and found that the sampling year is < 1985; similar to 
-# RADAMBRASIL)
+# (we checked the source document and found that the sampling year is < 1985; 
+# similar to RADAMBRASIL -- a proper solution will be determined in the future)
 # ctb0023, ctb0028, ctb0603, ctb0608, ctb0635, ctb0666, ctb0829, ctb0702
 target_year <- year_min
 ctb <- c(
   "ctb0023", "ctb0028", "ctb0603", "ctb0608", "ctb0635", "ctb0666", "ctb0829",
   "ctb0702"
 )
-# Set sampling_year to target_year and data_ano_fonte to "estimativa"
 br_soil2023[dataset_id %in% ctb & is.na(data_ano), `:=`(
   data_ano = target_year,
   data_ano_fonte = "estimativa"
 )]
-# Set data_ano_fonte = original in the remaining events
 br_soil2023[
   dataset_id %in% ctb & !is.na(data_ano) & is.na(data_ano_fonte),
   data_ano_fonte := "original"
 ]
-# Check how many events remain without sampling date
-nrow(unique(br_soil2023[is.na(data_ano), c("dataset_id", "observacao_id")]))
-# 847 events remain without sampling date
+summary_date(br_soil2023)
+# Date: 13084 (yes) / 845 (no)
 
-# Use the average sampling date of the source soil survey for the following datasets:
-# ctb0030, ctb0032, ctb0570, ctb0572, ctb0574, ctb0617, ctb0631, ctb0639, ctb0642, ctb0645, ctb0656
-# ctb0657, ctb0663, ctb0667, ctb0668, ctb0672, ctb0673, ctb0674, ctb0675, ctb0677, ctb0679, ctb0684
-# ctb0686, ctb0691, ctb0694, ctb0700, ctb0750, ctb0774, ctb0775, ctb0777, ctb0781, ctb0795, ctb0808
-# ctb0809, ctb0811, ctb0820, ctb0821, ctb0822, ctb0826, ctb0831, ctb0832
+# Use the average sampling date of the source soil survey for the following 
+# datasets:
 ctb <- c(
-  "ctb0030", "ctb0032", "ctb0570", "ctb0572", "ctb0574", "ctb0617", "ctb0631", "ctb0639",
-  "ctb0642", "ctb0645", "ctb0656", "ctb0657", "ctb0663", "ctb0667", "ctb0668", "ctb0672",
-  "ctb0673", "ctb0674", "ctb0675", "ctb0677", "ctb0679", "ctb0684", "ctb0686", "ctb0691",
-  "ctb0694", "ctb0700", "ctb0750", "ctb0774", "ctb0775", "ctb0777", "ctb0781", "ctb0795",
-  "ctb0808", "ctb0809", "ctb0811", "ctb0820", "ctb0821", "ctb0822", "ctb0826", "ctb0831",
-  "ctb0832"
+  "ctb0030", "ctb0032", "ctb0570", "ctb0572", "ctb0574", "ctb0617", "ctb0631",
+  "ctb0639", "ctb0642", "ctb0645", "ctb0656", "ctb0657", "ctb0663", "ctb0667", 
+  "ctb0668", "ctb0672", "ctb0673", "ctb0674", "ctb0675", "ctb0677", "ctb0679", 
+  "ctb0684", "ctb0686", "ctb0691", "ctb0694", "ctb0700", "ctb0750", "ctb0774", 
+  "ctb0775", "ctb0777", "ctb0781", "ctb0795", "ctb0808", "ctb0809", "ctb0811", 
+  "ctb0820", "ctb0821", "ctb0822", "ctb0826", "ctb0831", "ctb0832"
 )
 average_year <- br_soil2023[dataset_id %in% ctb,
   .(data_ano = round(mean(data_ano, na.rm = TRUE))),
@@ -1112,7 +1059,8 @@ idx_averaged <- match(
   br_soil2023[is.na(data_ano) & dataset_id %in% ctb, dataset_id],
   average_year[, dataset_id]
 )
-# Set sampling_year to the average sampling year and data_ano_fonte to "estimativa"
+# Set sampling_year to the average sampling year and data_ano_fonte to 
+# "estimativa"
 br_soil2023[
   is.na(data_ano) & dataset_id %in% ctb,
   `:=`(
@@ -1125,59 +1073,64 @@ br_soil2023[
   is.na(data_ano) & dataset_id %in% ctb & !is.na(data_ano) & is.na(data_ano_fonte),
   data_ano_fonte := "original"
 ]
-# Check how many events remain without sampling date
-nrow(unique(br_soil2023[is.na(data_ano), c("dataset_id", "observacao_id")]))
-# 66 events remain without sampling date
+summary_date(br_soil2023)
+# Date: 13863 (yes) / 66 (no)
 
 # ctb0009
-# events missing the sampling date are from ctb0003, thus they are already included in the dataset
+# Events in ctb0009 missing the sampling date are from ctb0003, thus they are
+# already included in the dataset. Thus, they can be removed to avoid 
+# duplicates.
 ctb <- "ctb0009"
 br_soil2023 <- br_soil2023[!(dataset_id %in% ctb & is.na(data_ano)), ]
-nrow(unique(br_soil2023[is.na(data_ano), c("dataset_id", "observacao_id")]))
-# 34 events remain without sampling date, all from ctb0029
+summary_date(br_soil2023)
+# Date: 13863 (yes) / 34 (no)
 
 # ctb0029
-# events from municipio_id %in% c("Santa Maria", "Itaara"), amostra_tipo == "COMPOSTA",
-# amostra_quanti == 3, and data_ano == 2009 are from ctb0003, thus they are already included in
-# the dataset and can be removed
+# Events in ctb0029 where municipio_id %in% c("Santa Maria", "Itaara"), 
+# amostra_tipo == "COMPOSTA", amostra_quanti == 3, and data_ano == 2009 are
+# from ctb0003, thus they are already included in the dataset and can be 
+# removed to avoid duplicates.
 ctb <- "ctb0029"
 br_soil2023 <- br_soil2023[!(
   dataset_id == ctb & municipio_id %in% c("Santa Maria", "Itaara") &
     amostra_tipo == "COMPOSTA" & amostra_quanti == 3 & data_ano == 2009
 ), ]
-# Check how many events remain without sampling date
-nrow(unique(br_soil2023[is.na(data_ano), c("dataset_id", "observacao_id")]))
-# 34 events remain without sampling date, all from ctb0029
-# Soil samples were taken around 2009, but the exact date is not known.
-# ctb0029: Set sampling year to 2009 and data_ano_fonte to "estimativa"
+summary_date(br_soil2023)
+# Date: 13825 (yes) / 34 (no)
+# All of the remain 34 events without sampling date are from ctb0029. Soil
+# samples were taken around 2009, but the exact date is not known. We set it to
+# 2009 as a reasonable estimate.
+target_year <- 2009
 br_soil2023[dataset_id == ctb & is.na(data_ano), `:=`(
-  data_ano = 2009,
+  data_ano = target_year,
   data_ano_fonte = "estimativa"
 )]
-
-# Set data_ano_fonte = original in the remaining events
 br_soil2023[
   dataset_id == ctb & !is.na(data_ano) & is.na(data_ano_fonte),
   data_ano_fonte := "original"
 ]
+summary_date(br_soil2023)
+# Date: 13859 (yes) / 0 (no)
 
-# Check how many events remain without sampling date
-nrow(unique(br_soil2023[is.na(data_ano), c("dataset_id", "observacao_id")]))
-# 0 events remain without sampling date
+# Check dataset
+# summary_soildata(br_soil2023)
+# Layers: 49769
+# Events: 13859
+# Georeference: 10859 (yes) / 3000 (no)
+# Date: 13859 (yes) / 0 (no)
+# Datasets: 235
 
-# Check how many events have spatial coordinates (coord_x and coord_y) and
-nrow(unique(br_soil2023[, c("dataset_id", "observacao_id")])) # 13973 events
-nrow(br_soil2023)
-# 50400 layers
-
-# Temporal distribution of samples with known sampling date after data rescue and estimation
+# FIGURE. Temporal distribution of samples with known sampling date after data
+# rescue and estimation.
 missing_time <- is.na(br_soil2023[["data_ano"]])
 # Plot histogram
-file_path <- "res/fig/103_temporal_distribution_after_estimation.png"
+file_path <- fig_path("103_temporal_distribution_after_estimation.png")
 png(file_path, width = 8, height = 5, units = "in", res = 300)
 x <- br_soil2023[, data_ano[1], by = c("dataset_id", "observacao_id")][, V1]
 hist(x,
-  xlab = "Year", main = "Temporal distribution of events after data rescue and estimation",
+  xlab = "Year",
+  ylab = "Frequency",
+  main = "Temporal distribution of events after data rescue and estimation",
   sub = paste0("n = ", sum(!missing_time))
 )
 rug(x)
@@ -1196,11 +1149,11 @@ nrow(br_soil2023[
 ]) == 0
 # TRUE
 
-# Write data to disk ###############################################################################
+# Write data to disk ###########################################################
 summary_soildata(br_soil2023)
-# Layers: 50400
-# Events: 13973
-# Georeference: 10942 (yes) / 3031 (no)
-# Date: 12380 (yes) / 1593 (no)
+# Layers: 49769
+# Events: 13859
+# Georeference: 10859 (yes) / 3000 (no)
+# Date: 13707 (yes) / 152 (no)
 # Datasets: 235
 data.table::fwrite(br_soil2023, "data/10_soildata.txt", sep = "\t")
