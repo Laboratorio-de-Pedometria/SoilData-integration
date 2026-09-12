@@ -345,6 +345,13 @@ rondonia[
 rondonia[, summary(coord_precisao)]
 rondonia[, EXTRA := NULL]
 rm(extra_coords, amount)
+
+# Create missing columns in the data from Rondônia
+title <- "Dados de 'Zoneamento Socioeconômico-Ecológico do Estado de Rondônia'"
+rondonia[, dataset_titulo := title]
+rondonia[, dataset_licenca := "CC-BY-4.0"]
+rondonia[, organizacao_nome := "Governo do Estado de Rondônia"]
+
 summary_soildata(rondonia)
 # Layers: 10789
 # Events: 3061
@@ -367,10 +374,30 @@ summary_soildata(soildata)
 # Add a column to indicate the coordinate reference system (CRS)
 soildata[, coord_datum := 4326] # EPSG code for WGS84
 
-# Order rows by dataset_id, observacao_id, profund_sup, and profund_inf
-soildata <- soildata[
-  order(dataset_id, observacao_id, profund_sup, profund_inf),
+# Manually correct the depth intervals for specific events in ctb0032 after
+# checking the source documentation. This is necessary for the overlap join
+# performed later.
+soildata[
+  dataset_id == "ctb0032" & observacao_id == "RO1174" & camada_nome == "R",
+  profund_sup := 0
 ]
+soildata[
+  dataset_id == "ctb0032" & observacao_id == "RO1174" & camada_nome == "R",
+  profund_inf := 20
+]
+soildata[
+  dataset_id == "ctb0032" & observacao_id == "RO2740" & camada_nome == "A",
+  profund_sup := ifelse(is.na(profund_sup), 0, profund_sup)
+]
+soildata[
+  dataset_id == "ctb0032" & observacao_id == "RO2740" & camada_nome == "A",
+  profund_inf := ifelse(is.na(profund_inf), 20, profund_inf)
+]
+
+# # Order rows by dataset_id, observacao_id, profund_sup, and profund_inf
+# soildata <- soildata[
+#   order(dataset_id, observacao_id, profund_sup, profund_inf),
+# ]
 
 # Check the spatial distribution of events in Brazil
 if (FALSE) {
@@ -378,11 +405,23 @@ if (FALSE) {
   plot(soildata[, c("coord_x", "coord_y")])
 }
 
-# Create missing columns in the data from Rondônia
-title <- "Dados de 'Zoneamento Socioeconômico-Ecológico do Estado de Rondônia'"
-rondonia[, dataset_titulo := title]
-rondonia[, dataset_licenca := "CC-BY-4.0"]
-rondonia[, organizacao_nome := "Governo do Estado de Rondônia"]
+# Extract data from Rondônia (ctb0032)
+ctb0032_cols <- c("observacao_id", "camada_nome", "profund_sup", "profund_inf")
+ctb0032 <- soildata[dataset_id == "ctb0032", ..ctb0032_cols]
+
+
+
+rondonia[is.na(profund_sup) | is.na(profund_inf), .N, by = observacao_id]
+
+# Perform a join between the analythical data from Rondônia (rondonia) and the 
+# morphological descriptions from ctb0032
+data.table::setkey(ctb0032, observacao_id, profund_sup, profund_inf)
+rondonia2 <- data.table::foverlaps(rondonia, ctb0032,
+  by.x = c("observacao_id", "profund_sup", "profund_inf"),
+  by.y = c("observacao_id", "profund_sup", "profund_inf"),
+  type = "within", mult = "all"
+)
+
 # Remove existing data from Rondônia (morphological descriptions)
 length(unique(soildata[, id]))
 # 13859 events
@@ -394,11 +433,15 @@ length(unique(soildata[, id]))
 col_ro <- intersect(names(soildata), names(rondonia))
 soildata <-
   data.table::rbindlist(list(soildata, rondonia[, ..col_ro]), fill = TRUE)
-# ATENTION: ctb0032 has morphological descriptions and soil horizons are
+# ATTENTION: ctb0032 has morphological descriptions and soil horizons are
 # designated by camada_nome like "A", "B1", "B2", "C", etc. In ctb0033 and
 # ctb0034, the layers are not necessarily coincident with soil horizons, and
-# camada_nome is letter A, B, C, or D. So, after merging the datasets, we remain
-# with the A-B-C-D names for layers. In the future, we need to harmonize this.
+# camada_nome is letter A, B, C, or D. For example, observacao_id = RO0607 has
+# three pedological horizons (A: 0 - 10 cm; Bw1: 10 - 50 cm; Bw2: 50 - 120 cm)
+# and three sampled layers (A: 0- 10 cm; B: 10- 20 cm; C: 50-120 cm). So, after
+# merging the datasets, we remain with the A-B-C-D names for layers.
+
+# In the future, we need to harmonize this.
 # Here what we will do is replace A-B-C-D with the depth intervals.
 soildata[
   dataset_id == "ctb0033",
