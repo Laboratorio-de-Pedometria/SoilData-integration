@@ -249,6 +249,18 @@ layer34[, dataset_id := NULL]
 layer34[, camada_id_febr := camada_id_alt]
 sapply(list(layer33, layer34), nrow)
 # 10779 and 419 layers
+
+
+
+
+
+# We need an overlap join between the layers from ctb0033 and ctb0034 to merge them!!!
+
+
+
+
+
+
 # Merge layers from ctb0033 and ctb0034
 layerRO <- merge(layer33, layer34,
   by = c("evento_id_febr", "camada_id_febr"),
@@ -346,6 +358,25 @@ rondonia[, summary(coord_precisao)]
 rondonia[, EXTRA := NULL]
 rm(extra_coords, amount)
 
+# Check for missing depth intervals
+rondonia[is.na(profund_sup) | is.na(profund_inf), .N, by = observacao_id]
+#    observacao_id     N
+#           <char> <int>
+# 1:        RO1042     1
+# 2:        RO1056     1
+# 3:        RO1075     1
+# 4:        RO1099     1
+# 5:        RO1106     1
+# 6:        RO1599     1
+# rondonia[observacao_id == "RO1042", ]
+
+
+
+
+
+
+
+
 # Create missing columns in the data from Rondônia
 title <- "Dados de 'Zoneamento Socioeconômico-Ecológico do Estado de Rondônia'"
 rondonia[, dataset_titulo := title]
@@ -408,10 +439,6 @@ if (FALSE) {
 # Extract data from Rondônia (ctb0032)
 ctb0032_cols <- c("observacao_id", "camada_nome", "profund_sup", "profund_inf")
 ctb0032 <- soildata[dataset_id == "ctb0032", ..ctb0032_cols]
-
-
-
-rondonia[is.na(profund_sup) | is.na(profund_inf), .N, by = observacao_id]
 
 # Perform a join between the analythical data from Rondônia (rondonia) and the 
 # morphological descriptions from ctb0032
