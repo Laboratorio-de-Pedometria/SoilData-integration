@@ -63,10 +63,12 @@ event32 <- merge(
 event32[, taxon_sibcs := LOCSERIESD_C_70]
 event32[, LOCALSERIE := NULL]
 event32[, LOCSERIESD_C_70 := NULL]
-# For some codes, there is no matching name. So we check the source
-# documentation to fill in the missing names.
+# For some codes, there is no matching soil classification. So we check the
+# source documentation to fill in the missing soil classification.
 event32[is.na(taxon_sibcs), sort(evento_id_febr)]
-# 312
+# 312 events with missing soil classification.
+# We create a list of soil codes and their corresponding names based on the
+# source documentation.
 taxon <- list(
   RO1020 = "Latossolo Amarelo distrófico",
   RO1030 = "Solos Glei distróficos",
@@ -102,8 +104,13 @@ taxon <- list(
   RO1369 = "Cambissolo distrófico",
   RO1372 = "Cambissolo tb distrófico A proeminente"
 )
-
-# (THERE ARE MORE MISSING NAMES, BUT WE WILL LEAVE THEM AS NA FOR NOW)
+# Apply the taxon list to fill in missing soil classification
+for (id in names(taxon)) {
+  event32[evento_id_febr == id, taxon_sibcs := taxon[[id]]]
+}
+event32[is.na(taxon_sibcs), .N]
+# 279 (THERE ARE MORE MISSING SOIL CLASSIFICATIONS, BUT WE WILL LEAVE THEM AS NA
+# FOR NOW)
 # ctb0033
 event33 <- febr::observation("ctb0033", "all")
 event33 <- data.table::as.data.table(event33)
