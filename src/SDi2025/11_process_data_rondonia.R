@@ -177,24 +177,28 @@ eventRO[, .N, by = data_ano_fonte]
 #            <char> <int>
 # 1:       original  2912
 # 2:     estimativa    87
+
+# Check spatial distribution of events in Rondônia
 if (FALSE) {
   x11()
   plot(eventRO[, c("coord_x", "coord_y")])
 }
 str(eventRO)
 
-# Attribute new coordinates to events falling in water bodies or outside the state of Rondônia
-# Create a column named observacao_cura to store information about the correction (in Portuguese),
-# as well as a copy of the original coordinates, the data of the collection, and the accronym of the
-# author (ASR).
+# Attribute new coordinates to events falling in water bodies or outside the
+# state of Rondônia
+# Create a column named observacao_cura to store information about the
+# correction (in Portuguese), as well as a copy of the original coordinates, the
+# data of the collection, and the accronym of the author (ASR).
 
 # RO2656
-# By consulting the original coordinates of point RO2656, recorded in SoilData, and visualizing them
-# on Google Maps, we verified that the point indeed falls within a watercourse on the border between
-# Brazil and Bolivia. The study of the work's documentation revealed that there may be a positional
-# error of approximately 100 m. According to the textual description of the location, the soil
-# profile was collected at the "Beira Rio Guapore". New coordinates, collected on Google Maps, will
-# be manually assigned to the point.
+# By consulting the original coordinates of point RO2656, recorded in SoilData,
+# and visualizing them on Google Maps, we verified that the point indeed falls
+# within a watercourse on the border between Brazil and Bolivia. The study of 
+# the work's documentation revealed that there may be a positional error of
+# approximately 100 m. According to the textual description of the location, the
+# soil profile was collected at the "Beira Rio Guapore". New coordinates,
+# collected on Google Maps, will be manually assigned to the point.
 # More information about the location can be found at:
 # https://github.com/Laboratorio-de-Pedometria/mapbiomas-soil-train-prep/issues/5
 # RO2656: -61.306907, -13.485739
@@ -207,12 +211,13 @@ eventRO[observacao_id == id, coord_precisao := coord_precisao + 100]
 
 # RO2953: -9.765833 -65.73528 (original)
 # The sample location is in Bolivia, near the Brazilian border.
-# It is possible that the authors collected the soil samples in Bolivian territory, possibly for easier access.
-# The original coordinates for point RO2953 are in Bolivian territory, close to the border with Brazil.
+# It is possible that the authors collected the soil samples in Bolivian
+# territory, possibly for easier access. The original coordinates for point 
+# RO2953 are in Bolivian territory, close to the border with Brazil.
 # Documentation review suggests a positional error of approximately 100 m.
-# New coordinates, obtained from Google Maps, have been manually assigned to this point.
-# There is no additional information in the dataset to confirm this hypothesis.
-# The coordinates were changed to a location in Rondônia, Brazil.
+# New coordinates, obtained from Google Maps, have been manually assigned to
+# this point. There is no additional information in the dataset to confirm this
+# hypothesis. The coordinates were changed to a location in Rondônia, Brazil.
 # -9.764905, -65.735686
 # google_maps(eventRO[observacao_id == "RO2953", ])
 id <- "RO2953"
