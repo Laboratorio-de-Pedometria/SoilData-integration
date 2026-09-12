@@ -371,28 +371,37 @@ if (FALSE) {
 
 # Merge data from Rondônia with the SoilData snapshot
 # First create missing columns in the data from Rondônia
-rondonia[, dataset_titulo := "Zoneamento Socioeconômico-Ecológico do Estado de Rondônia"]
+rondonia[
+  ,
+  dataset_titulo := "Zoneamento Socioeconômico-Ecológico do Estado de Rondônia"
+]
 rondonia[, dataset_licenca := "CC-BY-4.0"]
 rondonia[, organizacao_nome := "Governo do Estado de Rondônia"]
 # Then remove existing data from Rondônia (morphological descriptions)
 length(unique(soildata[, id]))
-# 13973 events
+# 13859 events
 soildata <- soildata[dataset_id != "ctb0032", ]
 length(unique(soildata[, id]))
-# 11059 events
+# 10945 events
 col_ro <- intersect(names(soildata), names(rondonia))
-soildata <- data.table::rbindlist(list(soildata, rondonia[, ..col_ro]), fill = TRUE)
-# ATENTION: ctb0032 has morphological descriptions and soil horizons are designated by 
-# camada_nome like "A", "B1", "B2", "C", etc. In ctb0033 and ctb0034, the layers are not necessarily
-# coincident with soil horizons, and camada_nome is letter A, B, C, or D. So, after merging the
-# datasets, we remain with the A-B-C-D names for layers. In the future, we need to harmonize this.
+soildata <-
+  data.table::rbindlist(list(soildata, rondonia[, ..col_ro]), fill = TRUE)
+# ATENTION: ctb0032 has morphological descriptions and soil horizons are
+# designated by camada_nome like "A", "B1", "B2", "C", etc. In ctb0033 and
+# ctb0034, the layers are not necessarily coincident with soil horizons, and
+# camada_nome is letter A, B, C, or D. So, after merging the datasets, we remain
+# with the A-B-C-D names for layers. In the future, we need to harmonize this.
 # Here what we will do is replace A-B-C-D with the depth intervals.
-soildata[dataset_id == "ctb0033", camada_nome := paste0(profund_sup, "-", profund_inf)]
+soildata[
+  dataset_id == "ctb0033",
+  camada_nome := paste0(profund_sup, "-", profund_inf)
+]
 
-# Write data to disk ###############################################################################
+# Write data to disk ###########################################################
 summary_soildata(soildata)
-# Layers: 50315
-# Events: 14120
-# Georeferenced events: 10990
+# Layers: 49684
+# Events: 14006
+# Georeference: 10907 (yes) / 3099 (no)
+# Date: 13854 (yes) / 152 (no)
 # Datasets: 235
 data.table::fwrite(soildata, "data/11_soildata.txt", sep = "\t")
