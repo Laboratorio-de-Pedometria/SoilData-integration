@@ -1,16 +1,17 @@
 # title: SoilData Integration
 # subtitle: Process data from Rondônia
 # author: Alessandro Samuel-Rosa
-# date: 2025
+# date: 2026
 # licence: MIT
-# summary: This script processes soil data from the Socioeconomic-Ecological Zoning of the State 
-#          of Rondônia. It downloads and merges event and layer data from datasets ctb0033 and 
-#          ctb0034 from the FEBR repository. It also uses dataset ctb0032 to obtain soil 
-#          classification information. The script standardizes column names and measurement units, 
-#          and manually corrects the coordinates of two mislocated events. It also handles 
-#          duplicated layers (extra samples for fertility assessment) by creating new event 
-#          identifiers and jittering their coordinates. Finally, it removes existing data from 
-#          Rondônia in the main dataset and merges the newly processed data, saving the result.
+# description: This script processes soil data from the Socioeconomic-Ecological
+# State Zoning of Rondônia. It downloads and merges event and layer data from
+# datasets ctb0033 and ctb0034 in the FEBR repository. It also uses dataset
+# ctb0032 to obtain soil classification information. The script standardizes
+# column names and measurement units and manually corrects the coordinates of
+# two mislocated events. It handles duplicated layers (extra samples for
+# fertility assessment) by creating new event identifiers and jittering their
+# coordinates. Finally, it removes existing data from Rondônia in the main
+# dataset and merges the newly processed data, saving the result.
 rm(list = ls())
 
 # Load required packages
@@ -34,9 +35,10 @@ if (!require("febr")) {
 }
 
 # Source helper functions
-source("src/00_helper_functions.R")
+source("src/SDi2025/00_helper_functions.R")
 
-# Zoneamento Socioeconômico-Ecológico do Estado de Rondônia (ctb0033 and ctb0034)
+# Zoneamento Socioeconômico-Ecológico do Estado de Rondônia (ctb0033 and 
+# ctb0034)
 # Download current version from FEBR: events
 # ctb0032
 event32 <- febr::observation("ctb0032", "all")
@@ -53,23 +55,54 @@ LOCALSERIE <- data.table::as.data.table(LOCALSERIE)
 # LOCALSERIE_C_3: soil code (LOCALSERIE)
 # LOCSERIESD_C_70: soil name
 # Match LOCALSERIE in event32 with LOCALSERIE to get soil names
-event32 <- merge(event32, LOCALSERIE, by.x = "LOCALSERIE", by.y = "LOCALSERIE_C_3", all.x = TRUE)
+event32 <- merge(
+  event32, LOCALSERIE,
+  by.x = "LOCALSERIE", by.y = "LOCALSERIE_C_3", all.x = TRUE
+)
 # Rename LOCSERIESD_C_70 to taxon_sibcs
 event32[, taxon_sibcs := LOCSERIESD_C_70]
 event32[, LOCALSERIE := NULL]
 event32[, LOCSERIESD_C_70 := NULL]
-# For some codes, there is no matching name. So we check the source documentation to fill in the
-# missing names.
+# For some codes, there is no matching name. So we check the source
+# documentation to fill in the missing names.
 event32[is.na(taxon_sibcs), sort(evento_id_febr)]
 # 312
-event32[evento_id_febr == "RO1020", taxon_sibcs := "Latossolo Amarelo distrófico"]
-event32[evento_id_febr == "RO1030", taxon_sibcs := "Solos Glei distróficos"]
-event32[evento_id_febr == "RO1049", taxon_sibcs := "Solos Glei distróficos"]
-event32[evento_id_febr == "RO1057", taxon_sibcs := "Solos Glei distróficos"]
-event32[evento_id_febr == "RO1071", taxon_sibcs := "Solos Aluviais distróficos"]
-event32[evento_id_febr == "RO1112", taxon_sibcs := "Solos Aluviais distróficos"]
-event32[evento_id_febr == "RO1144", taxon_sibcs := "Solos Litólicos distróficos"]
-event32[evento_id_febr == "RO1147", taxon_sibcs := "Podzólico Vermelho-Amarelo tb distrófico A moderado"]
+taxon <- list(
+  RO1020 = "Latossolo Amarelo distrófico",
+  RO1030 = "Solos Glei distróficos",
+  RO1049 = "Solos Glei distróficos",
+  RO1057 = "Solos Glei distróficos",
+  RO1071 = "Solos Aluviais distróficos",
+  RO1112 = "Solos Aluviais distróficos",
+  RO1144 = "Solos Litólicos distróficos",
+  RO1147 = "Podzólico Vermelho-Amarelo tb distrófico A moderado",
+  RO1148 = "Solos Litólicos distróficos",
+  RO1149 = "Podzólico Vermelho-Amarelo tb eutrófico A fraco",
+  RO1175 = "Podzólico Vermelho-Amarelo tb distrófico A moderado",
+  RO1188 = "Podzólico Vermelho-Amarelo tb eutrófico A moderado",
+  RO1198 = "Latossolo Vermelho-Amarelo eutrófico A moderado",
+  RO1219 = "Podzólico Vermelho-Escuro tb eutrófico A moderado",
+  RO1223 = "Solos Glei distróficos",
+  RO1235 = "Solos Glei distróficos",
+  RO1242 = "Solos Glei Húmicos",
+  RO1251 = "Solos Glei Húmicos",
+  RO1253 = "Solos Glei distróficos",
+  RO1272 = "Solos Glei eutróficos",
+  RO1279 = "Solos Glei distróficos",
+  RO1280 = "Areias Quartzosas distróficas",
+  RO1293 = "Solos Glei distróficos",
+  RO1307 = "Podzólico Vermelho-Amarelo tb distrófico A moderado",
+  RO1312 = "Cambissolo tb distrófico A proeminente",
+  RO1319 = "Latossolo Vermelho-Amarelo distrófico A moderado",
+  RO1322 = "Latossolo Vermelho-Amarelo distrófico A moderado",
+  RO1328 = "Podzólico Amarelo distrófico",
+  RO1334 = "Latossolo Vermelho-Amarelo eutrófico A proeminente",
+  RO1351 = "Podzólico Vermelho-Amarelo tb distrófico A moderado",
+  RO1352 = "Podzólico Vermelho-Amarelo tb eutrófico A moderado",
+  RO1369 = "Cambissolo distrófico",
+  RO1372 = "Cambissolo tb distrófico A proeminente"
+)
+
 # (THERE ARE MORE MISSING NAMES, BUT WE WILL LEAVE THEM AS NA FOR NOW)
 # ctb0033
 event33 <- febr::observation("ctb0033", "all")
