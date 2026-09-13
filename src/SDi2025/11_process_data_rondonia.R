@@ -241,6 +241,50 @@ rm(id)
 layer33 <- febr::layer("ctb0033", "all")
 layer33 <- data.table::as.data.table(layer33)
 layer33[, camada_id_sisb := NULL]
+# Create a new column named thickness to store the thickness of each layer,
+# calculated as profund_inf - profund_sup. If the thickness is negative, it 
+# indicates an error in the depth intervals.
+layer33[, thickness := profund_inf - profund_sup]
+layer33[
+  thickness < 0,
+  .(evento_id_febr, camada_id_febr, profund_sup, profund_inf, thickness)
+]
+# RO1154: C 80-70 cm. The error comes from the source. We reverse the depth
+# intervals to 70-80 cm.
+layer33[
+  evento_id_febr == "RO1154" & camada_id_febr == "C",
+  profund_sup := ifelse(profund_sup == 80, 70, profund_sup)
+]
+layer33[
+  evento_id_febr == "RO1154" & camada_id_febr == "C",
+  profund_inf := ifelse(profund_inf == 70, 80, profund_inf)
+]
+# RO2463: C 80-70 cm. The error comes from the source. We reverse the depth 
+# intervals to 70-80 cm.
+layer33[
+  evento_id_febr == "RO2463" & camada_id_febr == "C",
+  profund_sup := ifelse(profund_sup == 80, 70, profund_sup)
+]
+layer33[
+  evento_id_febr == "RO2463" & camada_id_febr == "C",
+  profund_inf := ifelse(profund_inf == 70, 80, profund_inf)
+]
+# RO2826: E 140-60 cm. The error comes from the source. The correct depth
+# intervals most likely are 140-160 cm. We correct the depth intervals to
+# 140-160 cm.
+layer33[
+  evento_id_febr == "RO2826" & camada_id_febr == "E",
+  profund_inf := ifelse(profund_inf == 60, 160, profund_inf)
+]
+# RO3542: D 110-80 cm. The error comes from the source. The correct depth 
+# intervals most likely are 110-120 cm. We correct the depth intervals to 
+# 110-120 cm.
+layer33[
+  evento_id_febr == "RO3542" & camada_id_febr == "D",
+  profund_inf := ifelse(profund_inf == 80, 120, profund_inf)
+]
+layer33[, thickness := NULL]
+
 # ctb0034
 layer34 <- febr::layer("ctb0034", "all")
 layer34 <- data.table::as.data.table(layer34)
@@ -250,8 +294,12 @@ layer34[, camada_id_febr := camada_id_alt]
 sapply(list(layer33, layer34), nrow)
 # 10779 and 419 layers
 
-
-
+# Apply overlap joint to merge layers from ctb0033 and ctb0034
+# ctb0033 has data on chemical soil properties measured over soil layers
+# corresponding to entire or part of pedological horizons. ctb0034 has data on
+# physical soil properties measured over thin layers (5 cm) that do not
+# necessarily correspond to the layers sampled in ctb0033.
+data.table::setkey(layer33, evento_id_febr, camada_id_febr)
 
 
 # We need an overlap join between the layers from ctb0033 and ctb0034 to merge them!!!
