@@ -291,6 +291,43 @@ layer34 <- data.table::as.data.table(layer34)
 layer34[, dataset_id34 := dataset_id]
 layer34[, dataset_id := NULL]
 layer34[, camada_id_febr := camada_id_alt]
+# Create a new column named thickness to store the thickness of each layer,
+# calculated as profund_inf - profund_sup. If the thickness is negative, it
+# indicates an error in the depth intervals.
+layer34[, thickness := profund_inf - profund_sup]
+layer34[
+  thickness < 0,
+  .(evento_id_febr, camada_id_febr, profund_sup, profund_inf, thickness)
+]
+# RO1590: A 15-10 cm. The error comes from the source. We reverse the depth 
+# intervals to 10-15 cm.
+layer34[
+  evento_id_febr == "RO1590" & camada_id_febr == "A",
+  profund_sup := ifelse(profund_sup == 15, 10, profund_sup)
+]
+layer34[
+  evento_id_febr == "RO1590" & camada_id_febr == "A",
+  profund_inf := ifelse(profund_inf == 10, 15, profund_inf)
+]
+# RO1836: C 65-55 cm. The error comes from the source. We reverse the depth
+# intervals to 55-65 cm. (maybe the correct thickness is 5 cm, but we will keep
+# the original thickness of 10 cm)
+layer34[
+  evento_id_febr == "RO1836" & camada_id_febr == "C",
+  profund_sup := ifelse(profund_sup == 65, 55, profund_sup)
+]
+layer34[
+  evento_id_febr == "RO1836" & camada_id_febr == "C",
+  profund_inf := ifelse(profund_inf == 55, 65, profund_inf)
+]
+layer34[, thickness := NULL]
+
+
+
+
+
+
+# Merge the two datasets
 sapply(list(layer33, layer34), nrow)
 # 10779 and 419 layers
 
