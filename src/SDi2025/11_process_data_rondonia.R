@@ -415,12 +415,27 @@ sapply(list(layer33, layer34), nrow)
 # corresponding to entire or part of pedological horizons. ctb0034 has data on
 # physical soil properties measured over thin layers (most of them are 5 cm
 # thick) that do not necessarily correspond to the layers sampled in ctb0033.
+data.table::setkey(layer33, evento_id_febr, profund_sup, profund_inf)
 data.table::setkey(layer34, evento_id_febr, profund_sup, profund_inf)
-layerRO_overlap <- data.table::foverlaps(layer33, layer34,
-  by.x = c("evento_id_febr", "profund_sup", "profund_inf"),
-  by.y = c("evento_id_febr", "profund_sup", "profund_inf"),
-  type = "within", mult = "all"
+layerRO_overlap <- data.table::foverlaps(layer34, layer33,
+  type = "within", mult = "all", 
 )
+# foverlaps() only keeps all x (layer34) rows, matched or not. To also keep
+# layer33 rows that were never matched by any layer34 row, identify the
+# unmatched layer33 row indices and append them.
+overlap_id <- data.table::foverlaps(layer34, layer33,
+  type = "within", mult = "all", which = TRUE
+)
+unmatched33 <- layer33[setdiff(seq_len(nrow(layer33)), unique(overlap_id$yid))]
+layerRO_overlap <- data.table::rbindlist(
+  list(layerRO_overlap, unmatched33),
+  fill = TRUE
+)
+# Sort by evento_id_febr, camada_id_febr, profund_sup, profund_inf
+layerRO_overlap <- layerRO_overlap[
+  order(evento_id_febr, camada_id_febr, profund_sup, profund_inf)
+]
+
 write.csv(layerRO_overlap, "data/11_layerRO_overlap.csv", row.names = FALSE)
 
 nrow(layerRO_overlap)
