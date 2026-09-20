@@ -5,3 +5,4 @@ data/*.rds
 res/tab/*.txt
 .Rhistory
 data/*.csv
+tmp/*.csv
