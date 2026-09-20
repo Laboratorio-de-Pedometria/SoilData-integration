@@ -321,17 +321,42 @@ layer34[
   evento_id_febr == "RO1590" & camada_id_febr == "A",
   profund_inf := ifelse(profund_inf == 10, 15, profund_inf)
 ]
-# RO1836: C 65-55 cm. The error comes from the source. We reverse the depth
-# intervals to 55-65 cm. (maybe the correct thickness is 5 cm, but we will keep
-# the original thickness of 10 cm)
+# RO1836: C 65-55 cm. The error comes from the source spreadsheet. We notice
+# that the layer sampled for chemical analysis was collected at 60-70 cm, while
+# the morphological description was made at 50-90 cm. So the most likely depth
+# interval for the layer in question is 60-65 cm, as it falls within the limits
+# of the layer sampled for chemical analysis and the morphological description,
+# as well as honours the 5 cm thickness used for physical analysis across most
+# of the dataset.
 layer34[
   evento_id_febr == "RO1836" & camada_id_febr == "C",
-  profund_sup := ifelse(profund_sup == 65, 55, profund_sup)
+  profund_sup := ifelse(profund_sup == 65, 60, profund_sup)
 ]
 layer34[
   evento_id_febr == "RO1836" & camada_id_febr == "C",
   profund_inf := ifelse(profund_inf == 55, 65, profund_inf)
 ]
+
+# Check for thickness different from 5 cm
+layer34[, .N, by = thickness]
+#     thickness     N
+#         <int> <int>
+#  1:         5   399
+#  2:        -5     1
+#  3:        23     1
+#  4:       -10     1
+#  5:        15     2
+#  6:         4     3
+#  7:         8     3
+#  8:        16     2
+#  9:        10     5
+# 10:         6     2
+layer34[
+  thickness != 5,
+  .(evento_id_febr, camada_id_febr, profund_sup, profund_inf, thickness)
+]
+
+
 layer34[, thickness := NULL]
 
 View(layer34)
