@@ -436,6 +436,8 @@ layerRO <- data.table::rbindlist(
   list(layerRO, unmatched33),
   fill = TRUE
 )
+rm(overlap_id, unmatched33)
+
 # Merge depth limits: if profund_sup, profund_inf, and camada_id_febr are NA, 
 # get the values from i.profund_sup, i.profund_inf, and i.camada_id_febr
 # respectively.
@@ -491,9 +493,15 @@ cols <- intersect(names(layerRO), tolower(names(layerRO)))
 layerRO <- layerRO[, ..cols]
 layerRO[, dataset_id := NULL]
 
-# Merge events and layers
+# Merge events and layers ######################################################
 rondonia <- merge(eventRO, layerRO, all = TRUE)
+summary_soildata(rondonia)
 nrow(rondonia)
+# Layers: 10946
+# Events: 2998
+# Georeference: 2911 (yes) / 87 (no)
+# Date: 2998 (yes) / 0 (no)
+# Datasets: 1
 # 10789 layers
 rm(eventRO, layerRO, layer33, layer34)
 
