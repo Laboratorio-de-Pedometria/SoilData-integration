@@ -575,18 +575,11 @@ rondonia[, summary(coord_precisao)]
 rondonia[, EXTRA := NULL]
 rm(extra_coords, amount, problem)
 
-# Depth intervals ##############################################################
-# Check for missing depth intervals
+# Depth limits #################################################################
+# Check for missing depth limits
 rondonia[is.na(profund_sup) | is.na(profund_inf), .N, by = observacao_id]
-#    observacao_id     N
-#           <char> <int>
-# 1:        RO1042     1
-# 2:        RO1056     1
-# 3:        RO1075     1
-# 4:        RO1099     1
-# 5:        RO1106     1
-# 6:        RO1599     1
-# rondonia[observacao_id == "RO1042", ]
+# 0 layers with missing depth limits.
+
 
 
 
