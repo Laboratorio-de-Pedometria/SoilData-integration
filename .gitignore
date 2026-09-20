@@ -4,3 +4,4 @@ data/*.geojson
 data/*.rds
 res/tab/*.txt
 .Rhistory
+data/*.csv
