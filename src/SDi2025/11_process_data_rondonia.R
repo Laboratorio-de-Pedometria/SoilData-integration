@@ -236,7 +236,7 @@ eventRO[observacao_id == id, coord_fonte := "Google Maps (curadoria)"]
 eventRO[observacao_id == id, coord_precisao := coord_precisao + 100]
 rm(id)
 
-# Download current version from FEBR: layers
+# Download current version from FEBR: layers ###################################
 # ctb0033
 layer33 <- febr::layer("ctb0033", "all")
 layer33 <- data.table::as.data.table(layer33)
@@ -405,6 +405,7 @@ layer34[
 
 # We will keep the remaining layers with thickness different from 5 cm for a 
 # future check. One thing that we noticed is that a few cases are Latossolos.
+layer34[, thickness := NULL]
 
 # Merge the two datasets
 sapply(list(layer33, layer34), nrow)
@@ -417,9 +418,13 @@ sapply(list(layer33, layer34), nrow)
 # thick) that do not necessarily correspond to the layers sampled in ctb0033.
 data.table::setkey(layer33, evento_id_febr, profund_sup, profund_inf)
 data.table::setkey(layer34, evento_id_febr, profund_sup, profund_inf)
-layerRO_overlap <- data.table::foverlaps(layer34, layer33,
-  type = "within", mult = "all", 
+layerRO <- data.table::foverlaps(
+  x = layer34, # the thin layers from ctb0034
+  y = layer33, # the thick layers from ctb0033
+  type = "within", mult = "all"
 )
+nrow(layerRO)
+# 419 layers
 # foverlaps() only keeps all x (layer34) rows, matched or not. To also keep
 # layer33 rows that were never matched by any layer34 row, identify the
 # unmatched layer33 row indices and append them.
@@ -427,36 +432,48 @@ overlap_id <- data.table::foverlaps(layer34, layer33,
   type = "within", mult = "all", which = TRUE
 )
 unmatched33 <- layer33[setdiff(seq_len(nrow(layer33)), unique(overlap_id$yid))]
-layerRO_overlap <- data.table::rbindlist(
-  list(layerRO_overlap, unmatched33),
+layerRO <- data.table::rbindlist(
+  list(layerRO, unmatched33),
   fill = TRUE
 )
-# Sort by evento_id_febr, camada_id_febr, profund_sup, profund_inf
-layerRO_overlap <- layerRO_overlap[
-  order(evento_id_febr, camada_id_febr, profund_sup, profund_inf)
+# Merge depth limits: if profund_sup, profund_inf, and camada_id_febr are NA, 
+# get the values from i.profund_sup, i.profund_inf, and i.camada_id_febr
+# respectively.
+layerRO[
+  is.na(profund_sup) & !is.na(i.profund_sup),
+  profund_sup := i.profund_sup
+]
+layerRO[
+  is.na(profund_inf) & !is.na(i.profund_inf),
+  profund_inf := i.profund_inf
+]
+layerRO[
+  is.na(camada_id_febr) & !is.na(i.camada_id_febr),
+  camada_id_febr := i.camada_id_febr
 ]
 
-write.csv(layerRO_overlap, "data/11_layerRO_overlap.csv", row.names = FALSE)
-
-nrow(layerRO_overlap)
-
-# We need an overlap join between the layers from ctb0033 and ctb0034 to merge them!!!
-
-
-
-
-
-
-# Merge layers from ctb0033 and ctb0034
-layerRO <- merge(layer33, layer34,
-  by = c("evento_id_febr", "camada_id_febr"),
-  suffixes = c("", ".IGNORE"),
-  all = TRUE
-)
+# Sort by evento_id_febr, camada_id_febr, profund_sup, profund_inf
+layerRO <- layerRO[
+  order(evento_id_febr, camada_id_febr, profund_sup, profund_inf)
+]
 nrow(layerRO)
-# 10785 layers after merge
+# 10942 layers
+
+# DEPRECATED IN FAVOR OF OVERLAP JOIN APPLIED ABOVE
+# # Merge layers from ctb0033 and ctb0034
+# layerRO <- merge(layer33, layer34,
+#   by = c("evento_id_febr", "camada_id_febr"),
+#   suffixes = c("", ".IGNORE"),
+#   all = TRUE
+# )
+
+# Standardize column names
+str(layerRO)
 layerRO[, dataset_id := "ctb0033"]
-colnames(layerRO)
+layerRO[, i.camada_id_febr := NULL]
+layerRO[, i.profund_sup := NULL]
+layerRO[, i.profund_inf := NULL]
+layerRO[, dataset_id34 := NULL]
 new_names <- c(
   evento_id_febr = "observacao_id",
   camada_id_febr = "camada_nome",
@@ -473,7 +490,6 @@ data.table::setnames(layerRO, old = names(new_names), new = new_names)
 cols <- intersect(names(layerRO), tolower(names(layerRO)))
 layerRO <- layerRO[, ..cols]
 layerRO[, dataset_id := NULL]
-layerRO[, dataset_id34 := NULL]
 
 # Merge events and layers
 rondonia <- merge(eventRO, layerRO, all = TRUE)
