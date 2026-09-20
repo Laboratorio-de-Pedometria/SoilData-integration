@@ -338,28 +338,73 @@ layer34[
 ]
 
 # Check for thickness different from 5 cm
+layer34[, thickness := profund_inf - profund_sup]
 layer34[, .N, by = thickness]
-#     thickness     N
-#         <int> <int>
-#  1:         5   399
-#  2:        -5     1
-#  3:        23     1
-#  4:       -10     1
-#  5:        15     2
-#  6:         4     3
-#  7:         8     3
-#  8:        16     2
-#  9:        10     5
-# 10:         6     2
+#    thickness     N
+#        <int> <int>
+# 1:         5   401
+# 2:        23     1
+# 3:        15     2
+# 4:         4     3
+# 5:         8     3
+# 6:        16     2
+# 7:        10     5
+# 8:         6     2
 layer34[
-  thickness != 5,
+  thickness > 5,
   .(evento_id_febr, camada_id_febr, profund_sup, profund_inf, thickness)
 ]
 
+# RO1836. In the source spreadshet, the limits of the first layer for physical
+# analysis are 13-18 cm, while that of the second are 17-40 cm, which is odd.
+# The layers sampled for chemical analysis were collected at 0-15 cm and 30-40
+# cm. The morphological description was made at 0-15 cm and 15-50 cm. Perhaps
+# the limits of the first layer for physical analysis trully are 13-18 cm, as
+# they are very close to the limits of the layer sampled for chemical analysis
+# and the morphological description, and is 5 cm thick. The limits of the second
+# layer for physical analysis (23 cm thick), however, are odd. As the lower
+# limit of 40 cm is the same as that of the layer sampled for chemical analysis,
+# we find that it could be correct and keep it as is. If we target a thickness
+# of 5 cm, the upper limit of the layer should be 35 cm, and so we change it.
+layer34[
+  evento_id_febr == "RO1836" & camada_id_febr == "B",
+  profund_sup := ifelse(profund_sup == 17, 35, profund_sup)
+]
 
-layer34[, thickness := NULL]
+# RO1863. The second layer (B) for physical analysis reports a depth interval of 
+# 20-35 cm. Samples for chemical analysis were collected at 0-10 cm and 30-40 
+# cm, while the morphological description was made at 0-16 cm and 16-55 cm. The
+# correct limits for the layer could be 20-25 cm or 30-35 cm. We check the number of layers in each depth interval to determine the most likely depth interval:
+layer34[profund_sup == 20 & profund_inf == 25, .N]
+# 15 layer
+layer34[profund_sup == 30 & profund_inf == 35, .N]
+# 47 layers
+# The data reveals that there are more layers with depth intervals of 30-35 cm
+# than with depth intervals of 20-25 cm. It also matches the upper limit of the 
+# layer sampled for chemical analysis and the morphological description. So we 
+# conclude that the most likely depth interval for the layer in question is 
+# 30-35 cm.
+layer34[
+  evento_id_febr == "RO1863" & camada_id_febr == "B",
+  profund_sup := ifelse(profund_sup == 20, 30, profund_sup)
+]
 
-View(layer34)
+# RO2580. The second layer (B) for physical analysis reports a depth interval of
+# 28-36 cm. The second layer sampled for chemical analysis was collected at B:
+# 22-32 cm, while the morphological description was made at 15-45 cm. In
+# Portuguese, the numbers 3 and 6 sound similar, and it is possible that the
+# upper limit of 36 cm was a typo in the source spreadsheet. The correct limits
+# for the layer could be 28-33 cm, yielding a thickness of 5 cm. This depth
+# interval more or less matches the lower limit of the layer sampled for
+# chemical analysis (32 cm). So we conclude that the most likely depth interval
+# for the layer in question is 28-33 cm.
+layer34[
+  evento_id_febr == "RO2580" & camada_id_febr == "B",
+  profund_inf := ifelse(profund_inf == 36, 33, profund_inf)
+]
+
+# We will keep the remaining layers with thickness different from 5 cm for a 
+# future check. One thing that we noticed is that a few cases are Latossolos.
 
 
 
