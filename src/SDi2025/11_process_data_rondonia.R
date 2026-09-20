@@ -531,11 +531,11 @@ if (problem > 0) {
   rondonia[EXTRA == TRUE, observacao_id := paste0(observacao_id, camada_nome)]
   rondonia[, id := paste0(dataset_id, "-", observacao_id)]
 }
-# Next we add a random perturbation to the coordinates of extra samples only to 
-# pass checks for duplicated events. We use a small perturbation of 1 m, which 
-# is negligible for most practical purposes. The coordinates are transformed to 
-# UTM zone 20S (EPSG:32720) before applying the perturbation and then 
-# transformed back to WGS84 (EPSG:4326).
+# Next we add a random perturbation to the coordinates of those extra samples 
+# only to pass checks for duplicated events. We use a small perturbation of 1 m, 
+# which is negligible for most practical purposes. The coordinates are
+# transformed to UTM zone 20S (EPSG:32720) before applying the perturbation and
+# then transformed back to WGS84 (EPSG:4326).
 # Use sf::st_jitter() with amount = 1 m, where runif(1, -amount, amount)
 amount <- 1
 extra_coords <- rondonia[
@@ -567,13 +567,15 @@ rondonia[
 rondonia[, .N, by = coord_fonte]
 # In coord_precisao, add 1 to the existing value if it a number larger than 0.
 rondonia[
-  EXTRA == TRUE & !is.na(coord_x) & !is.na(coord_y) & !is.na(coord_precisao) & coord_precisao > 0,
+  EXTRA == TRUE & !is.na(coord_x) & !is.na(coord_y) & !is.na(coord_precisao) &
+    coord_precisao > 0, 
   coord_precisao := coord_precisao + 1
 ]
 rondonia[, summary(coord_precisao)]
 rondonia[, EXTRA := NULL]
-rm(extra_coords, amount)
+rm(extra_coords, amount, problem)
 
+# Depth intervals ##############################################################
 # Check for missing depth intervals
 rondonia[is.na(profund_sup) | is.na(profund_inf), .N, by = observacao_id]
 #    observacao_id     N
