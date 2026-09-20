@@ -299,8 +299,20 @@ layer34[
   thickness < 0,
   .(evento_id_febr, camada_id_febr, profund_sup, profund_inf, thickness)
 ]
-# RO1590: A 15-10 cm. The error comes from the source. We reverse the depth 
-# intervals to 10-15 cm.
+# RO1590: A 15-10 cm. The error comes from the source spreadsheet. Soil samples
+# for chemical analysis were collected at 0- 20 cm and morphological 
+# descriptions were made at 0 - 20 cm. Three solutions are possible: 5-10 cm, 
+# 10-15 cm, or 15-20 cm. We check the number of layers in each depth interval to
+# determine the most likely depth interval: 
+layer34[profund_sup == 5 & profund_inf == 10, .N]
+# 38 layers
+layer34[profund_sup == 10 & profund_inf == 15, .N]
+# 48 layers
+layer34[profund_sup == 15 & profund_inf == 20, .N]
+# 2
+# The data reveals that there are more layers with depth intervals of 10-15 cm
+# than with depth intervals of 5-10 cm or 15-20 cm. Therefore, we conclude that
+# the most likely depth interval for the layer in question is 10-15 cm.
 layer34[
   evento_id_febr == "RO1590" & camada_id_febr == "A",
   profund_sup := ifelse(profund_sup == 15, 10, profund_sup)
@@ -322,7 +334,7 @@ layer34[
 ]
 layer34[, thickness := NULL]
 
-
+View(layer34)
 
 
 
