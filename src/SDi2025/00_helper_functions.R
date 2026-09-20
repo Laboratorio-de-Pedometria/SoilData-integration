@@ -7,12 +7,15 @@
 # Set version ##################################################################
 sdi <- "sdi2025"
 
-# Create directories for results if they do not exist ##########################
+# Create directories if they do not exist ######################################
 if (!dir.exists("res/tab")) { 
-  dir.create("res/tab", recursive = TRUE, showWarnings = FALSE)
+  dir.create(path = "res/tab", recursive = TRUE, showWarnings = FALSE)
 }
-if (!dir.exists("res/fig")) { 
-  dir.create("res/fig", recursive = TRUE, showWarnings = FALSE)
+if (!dir.exists("res/fig")) {
+  dir.create(path = "res/fig", recursive = TRUE, showWarnings = FALSE)
+}
+if (!dir.exists("tmp")) { 
+  dir.create(path = "tmp", recursive = TRUE, showWarnings = FALSE)
 }
 
 # General functions to construct file paths ####################################
