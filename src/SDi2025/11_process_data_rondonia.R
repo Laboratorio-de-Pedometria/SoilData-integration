@@ -748,7 +748,7 @@ if (FALSE) {
 ctb0032_cols <- c("observacao_id", "camada_nome", "profund_sup", "profund_inf")
 ctb0032 <- soildata[dataset_id == "ctb0032", ..ctb0032_cols]
 nrow(ctb0032)
-# 10873
+# 10872
 
 # Perform a join between the analythical data from Rondônia (rondonia) and the
 # morphological descriptions from ctb0032
@@ -772,7 +772,7 @@ rm(overlap_id, unmatched_ro)
 nrow(rondonia)
 # 10946 layers before the overlap join
 nrow(rondonia_overlap)
-# 10958 layers after the overlap join.
+# 10957 layers after the overlap join.
 
 # If camada_nome, profund_sup, and profund_inf are NA, get it from
 # i.camada_nome, i.profund_sup, and i.profund_inf respectively.
@@ -808,6 +808,16 @@ rondonia_overlap[,
 ]
 rondonia_overlap[copied == TRUE | copied2 == TRUE, copied := TRUE]
 
+
+
+
+
+
+
+
+
+
+
 # One of the reasons for the increase of the number of rows is the use of
 # mult = "all". Some horizons in ctb0032 match two layers in rondonia, one with
 # chemical properties and another with physical properties. So both rows are
@@ -817,12 +827,23 @@ rondonia_overlap[copied == TRUE | copied2 == TRUE, copied := TRUE]
 # Count the number of times each layer is duplicated within each event (observacao_id).
 rondonia_overlap[, n_copied := .N, by = .(observacao_id, camada_nome, profund_sup, profund_inf)]
 
+rondonia_overlap[n_copied > 0 & copied == TRUE, .(observacao_id, camada_nome, profund_sup, profund_inf, n_copied, copied)]
+
+# If n_copied == 1, for the first layer we set profund_sup == profund_sup and
+# profund_inf == i.profund_inf. For the second layer, we set profund_sup ==
+# i.profund_sup and profund_inf == profund_inf.
+rondonia_overlap[
+  n_copied == 1 & copied == TRUE,
+  .(observacao_id, camada_nome, profund_sup, profund_inf, n_copied, copied)
+]
+# RO2038 RO2058 RO3562
 
 rondonia_overlap[n_copied == 1 & copied == TRUE, .(observacao_id, camada_nome, profund_sup, profund_inf, n_copied, copied)]
 
 
 
-rondonia_overlap[observacao_id == "RO1238", .(observacao_id, camada_nome, profund_sup, profund_inf, n_copied, copied)]
+
+rondonia_overlap[observacao_id == "RO3562", .(observacao_id, camada_nome, profund_sup, profund_inf, n_copied, copied)]
 
 
 write.csv(rondonia_overlap[copied == TRUE], "tmp/rondonia_overlap_join.csv", row.names = FALSE)
