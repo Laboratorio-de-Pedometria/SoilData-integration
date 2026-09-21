@@ -722,6 +722,14 @@ soildata <- soildata[
   !(dataset_id == "ctb0032" & observacao_id == "RO1687" & camada_nome == "Bw3")
 ]
 
+# From observacao_id == "RO1238", drop layer with camada_nome == "Bt3"
+# After checking the documentation, we decided that this is a possible duplicate
+# of the morphological description. There is no additional layer with chemical
+# or physical properties for this layer, so we will drop it.
+soildata <- soildata[
+  !(dataset_id == "ctb0032" & observacao_id == "RO1238" & camada_nome == "Bt3")
+]
+
 # Check the spatial distribution of events in Brazil
 if (FALSE) {
   x11()
@@ -740,7 +748,7 @@ if (FALSE) {
 ctb0032_cols <- c("observacao_id", "camada_nome", "profund_sup", "profund_inf")
 ctb0032 <- soildata[dataset_id == "ctb0032", ..ctb0032_cols]
 nrow(ctb0032)
-# 10874
+# 10873
 
 # Perform a join between the analythical data from Rondônia (rondonia) and the
 # morphological descriptions from ctb0032
@@ -764,7 +772,7 @@ rm(overlap_id, unmatched_ro)
 nrow(rondonia)
 # 10946 layers before the overlap join
 nrow(rondonia_overlap)
-# 10960 layers after the overlap join.
+# 10958 layers after the overlap join.
 
 # If camada_nome, profund_sup, and profund_inf are NA, get it from
 # i.camada_nome, i.profund_sup, and i.profund_inf respectively.
@@ -814,8 +822,6 @@ rondonia_overlap[n_copied == 1 & copied == TRUE, .(observacao_id, camada_nome, p
 
 
 
-
-rondonia_overlap[observacao_id == "RO1687", .(observacao_id, camada_nome, profund_sup, profund_inf, n_copied, copied)]
 rondonia_overlap[observacao_id == "RO1238", .(observacao_id, camada_nome, profund_sup, profund_inf, n_copied, copied)]
 
 
