@@ -714,10 +714,13 @@ soildata[
   profund_inf := ifelse(profund_inf == 90, 120, profund_inf)
 ]
 
-# # Order rows by dataset_id, observacao_id, profund_sup, and profund_inf
-# soildata <- soildata[
-#   order(dataset_id, observacao_id, profund_sup, profund_inf),
-# ]
+# From observacao_id == "RO1687", drop layr with camada_nome == "Bw3"
+# After checking the documentation, we decided that this is a possible duplicate
+# of the morphological description. There is no additional layer with chemical
+# or physical properties for this layer, so we will drop it.
+soildata <- soildata[
+  !(dataset_id == "ctb0032" & observacao_id == "RO1687" & camada_nome == "Bw3")
+]
 
 # Check the spatial distribution of events in Brazil
 if (FALSE) {
@@ -778,23 +781,51 @@ rondonia_overlap[
   profund_inf := i.profund_inf
 ]
 
-# Drop the columns i.camada_nome, i.profund_sup, and i.profund_inf
-# rondonia_overlap[, i.camada_nome := NULL]
-# rondonia_overlap[, i.profund_sup := NULL]
-# rondonia_overlap[, i.profund_inf := NULL]
-
 # Identify events with that have any duplicated layers after the overlap join.
 # We check for duplicated layers based on both the upper and lower depth limits
 # (profund_sup and profund_inf) within each event (observacao_id).
-rondonia_overlap[, copied := any(duplicated(profund_sup) | duplicated(profund_inf)), by = observacao_id]
-
-write.csv(rondonia_overlap[copied == TRUE], "tmp/rondonia_overlap_join.csv", row.names = FALSE)
+rondonia_overlap <- rondonia_overlap[
+  order(observacao_id, profund_sup, profund_inf, decreasing = TRUE)
+]
+rondonia_overlap[,
+  copied := duplicated(profund_sup) | duplicated(profund_inf),
+  by = observacao_id
+]
+rondonia_overlap <- rondonia_overlap[
+  order(observacao_id, profund_sup, profund_inf)
+]
+rondonia_overlap[,
+  copied2 := duplicated(profund_sup) | duplicated(profund_inf),
+  by = observacao_id
+]
+rondonia_overlap[copied == TRUE | copied2 == TRUE, copied := TRUE]
 
 # One of the reasons for the increase of the number of rows is the use of
 # mult = "all". Some horizons in ctb0032 match two layers in rondonia, one with
 # chemical properties and another with physical properties. So both rows are
 # incomplete. Evidence of duplication is found in camada_nome, profund_sup, and
-# profund_inf. What we have to do is merge the two rows into one, keeping the
+# profund_inf. What we do is to adjust the depth limits of the duplicated rows.
+# The strategy depends on how many times a layer is duplicated in the event.
+# Count the number of times each layer is duplicated within each event (observacao_id).
+rondonia_overlap[, n_copied := .N, by = .(observacao_id, camada_nome, profund_sup, profund_inf)]
+
+
+rondonia_overlap[n_copied == 1 & copied == TRUE, .(observacao_id, camada_nome, profund_sup, profund_inf, n_copied, copied)]
+
+
+
+
+rondonia_overlap[observacao_id == "RO1687", .(observacao_id, camada_nome, profund_sup, profund_inf, n_copied, copied)]
+rondonia_overlap[observacao_id == "RO1238", .(observacao_id, camada_nome, profund_sup, profund_inf, n_copied, copied)]
+
+
+write.csv(rondonia_overlap[copied == TRUE], "tmp/rondonia_overlap_join.csv", row.names = FALSE)
+
+
+
+
+
+What we have to do is merge the two rows into one, keeping the
 # analytical data from both layers and the morphological description.
 
 # Consolidate duplicated matched horizons: one row per ctb0032 horizon,
