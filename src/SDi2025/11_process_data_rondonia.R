@@ -285,6 +285,85 @@ layer33[
 ]
 layer33[, thickness := NULL]
 
+# Check if there are layers where camada_id_febr == A and profund_sup > 5. In
+# principle, the upper limit of the first layer (A) should be 0 cm (or near the
+# surface).
+cols <- c("evento_id_febr", "camada_id_febr", "profund_sup", "profund_inf")
+layer33[camada_id_febr == "A" & profund_sup > 5, ..cols]
+#     evento_id_febr camada_id_febr profund_sup profund_inf
+#             <char>         <char>       <int>       <int>
+#  1:         RO1006              A         100         110
+#  2:         RO1083              A          10          20
+#  3:         RO1106              A          10          20
+#  4:         RO1126              A          20          30
+#  5:         RO1311              A           6          10
+#  6:         RO1312              A           8          12
+#  7:         RO1315              A           6          12
+#  8:         RO1423              A          10          20
+#  9:         RO1518              A          10          20
+# 10:         RO1612              A          10          20
+# 11:         RO1626              A          10          20
+# 12:         RO1687              A          10          20
+# 13:         RO2509              A          30          40
+# 14:         RO2607              A          10          30
+# 15:         RO3213              A         110         120
+
+# RO1006 is likely wrong and the analytical data confirms it. We correct to
+# 0-10 cm.
+layer33[
+  evento_id_febr == "RO1006" & camada_id_febr == "A",
+  profund_sup := ifelse(profund_sup == 100, 0, profund_sup)
+]
+layer33[
+  evento_id_febr == "RO1006" & camada_id_febr == "A",
+  profund_inf := ifelse(profund_inf == 110, 10, profund_inf)
+]
+
+# RO2509 has A: 30-40 and B: 0-10. The limits are probably reversed. We correct
+# to A: 0-10 and B: 30-40.
+layer33[
+  evento_id_febr == "RO2509" & camada_id_febr == "A",
+  profund_sup := ifelse(profund_sup == 30, 0, profund_sup)
+]
+layer33[
+  evento_id_febr == "RO2509" & camada_id_febr == "A",
+  profund_inf := ifelse(profund_inf == 40, 10, profund_inf)
+]
+
+# RO3213 has layers A: 110-120, B: 0- 15, C: 30-40, and D: 110-120 cm. The
+# analytical data for layer A: 110-120 cm is that of topsoil, matching the
+# expected values accoding to the soil profile descrition. Soil horizons are
+# A: 0-15, AB: 15-65, Bw1: 65-90 (apparently not sampled?), and Bw2: 90-120 cm.
+# Maybe the layer limits are incorrect and the limits of the third layer is
+# not known. For instance, the following could be the correct sequence:
+# A: 0- 15, B: 30-40, C: ???, and D: 110-120 cm, with C between 65-90 cm. We
+# will set these values:
+layer33[
+  evento_id_febr == "RO3213" & camada_id_febr == "A",
+  profund_sup := ifelse(profund_sup == 110, 0, profund_sup)
+]
+layer33[
+  evento_id_febr == "RO3213" & camada_id_febr == "A",
+  profund_inf := ifelse(profund_inf == 120, 15, profund_inf)
+]
+layer33[
+  evento_id_febr == "RO3213" & camada_id_febr == "B",
+  profund_sup := ifelse(profund_sup == 0, 30, profund_sup)
+]
+layer33[
+  evento_id_febr == "RO3213" & camada_id_febr == "B",
+  profund_inf := ifelse(profund_inf == 15, 40, profund_inf)
+]
+layer33[
+  evento_id_febr == "RO3213" & camada_id_febr == "C",
+  profund_sup := ifelse(profund_sup == 30, 65, profund_sup)
+]
+layer33[
+  evento_id_febr == "RO3213" & camada_id_febr == "C",
+  profund_inf := ifelse(profund_inf == 40, 90, profund_inf)
+]
+rm(cols)
+
 # ctb0034
 layer34 <- febr::layer("ctb0034", "all")
 layer34 <- data.table::as.data.table(layer34)
@@ -580,30 +659,22 @@ rm(extra_coords, amount, problem)
 rondonia[is.na(profund_sup) | is.na(profund_inf), .N, by = observacao_id]
 # 0 layers with missing depth limits.
 
-
-
-
-
-
-
-
-
+# Identification metadata ######################################################
 # Create missing columns in the data from Rondônia
 title <- "Dados de 'Zoneamento Socioeconômico-Ecológico do Estado de Rondônia'"
 rondonia[, dataset_titulo := title]
 rondonia[, dataset_licenca := "CC-BY-4.0"]
 rondonia[, organizacao_nome := "Governo do Estado de Rondônia"]
-
 summary_soildata(rondonia)
-# Layers: 10789
-# Events: 3061
-# Georeference: 2962 (yes) / 99 (no)
-# Date: 3061 (yes) / 0 (no)
+# Layers: 10946
+# Events: 3062
+# Georeference: 2963 (yes) / 99 (no)
+# Date: 3062 (yes) / 0 (no)
 # Datasets: 1
 
 # Read SoilData data processed in the previous script
 soildata <- data.table::fread(
-  "data/10_soildata.txt",
+  input = "data/10_soildata.txt",
   sep = "\t", na.strings = c("", "NA")
 )
 summary_soildata(soildata)
@@ -616,16 +687,16 @@ summary_soildata(soildata)
 # Add a column to indicate the coordinate reference system (CRS)
 soildata[, coord_datum := 4326] # EPSG code for WGS84
 
-# Manually correct the depth intervals for specific events in ctb0032 after
+# Manually correct the depth limits for specific events in ctb0032 after
 # checking the source documentation. This is necessary for the overlap join
 # performed later.
 soildata[
   dataset_id == "ctb0032" & observacao_id == "RO1174" & camada_nome == "R",
-  profund_sup := 0
+  profund_sup := ifelse(is.na(profund_sup), 0, profund_sup)
 ]
 soildata[
   dataset_id == "ctb0032" & observacao_id == "RO1174" & camada_nome == "R",
-  profund_inf := 20
+  profund_inf := ifelse(is.na(profund_inf), 20, profund_inf)
 ]
 soildata[
   dataset_id == "ctb0032" & observacao_id == "RO2740" & camada_nome == "A",
@@ -647,18 +718,100 @@ if (FALSE) {
   plot(soildata[, c("coord_x", "coord_y")])
 }
 
+# Morphological descriptions ###################################################
+# ctb0032 (soildata) contains morphological descriptions of soil horizons for
+# various soil profiles, while ctb0033 and ctb0034 (rondonia) contain chemical
+# and physical properties of soil layers for various soil profiles as well,
+# respectively. Not all soil profiles have morphological descriptions and 
+# laboratory analyses. The layers in rondonia do not necessarily correspond to
+# the soil horizons in soildata. To merge the two datasets, we will perform an
+# overlap join based on the depth limits of the layers and horizons.
 # Extract data from Rondônia (ctb0032)
 ctb0032_cols <- c("observacao_id", "camada_nome", "profund_sup", "profund_inf")
 ctb0032 <- soildata[dataset_id == "ctb0032", ..ctb0032_cols]
+nrow(ctb0032)
+# 10874
 
-# Perform a join between the analythical data from Rondônia (rondonia) and the 
+# Perform a join between the analythical data from Rondônia (rondonia) and the
 # morphological descriptions from ctb0032
 data.table::setkey(ctb0032, observacao_id, profund_sup, profund_inf)
-rondonia2 <- data.table::foverlaps(rondonia, ctb0032,
-  by.x = c("observacao_id", "profund_sup", "profund_inf"),
-  by.y = c("observacao_id", "profund_sup", "profund_inf"),
+data.table::setkey(rondonia, observacao_id, profund_sup, profund_inf)
+rondonia_overlap <- data.table::foverlaps(
+  x = rondonia, # analytical data from Rondônia (ctb0033 and ctb0034)
+  y = ctb0032, # morphological descriptions from ctb0032
   type = "within", mult = "all"
 )
+# In principle, there should not be any unmatched rows in rondonia, as all
+# layers should have a corresponding morphological description in ctb0032.
+# However, we will check for any unmatched rows and correct them if possible.
+overlap_id <- data.table::foverlaps(rondonia, ctb0032,
+  type = "within", mult = "all", which = TRUE
+)
+unmatched_ro <- rondonia[setdiff(seq_len(nrow(rondonia)), unique(overlap_id$xid))]
+nrow(unmatched_ro)
+# 0 
+rm(overlap_id, unmatched_ro)
+nrow(rondonia)
+# 10946 layers before the overlap join
+nrow(rondonia_overlap)
+# 10960 layers after the overlap join.
+
+# If camada_nome, profund_sup, and profund_inf are NA, get it from
+# i.camada_nome, i.profund_sup, and i.profund_inf respectively.
+rondonia_overlap[
+  is.na(camada_nome) & !is.na(i.camada_nome),
+  camada_nome := i.camada_nome
+]
+rondonia_overlap[
+  is.na(profund_sup) & !is.na(i.profund_sup),
+  profund_sup := i.profund_sup
+]
+rondonia_overlap[
+  is.na(profund_inf) & !is.na(i.profund_inf),
+  profund_inf := i.profund_inf
+]
+
+# Drop the columns i.camada_nome, i.profund_sup, and i.profund_inf
+# rondonia_overlap[, i.camada_nome := NULL]
+# rondonia_overlap[, i.profund_sup := NULL]
+# rondonia_overlap[, i.profund_inf := NULL]
+
+write.csv(rondonia_overlap, "tmp/rondonia_overlap_join.csv", row.names = FALSE)
+
+# One of the reasons for the increase of the number of rows is the use of
+# mult = "all". Some horizons in ctb0032 match two layers in rondonia, one with
+# chemical properties and another with physical properties. So both rows are
+# incomplete. Evidence of duplication is found in camada_nome, profund_sup, and
+# profund_inf. What we have to do is merge the two rows into one, keeping the
+# analytical data from both layers and the morphological description.
+
+# Consolidate duplicated matched horizons: one row per ctb0032 horizon,
+# keeping the first non-missing value per column across duplicate rows.
+key_cols <- c("observacao_id", "camada_nome", "profund_sup", "profund_inf")
+pick_first_non_na <- function(x) x[which.max(!is.na(x))]
+
+matched_overlap <- rondonia_overlap[complete.cases(rondonia_overlap[, ..key_cols])]
+rondonia_overlap <- data.table::rbindlist(
+  list(
+    matched_overlap[
+      , lapply(.SD, pick_first_non_na),
+      by = key_cols,
+      .SDcols = setdiff(names(matched_overlap), key_cols)
+    ],
+    rondonia_overlap[!complete.cases(rondonia_overlap[, ..key_cols])]
+  ),
+  use.names = TRUE,
+  fill = TRUE
+)
+
+data.table::setorderv(rondonia_overlap, c("observacao_id", "profund_sup", "profund_inf"))
+rm(key_cols, pick_first_non_na, matched_overlap)
+
+nrow(rondonia_overlap)
+
+write.csv(rondonia_overlap, "tmp/rondonia_overlap_join.csv", row.names = FALSE)
+
+
 
 # Remove existing data from Rondônia (morphological descriptions)
 length(unique(soildata[, id]))
@@ -668,9 +821,12 @@ length(unique(soildata[, id]))
 # 10945 events
 
 # Merge data from Rondônia with the SoilData snapshot
-col_ro <- intersect(names(soildata), names(rondonia))
+col_ro <- intersect(names(soildata), names(rondonia_overlap))
 soildata <-
-  data.table::rbindlist(list(soildata, rondonia[, ..col_ro]), fill = TRUE)
+  data.table::rbindlist(
+    list(soildata, rondonia_overlap[, ..col_ro]),
+    fill = TRUE
+  )
 # ATTENTION: ctb0032 has morphological descriptions and soil horizons are
 # designated by camada_nome like "A", "B1", "B2", "C", etc. In ctb0033 and
 # ctb0034, the layers are not necessarily coincident with soil horizons, and
