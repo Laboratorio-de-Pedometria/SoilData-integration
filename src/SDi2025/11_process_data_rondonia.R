@@ -575,7 +575,6 @@ layerRO[, dataset_id := NULL]
 # Merge events and layers ######################################################
 rondonia <- merge(eventRO, layerRO, all = TRUE)
 summary_soildata(rondonia)
-nrow(rondonia)
 # Layers: 10946
 # Events: 2998
 # Georeference: 2911 (yes) / 87 (no)
@@ -706,6 +705,14 @@ soildata[
   dataset_id == "ctb0032" & observacao_id == "RO2740" & camada_nome == "A",
   profund_inf := ifelse(is.na(profund_inf), 20, profund_inf)
 ]
+soildata[
+  dataset_id == "ctb0032" & observacao_id == "RO2322" & camada_nome == "Cg2",
+  profund_sup := ifelse(profund_sup == 50, 90, profund_sup)
+]
+soildata[
+  dataset_id == "ctb0032" & observacao_id == "RO2322" & camada_nome == "Cg2",
+  profund_inf := ifelse(profund_inf == 90, 120, profund_inf)
+]
 
 # # Order rows by dataset_id, observacao_id, profund_sup, and profund_inf
 # soildata <- soildata[
@@ -776,7 +783,12 @@ rondonia_overlap[
 # rondonia_overlap[, i.profund_sup := NULL]
 # rondonia_overlap[, i.profund_inf := NULL]
 
-write.csv(rondonia_overlap, "tmp/rondonia_overlap_join.csv", row.names = FALSE)
+# Identify events with that have any duplicated layers after the overlap join.
+# We check for duplicated layers based on both the upper and lower depth limits
+# (profund_sup and profund_inf) within each event (observacao_id).
+rondonia_overlap[, copied := any(duplicated(profund_sup) | duplicated(profund_inf)), by = observacao_id]
+
+write.csv(rondonia_overlap[copied == TRUE], "tmp/rondonia_overlap_join.csv", row.names = FALSE)
 
 # One of the reasons for the increase of the number of rows is the use of
 # mult = "all". Some horizons in ctb0032 match two layers in rondonia, one with
