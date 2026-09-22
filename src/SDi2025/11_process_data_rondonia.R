@@ -238,17 +238,25 @@ rm(id)
 
 # Download current version from FEBR: layers ###################################
 # ctb0033
+# This dataset contains data on chemical soil properties measured over layers
+# that correspond to the layers sampled for chemical analysis. The depth
+# intervals of these layers are not necessarily the same as those of the layers
+# sampled for morphological description.
 layer33 <- febr::layer("ctb0033", "all")
 layer33 <- data.table::as.data.table(layer33)
 layer33[, camada_id_sisb := NULL]
+
 # Create a new column named thickness to store the thickness of each layer,
 # calculated as profund_inf - profund_sup. If the thickness is negative, it 
 # indicates an error in the depth intervals.
 layer33[, thickness := profund_inf - profund_sup]
+layer33[thickness < 0, .N]
+# There are 4 layers with negative thickness.
 layer33[
   thickness < 0,
   .(evento_id_febr, camada_id_febr, profund_sup, profund_inf, thickness)
 ]
+
 # RO1154: C 80-70 cm. The error comes from the source. We reverse the depth
 # intervals to 70-80 cm.
 layer33[
@@ -259,6 +267,7 @@ layer33[
   evento_id_febr == "RO1154" & camada_id_febr == "C",
   profund_inf := ifelse(profund_inf == 70, 80, profund_inf)
 ]
+
 # RO2463: C 80-70 cm. The error comes from the source. We reverse the depth 
 # intervals to 70-80 cm.
 layer33[
@@ -269,6 +278,7 @@ layer33[
   evento_id_febr == "RO2463" & camada_id_febr == "C",
   profund_inf := ifelse(profund_inf == 70, 80, profund_inf)
 ]
+
 # RO2826: E 140-60 cm. The error comes from the source. The correct depth
 # intervals most likely are 140-160 cm. We correct the depth intervals to
 # 140-160 cm.
@@ -276,6 +286,7 @@ layer33[
   evento_id_febr == "RO2826" & camada_id_febr == "E",
   profund_inf := ifelse(profund_inf == 60, 160, profund_inf)
 ]
+
 # RO3542: D 110-80 cm. The error comes from the source. The correct depth 
 # intervals most likely are 110-120 cm. We correct the depth intervals to 
 # 110-120 cm.
@@ -292,7 +303,7 @@ cols <- c("evento_id_febr", "camada_id_febr", "profund_sup", "profund_inf")
 layer33[camada_id_febr == "A" & profund_sup > 5, ..cols]
 #     evento_id_febr camada_id_febr profund_sup profund_inf
 #             <char>         <char>       <int>       <int>
-#  1:         RO1006              A         100         110
+#  1:         RO1006              A         100         110 Error
 #  2:         RO1083              A          10          20
 #  3:         RO1106              A          10          20
 #  4:         RO1126              A          20          30
@@ -304,9 +315,9 @@ layer33[camada_id_febr == "A" & profund_sup > 5, ..cols]
 # 10:         RO1612              A          10          20
 # 11:         RO1626              A          10          20
 # 12:         RO1687              A          10          20
-# 13:         RO2509              A          30          40
+# 13:         RO2509              A          30          40 Error
 # 14:         RO2607              A          10          30
-# 15:         RO3213              A         110         120
+# 15:         RO3213              A         110         120 Error
 
 # RO1006 is likely wrong and the analytical data confirms it. We correct to
 # 0-10 cm.
@@ -365,22 +376,29 @@ layer33[
 rm(cols)
 
 # ctb0034
+# This dataset contains data on physical soil properties measured over thin
+# layers (most of them are 5 cm thick) that do not necessarily correspond to the
+# layers sampled in ctb0033.
 layer34 <- febr::layer("ctb0034", "all")
 layer34 <- data.table::as.data.table(layer34)
 layer34[, dataset_id34 := dataset_id]
 layer34[, dataset_id := NULL]
 layer34[, camada_id_febr := camada_id_alt]
+
 # Create a new column named thickness to store the thickness of each layer,
 # calculated as profund_inf - profund_sup. If the thickness is negative, it
 # indicates an error in the depth intervals.
 layer34[, thickness := profund_inf - profund_sup]
+layer34[thickness < 0, .N]
+# There are 2 layers with negative thickness.
 layer34[
   thickness < 0,
   .(evento_id_febr, camada_id_febr, profund_sup, profund_inf, thickness)
 ]
+
 # RO1590: A 15-10 cm. The error comes from the source spreadsheet. Soil samples
 # for chemical analysis were collected at 0- 20 cm and morphological 
-# descriptions were made at 0 - 20 cm. Three solutions are possible: 5-10 cm, 
+# descriptions were made at 0-20 cm. Three solutions are possible: 5-10 cm, 
 # 10-15 cm, or 15-20 cm. We check the number of layers in each depth interval to
 # determine the most likely depth interval: 
 layer34[profund_sup == 5 & profund_inf == 10, .N]
@@ -400,6 +418,7 @@ layer34[
   evento_id_febr == "RO1590" & camada_id_febr == "A",
   profund_inf := ifelse(profund_inf == 10, 15, profund_inf)
 ]
+
 # RO1836: C 65-55 cm. The error comes from the source spreadsheet. We notice
 # that the layer sampled for chemical analysis was collected at 60-70 cm, while
 # the morphological description was made at 50-90 cm. So the most likely depth
@@ -433,6 +452,23 @@ layer34[
   thickness > 5,
   .(evento_id_febr, camada_id_febr, profund_sup, profund_inf, thickness)
 ]
+#     evento_id_febr camada_id_febr profund_sup profund_inf thickness
+#             <char>         <char>       <int>       <int>     <int>
+#  1:         RO1836              B          17          40        23 Error
+#  2:         RO1863              B          20          35        15 Error
+#  3:         RO2580              B          28          36         8 Error
+#  4:         RO3701              A           2          10         8
+#  5:         RO3623              A           5          21        16
+#  6:         RO3623              B          10          26        16
+#  7:         RO2101              A           0          10        10
+#  8:         RO3901              C          50          65        15
+#  9:         RO3369              A           2          10         8
+# 10:         RO3512              C          70          76         6
+# 11:         RO3261              B          30          36         6
+# 12:         RO3492              A           0          10        10
+# 13:         RO3492              B          30          40        10
+# 14:         RO3492              C          70          80        10
+# 15:         RO3492              D         110         120        10
 
 # RO1836. In the source spreadshet, the limits of the first layer for physical
 # analysis are 13-18 cm, while that of the second are 17-40 cm, which is odd.
@@ -453,7 +489,9 @@ layer34[
 # RO1863. The second layer (B) for physical analysis reports a depth interval of 
 # 20-35 cm. Samples for chemical analysis were collected at 0-10 cm and 30-40 
 # cm, while the morphological description was made at 0-16 cm and 16-55 cm. The
-# correct limits for the layer could be 20-25 cm or 30-35 cm. We check the number of layers in each depth interval to determine the most likely depth interval:
+# correct limits for the layer could be 20-25 cm or 30-35 cm. We check the 
+# number of layers in each depth interval to determine the most likely depth
+# interval:
 layer34[profund_sup == 20 & profund_inf == 25, .N]
 # 15 layer
 layer34[profund_sup == 30 & profund_inf == 35, .N]
@@ -490,17 +528,28 @@ layer34[, thickness := NULL]
 sapply(list(layer33, layer34), nrow)
 # 10779 and 419 layers
 
+# Join layers from ctb0033 and ctb0034 #########################################
 # Apply overlap joint to merge layers from ctb0033 and ctb0034
 # ctb0033 has data on chemical soil properties measured over soil layers
-# corresponding to entire or part of pedological horizons. ctb0034 has data on
-# physical soil properties measured over thin layers (most of them are 5 cm
-# thick) that do not necessarily correspond to the layers sampled in ctb0033.
+# corresponding to entire or part of pedological horizons. Some layers appear to
+# cross the limits of pedological horizons, while others are entirely within a
+# single pedological horizon.
+# ctb0034 has data on physical soil properties measured over thin layers (most
+# of them are 5 cm thick) that do not necessarily correspond to the layers
+# sampled in ctb0033. Some layers appear to cross the limits of pedological
+# horizons, while others are entirely within a single pedological horizon.
+# This is some messy data!
 data.table::setkey(layer33, evento_id_febr, profund_sup, profund_inf)
+nrow(layer33)
+# 10779 layers
 data.table::setkey(layer34, evento_id_febr, profund_sup, profund_inf)
+nrow(layer34)
+# 419 layers
 layerRO <- data.table::foverlaps(
   x = layer34, # the thin layers from ctb0034
   y = layer33, # the thick layers from ctb0033
-  type = "within", mult = "all"
+  type = "within", # only keep rows from x (layer34) that are within y (layer33)
+  mult = "all" # keep all matches, even if there are multiple matches for a single row in x
 )
 nrow(layerRO)
 # 419 layers
@@ -515,10 +564,12 @@ layerRO <- data.table::rbindlist(
   list(layerRO, unmatched33),
   fill = TRUE
 )
+nrow(layerRO)
+# 10942 layers
 rm(overlap_id, unmatched33)
 
-# Merge depth limits: if profund_sup, profund_inf, and camada_id_febr are NA, 
-# get the values from i.profund_sup, i.profund_inf, and i.camada_id_febr
+# Fill-in missing values: if profund_sup, profund_inf, and camada_id_febr are
+# NA, get the values from i.profund_sup, i.profund_inf, and i.camada_id_febr
 # respectively.
 layerRO[
   is.na(profund_sup) & !is.na(i.profund_sup),
@@ -540,13 +591,14 @@ layerRO <- layerRO[
 nrow(layerRO)
 # 10942 layers
 
-# DEPRECATED IN FAVOR OF OVERLAP JOIN APPLIED ABOVE
-# # Merge layers from ctb0033 and ctb0034
-# layerRO <- merge(layer33, layer34,
-#   by = c("evento_id_febr", "camada_id_febr"),
-#   suffixes = c("", ".IGNORE"),
-#   all = TRUE
-# )
+if (FALSE) {
+  cols <- c(
+    "evento_id_febr", "camada_id_febr", "profund_sup", "profund_inf",
+    "ph_2.5h2o_eletrodo", "carbono_xxx_xxx",
+    "i.profund_sup", "i.profund_inf", "densidade_solo_xxx"
+  )
+  View(layerRO[, ..cols])
+}
 
 # Standardize column names
 str(layerRO)
@@ -581,7 +633,7 @@ summary_soildata(rondonia)
 # Date: 2998 (yes) / 0 (no)
 # Datasets: 1
 # 10789 layers
-rm(eventRO, layerRO, layer33, layer34)
+rm(eventRO, layerRO, layer33, layer34, new_names, cols)
 
 # Standardize measurement units
 rondonia[, areia := areia * 10]
@@ -593,6 +645,8 @@ rondonia[, carbono := carbono * 10]
 # Duplicated layers ############################################################
 # Deal with the identification of events containing duplicated layers. These are
 # extra samples for soil fertility assessment collected nearby the soil profile.
+# According to the source documentation, these extra samples were collected in
+# the 0-20 cm layer.
 rondonia[, EXTRA := duplicated(profund_sup), by = observacao_id]
 nrow(rondonia[EXTRA == TRUE, ])
 # 64 duplicated layers
@@ -643,6 +697,12 @@ rondonia[
   coord_fonte := paste0(coord_fonte, " + ", amount, " m jitter")
 ]
 rondonia[, .N, by = coord_fonte]
+#                coord_fonte     N
+#                     <char> <int>
+# 1:                     GPS 10787
+# 2:        GPS + 1 m jitter    52
+# 3:                    <NA>    99
+# 4: Google Maps (curadoria)     8
 # In coord_precisao, add 1 to the existing value if it a number larger than 0.
 rondonia[
   EXTRA == TRUE & !is.na(coord_x) & !is.na(coord_y) & !is.na(coord_precisao) &
@@ -714,7 +774,7 @@ soildata[
   profund_inf := ifelse(profund_inf == 90, 120, profund_inf)
 ]
 
-# From observacao_id == "RO1687", drop layr with camada_nome == "Bw3"
+# From observacao_id == "RO1687", drop layer with camada_nome == "Bw3"
 # After checking the documentation, we decided that this is a possible duplicate
 # of the morphological description. There is no additional layer with chemical
 # or physical properties for this layer, so we will drop it.
