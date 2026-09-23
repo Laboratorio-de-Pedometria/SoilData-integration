@@ -193,7 +193,7 @@ eventRO[is.na(data_ano_fonte), data_ano_fonte := "estimativa"]
 eventRO[, .N, by = data_ano_fonte]
 #    data_ano_fonte     N
 #            <char> <int>
-# 1:       original  2912
+# 1:       original  2911
 # 2:     estimativa    87
 rm(target_year)
 
@@ -467,7 +467,7 @@ layer34[
 layer34[profund_sup == 5 & profund_inf == 10, .N]
 # 38 layers
 layer34[profund_sup == 10 & profund_inf == 15, .N]
-# 48 layers
+# 47 layers
 layer34[profund_sup == 15 & profund_inf == 20, .N]
 # 2
 # The data reveals that there are more layers with depth intervals of 10-15 cm
@@ -589,7 +589,7 @@ layer34[, thickness := NULL]
 
 # Merge the two datasets
 sapply(list(layer33, layer34), nrow)
-# 10779 and 419 layers
+# 10780 and 419 layers
 
 # Join layers from ctb0033 and ctb0034 #########################################
 # Apply overlap joint to merge layers from ctb0033 and ctb0034
@@ -604,7 +604,7 @@ sapply(list(layer33, layer34), nrow)
 # This is some messy data!
 data.table::setkey(layer33, evento_id_febr, profund_sup, profund_inf)
 nrow(layer33)
-# 10779 layers
+# 10780 layers
 data.table::setkey(layer34, evento_id_febr, profund_sup, profund_inf)
 nrow(layer34)
 # 419 layers
@@ -629,7 +629,7 @@ layerRO <- data.table::rbindlist(
   fill = TRUE
 )
 nrow(layerRO)
-# 10942 layers
+# 10943 layers
 rm(overlap_id, unmatched33)
 
 # Fill-in missing values: if profund_sup, profund_inf, and camada_id_febr are
@@ -653,7 +653,7 @@ layerRO <- layerRO[
   order(evento_id_febr, camada_id_febr, profund_sup, profund_inf)
 ]
 nrow(layerRO)
-# 10942 layers
+# 10943 layers
 
 if (FALSE) {
   cols <- c(
@@ -691,12 +691,11 @@ layerRO[, dataset_id := NULL]
 # Merge events and layers ######################################################
 rondonia <- merge(eventRO, layerRO, all = TRUE)
 summary_soildata(rondonia)
-# Layers: 10946
+# Layers: 10943
 # Events: 2998
 # Georeference: 2911 (yes) / 87 (no)
 # Date: 2998 (yes) / 0 (no)
 # Datasets: 1
-# 10789 layers
 rm(eventRO, layerRO, layer33, layer34, new_names, cols)
 
 # Standardize measurement units
@@ -713,9 +712,9 @@ rondonia[, carbono := carbono * 10]
 # the 0-20 cm layer.
 rondonia[, EXTRA := duplicated(profund_sup), by = observacao_id]
 nrow(rondonia[EXTRA == TRUE, ])
-# 64 duplicated layers
+# 60 duplicated layers
 nrow(unique(rondonia[EXTRA == TRUE, "observacao_id"]))
-# 25 events with duplicated layers
+# 24 events with duplicated layers
 # Append the layer name (camada_nome) to the observation id (observacao_id) for
 # duplicated layers. This will create a new event for each duplicated layer,
 # enabling to identify the source of the sample. First check if there is any
@@ -770,8 +769,8 @@ rondonia[
 rondonia[, .N, by = coord_fonte]
 #                coord_fonte     N
 #                     <char> <int>
-# 1:                     GPS 10787
-# 2:        GPS + 1 m jitter    52
+# 1:                     GPS 10788
+# 2:        GPS + 1 m jitter    48
 # 3:                    <NA>    99
 # 4: Google Maps (curadoria)     8
 # In coord_precisao, add 1 to the existing value if it a number larger than 0.
@@ -796,10 +795,10 @@ rondonia[, dataset_titulo := title]
 rondonia[, dataset_licenca := "CC-BY-4.0"]
 rondonia[, organizacao_nome := "Governo do Estado de Rondônia"]
 summary_soildata(rondonia)
-# Layers: 10946
-# Events: 3062
-# Georeference: 2963 (yes) / 99 (no)
-# Date: 3062 (yes) / 0 (no)
+# Layers: 10943
+# Events: 3058
+# Georeference: 2959 (yes) / 99 (no)
+# Date: 3058 (yes) / 0 (no)
 # Datasets: 1
 
 # Read SoilData data processed in the previous script
@@ -890,6 +889,7 @@ length(unique(soildata[, id]))
 
 # Perform a join between the analythical data from Rondônia (rondonia) and the
 # morphological descriptions from ctb0032
+data.table::setorder(ctb0032, observacao_id, profund_sup, profund_inf)
 data.table::setkey(ctb0032, observacao_id, profund_sup, profund_inf)
 data.table::setkey(rondonia, observacao_id, profund_sup, profund_inf)
 rondonia_overlap <- data.table::foverlaps(
@@ -908,9 +908,9 @@ nrow(unmatched_ro)
 # 0 
 rm(overlap_id, unmatched_ro)
 nrow(rondonia)
-# 10946 layers before the overlap join
+# 10943 layers before the overlap join
 nrow(rondonia_overlap)
-# 10957 layers after the overlap join. Why?
+# 10954 layers after the overlap join. Why?
 # The increase in the number of rows is due to the use of mult = "all", which
 # keeps all matches, even if there are multiple matches for a single row in x.
 # These results in duplicated layers (morphological descriptions) for some
@@ -958,7 +958,7 @@ rondonia_overlap[, n_copied := .N,
 rondonia_overlap[, .N, by = n_copied]
 #    n_copied     N
 #       <int> <int>
-# 1:        1 10607
+# 1:        1 10604
 # 2:        2   314
 # 3:        3    36
 if (FALSE) {
@@ -1034,17 +1034,18 @@ rondonia_overlap[!is.na(profund_sup),
   by = observacao_id
 ]
 nrow(unique(rondonia_overlap[has_topsoil != TRUE, "observacao_id"]))
-# 10 events without topsoil layers.
+# 6 events without topsoil layers.
 if (FALSE) {
   View(rondonia_overlap[has_topsoil != TRUE, .(
     observacao_id, camada_nome, profund_sup, profund_inf
   )])
 }
 
-# RO1143 has A: 3-18 cm with chemical data and A: 0-15 cm with morpholgical 
+# RO1143 has A: 3-18 cm with chemical data and A: 0-15 cm with morphological 
 # data. So we guess that the overlap join did not work for this event.
 
-# RO1585
+# RO1901 does not have a topsoil layer with chemical data, but it has a topsoil layer
+# with morphological data. 
 
 
 # Merge data from Rondônia with the SoilData snapshot
