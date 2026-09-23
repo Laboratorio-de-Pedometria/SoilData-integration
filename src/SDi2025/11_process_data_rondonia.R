@@ -549,7 +549,8 @@ layerRO <- data.table::foverlaps(
   x = layer34, # the thin layers from ctb0034
   y = layer33, # the thick layers from ctb0033
   type = "within", # only keep rows from x (layer34) that are within y (layer33)
-  mult = "all" # keep all matches, even if there are multiple matches for a single row in x
+  # keep all matches, even if there are multiple matches for a single row in x
+  mult = "all"
 )
 nrow(layerRO)
 # 419 layers
@@ -832,8 +833,18 @@ rm(overlap_id, unmatched_ro)
 nrow(rondonia)
 # 10946 layers before the overlap join
 nrow(rondonia_overlap)
-# 10957 layers after the overlap join.
+# 10957 layers after the overlap join. Why?
+# The increase in the number of rows is due to the use of mult = "all", which
+# keeps all matches, even if there are multiple matches for a single row in x.
+# These results in duplicated layers (morphological descriptions) for some
+# events. Within these layers we may find multiple thiner layers with data on
+# chemical and physical properties. For example, for observacao_id == "RO1012",
+# camada_nome == "AB", with profund_sup == 25 and profund_inf == 60, was
+# duplicated to accomodate two sub layers, one at 30-35 cm and another at 40-50
+# cm depth. Notice that the sub layers not necessarily cover the entire depth
+# of the pedogenetic horizon.
 
+# First fill-in missing values
 # If camada_nome, profund_sup, and profund_inf are NA, get it from
 # i.camada_nome, i.profund_sup, and i.profund_inf respectively.
 rondonia_overlap[
@@ -849,24 +860,61 @@ rondonia_overlap[
   profund_inf := i.profund_inf
 ]
 
-# Identify events with that have any duplicated layers after the overlap join.
+# Identify events that have any duplicated layers after the overlap join.
 # We check for duplicated layers based on both the upper and lower depth limits
-# (profund_sup and profund_inf) within each event (observacao_id).
-rondonia_overlap <- rondonia_overlap[
-  order(observacao_id, profund_sup, profund_inf, decreasing = TRUE)
-]
+# (profund_sup and profund_inf) of the morphological descriptions within each
+# event (observacao_id).
 rondonia_overlap[,
-  copied := duplicated(profund_sup) | duplicated(profund_inf),
+  any_copied := any(duplicated(profund_sup) | duplicated(profund_inf)),
   by = observacao_id
 ]
-rondonia_overlap <- rondonia_overlap[
-  order(observacao_id, profund_sup, profund_inf)
+rondonia_overlap[any_copied == TRUE, .N, by = observacao_id]
+# 107 events with duplicated layers after the overlap join.
+if (FALSE) {
+  View(rondonia_overlap[any_copied == TRUE, .(
+    observacao_id, camada_nome, profund_sup, profund_inf,
+    i.camada_nome, i.profund_sup, i.profund_inf
+  )])
+}
+# We notice that a layer may have been duplicated once (n_copied == 2) or twice
+# (n_copied == 3). We need to identify the number of times each layer is
+# duplicated within each event. So we will create a new column named n_copied to
+# store the number of times each layer is duplicated within each event.
+rondonia_overlap[, n_copied := .N,
+  by = .(observacao_id, camada_nome, profund_sup, profund_inf)
 ]
-rondonia_overlap[,
-  copied2 := duplicated(profund_sup) | duplicated(profund_inf),
-  by = observacao_id
-]
-rondonia_overlap[copied == TRUE | copied2 == TRUE, copied := TRUE]
+rondonia_overlap[, .N, by = n_copied]
+#    n_copied     N
+#       <int> <int>
+# 1:        1 10607
+# 2:        2   314
+# 3:        3    36
+if (FALSE) {
+  View(rondonia_overlap[n_copied > 1, .(
+    observacao_id, camada_nome, profund_sup, profund_inf,
+    i.camada_nome, i.profund_sup, i.profund_inf, n_copied
+  )])
+}
+# We solve the duplication problem by tweeking the depth limits of the
+# duplicated layers. The strategy depends on how many times a layer is
+# duplicated in the event:
+# n_copied == 2: If a layer is duplicated once, we set the depth limits of the
+#   first layer to profund_sup == profund_sup and profund_inf == i.profund_inf.
+#   For the second layer, we set profund_sup == i.profund_inf of the first layer
+#   and profund_inf == profund_inf. We identify the first and second layers by
+#   using data.table .I.
+# n_copied == 3: If a layer is duplicated twice, we set the depth limits of the
+#   first layer to profund_sup == profund_sup and profund_inf == i.profund_inf.
+#   For the second layer, we set profund_sup == i.profund_inf of the first layer
+#   and profund_inf == i.profund_inf. For the third layer, we set profund_sup ==
+#   i.profund_inf of the second layer and profund_inf == profund_inf. We
+#   identify the first, second and third layers by using data.table .I.
+
+# Order by observacao_id, profund_sup, profund_inf
+cols <- c("observacao_id", "profund_sup", "profund_inf")
+data.table::setorderv(rondonia_overlap, cols) 
+
+# Solve depth limits for duplicated layers with n_copied == 2
 
 
 
@@ -878,35 +926,11 @@ rondonia_overlap[copied == TRUE | copied2 == TRUE, copied := TRUE]
 
 
 
-# One of the reasons for the increase of the number of rows is the use of
-# mult = "all". Some horizons in ctb0032 match two layers in rondonia, one with
-# chemical properties and another with physical properties. So both rows are
-# incomplete. Evidence of duplication is found in camada_nome, profund_sup, and
-# profund_inf. What we do is to adjust the depth limits of the duplicated rows.
-# The strategy depends on how many times a layer is duplicated in the event.
-# Count the number of times each layer is duplicated within each event (observacao_id).
-rondonia_overlap[, n_copied := .N, by = .(observacao_id, camada_nome, profund_sup, profund_inf)]
-
-rondonia_overlap[n_copied > 0 & copied == TRUE, .(observacao_id, camada_nome, profund_sup, profund_inf, n_copied, copied)]
-
-# If n_copied == 1, for the first layer we set profund_sup == profund_sup and
-# profund_inf == i.profund_inf. For the second layer, we set profund_sup ==
-# i.profund_sup and profund_inf == profund_inf.
-rondonia_overlap[
-  n_copied == 1 & copied == TRUE,
-  .(observacao_id, camada_nome, profund_sup, profund_inf, n_copied, copied)
-]
-# RO2038 RO2058 RO3562
-
-rondonia_overlap[n_copied == 1 & copied == TRUE, .(observacao_id, camada_nome, profund_sup, profund_inf, n_copied, copied)]
 
 
 
 
-rondonia_overlap[observacao_id == "RO3562", .(observacao_id, camada_nome, profund_sup, profund_inf, n_copied, copied)]
 
-
-write.csv(rondonia_overlap[copied == TRUE], "tmp/rondonia_overlap_join.csv", row.names = FALSE)
 
 
 
