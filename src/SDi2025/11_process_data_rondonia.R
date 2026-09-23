@@ -859,20 +859,15 @@ nrow(rondonia_overlap)
 # of the pedogenetic horizon.
 
 # First fill-in missing values
-# If camada_nome, profund_sup, and profund_inf are NA, get it from
-# i.camada_nome, i.profund_sup, and i.profund_inf respectively.
+# If camada_nome is NA, set it to i.profund_sup-i.profund_inf
 rondonia_overlap[
-  is.na(camada_nome) & !is.na(i.camada_nome),
-  camada_nome := i.camada_nome
+  is.na(camada_nome),
+  camada_nome := paste0(i.profund_sup, "-", i.profund_inf)
 ]
-rondonia_overlap[
-  is.na(profund_sup) & !is.na(i.profund_sup),
-  profund_sup := i.profund_sup
-]
-rondonia_overlap[
-  is.na(profund_inf) & !is.na(i.profund_inf),
-  profund_inf := i.profund_inf
-]
+# If profund_sup and profund_inf are NA, get it from i.profund_sup and
+# i.profund_inf respectively.
+rondonia_overlap[is.na(profund_sup), profund_sup := i.profund_sup]
+rondonia_overlap[is.na(profund_inf), profund_inf := i.profund_inf]
 
 # Identify events that have any duplicated layers after the overlap join.
 # We check for duplicated layers based on both the upper and lower depth limits
@@ -986,9 +981,16 @@ if(FALSE) {
 
 # Write data to disk ###########################################################
 summary_soildata(soildata)
+# Layers: 49852
+# Events: 14007
+# Georeference: 10908 (yes) / 3099 (no)
+# Date: 13855 (yes) / 152 (no)
+# Datasets: 235
+data.table::fwrite(soildata, "data/11_soildata.txt", sep = "\t")
+
+# Previous year
 # Layers: 49684
 # Events: 14006
 # Georeference: 10907 (yes) / 3099 (no)
 # Date: 13854 (yes) / 152 (no)
 # Datasets: 235
-data.table::fwrite(soildata, "data/11_soildata.txt", sep = "\t")
