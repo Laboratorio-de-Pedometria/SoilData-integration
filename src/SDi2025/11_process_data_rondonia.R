@@ -910,11 +910,51 @@ if (FALSE) {
 #   i.profund_inf of the second layer and profund_inf == profund_inf. We
 #   identify the first, second and third layers by using data.table .I.
 
-# Order by observacao_id, profund_sup, profund_inf
-cols <- c("observacao_id", "profund_sup", "profund_inf")
-data.table::setorderv(rondonia_overlap, cols) 
+# Order duplicated analytical layers by their analytical depth intervals.
+cols <- c(
+  "observacao_id", "camada_nome", "profund_sup", "profund_inf",
+  "i.profund_sup", "i.profund_inf"
+) 
+data.table::setorderv(rondonia_overlap, cols, na.last = TRUE)
+if (any(rondonia_overlap$n_copied > 3L)) {
+  stop("More than three analytical layers match one morphological horizon.")
+}
 
-# Solve depth limits for duplicated layers with n_copied == 2
+# Reconstruct non-overlapping intervals separately for each duplicated
+# morphological horizon. The outer boundaries remain the horizon boundaries.
+rondonia_overlap[
+  n_copied == 2L,
+  `:=`(
+    profund_sup = c(profund_sup[1L], i.profund_inf[1L]),
+    profund_inf = c(i.profund_inf[1L], profund_inf[1L])
+  ),
+  by = .(observacao_id, camada_nome, profund_sup, profund_inf)
+]
+rondonia_overlap[
+  n_copied == 3L,
+  `:=`(
+    profund_sup = c(profund_sup[1L], i.profund_inf[1L], i.profund_inf[2L]),
+    profund_inf = c(i.profund_inf[1L], i.profund_inf[2L], profund_inf[1L])
+  ),
+  by = .(observacao_id, camada_nome, profund_sup, profund_inf)
+]
+# Check for negative thickness after the reconstruction of non-overlapping
+if (rondonia_overlap[
+  !is.na(profund_sup) & !is.na(profund_inf) & profund_inf < profund_sup,
+  .N
+] > 0L) {
+  stop("Depth reconstruction created intervals with negative thickness.")
+}
+if (FALSE) {
+  View(rondonia_overlap[n_copied > 1, .(
+    observacao_id, camada_nome, profund_sup, profund_inf,
+    i.camada_nome, i.profund_sup, i.profund_inf, n_copied
+  )])
+}
+# The main assumption for using the previous strategy is that chamical and 
+# physical soil properties are homogeneous within each pedological horizon. We
+# know that this is not always true, and a more elegant solution should be used
+# in the future.
 
 
 
@@ -936,7 +976,9 @@ data.table::setorderv(rondonia_overlap, cols)
 
 
 
-What we have to do is merge the two rows into one, keeping the
+
+
+# What we have to do is merge the two rows into one, keeping the
 # analytical data from both layers and the morphological description.
 
 # Consolidate duplicated matched horizons: one row per ctb0032 horizon,
