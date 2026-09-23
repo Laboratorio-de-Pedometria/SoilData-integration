@@ -875,7 +875,9 @@ if (FALSE) {
 # the soil horizons in soildata. To merge the two datasets, we will perform an
 # overlap join based on the depth limits of the layers and horizons.
 # Extract data from Rondônia (ctb0032)
-ctb0032_cols <- c("observacao_id", "camada_nome", "profund_sup", "profund_inf")
+ctb0032_cols <- c(
+  "dataset_id", "observacao_id", "camada_nome", "profund_sup", "profund_inf"
+)
 ctb0032 <- soildata[dataset_id == "ctb0032", ..ctb0032_cols]
 nrow(ctb0032)
 # 10872
@@ -903,17 +905,28 @@ rondonia_overlap <- data.table::foverlaps(
 overlap_id <- data.table::foverlaps(rondonia, ctb0032,
   type = "within", mult = "all", which = TRUE
 )
-unmatched_ro <- rondonia[setdiff(seq_len(nrow(rondonia)), unique(overlap_id$xid))]
+unmatched_ro <- rondonia[overlap_id[is.na(yid), xid]]
 nrow(unmatched_ro)
-# 0 
-rm(overlap_id, unmatched_ro)
+# 330
+unmatched_ctb0032 <- ctb0032[
+  setdiff(
+    seq_len(nrow(ctb0032)),
+    unique(overlap_id[!is.na(yid), yid])
+  )
+]
+rondonia_overlap <- data.table::rbindlist(
+  list(rondonia_overlap, unmatched_ctb0032),
+  fill = TRUE
+)
+rm(overlap_id, unmatched_ro, unmatched_ctb0032)
 nrow(rondonia)
 # 10943 layers before the overlap join
 nrow(rondonia_overlap)
-# 10954 layers after the overlap join. Why?
-# The increase in the number of rows is due to the use of mult = "all", which
-# keeps all matches, even if there are multiple matches for a single row in x.
-# These results in duplicated layers (morphological descriptions) for some
+# 11383
+# The result includes matched analytical layers, duplicated matches from
+# mult = "all", and unmatched morphological layers from ctb0032.
+# The duplicated matches occur when multiple rows in y match a single row in x.
+# These result in duplicated layers (morphological descriptions) for some
 # events. Within these layers we may find multiple thiner layers with data on
 # chemical and physical properties. For example, for observacao_id == "RO1012",
 # camada_nome == "AB", with profund_sup == 25 and profund_inf == 60, was
