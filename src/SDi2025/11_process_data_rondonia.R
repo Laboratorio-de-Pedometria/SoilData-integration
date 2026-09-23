@@ -811,6 +811,13 @@ ctb0032 <- soildata[dataset_id == "ctb0032", ..ctb0032_cols]
 nrow(ctb0032)
 # 10872
 
+# Remove existing data from Rondônia (morphological descriptions)
+length(unique(soildata[, id]))
+# 13859 events
+soildata <- soildata[dataset_id != "ctb0032", ]
+length(unique(soildata[, id]))
+# 10945 events
+
 # Perform a join between the analythical data from Rondônia (rondonia) and the
 # morphological descriptions from ctb0032
 data.table::setkey(ctb0032, observacao_id, profund_sup, profund_inf)
@@ -956,66 +963,6 @@ if (FALSE) {
 # know that this is not always true, and a more elegant solution should be used
 # in the future.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# What we have to do is merge the two rows into one, keeping the
-# analytical data from both layers and the morphological description.
-
-# Consolidate duplicated matched horizons: one row per ctb0032 horizon,
-# keeping the first non-missing value per column across duplicate rows.
-key_cols <- c("observacao_id", "camada_nome", "profund_sup", "profund_inf")
-pick_first_non_na <- function(x) x[which.max(!is.na(x))]
-
-matched_overlap <- rondonia_overlap[complete.cases(rondonia_overlap[, ..key_cols])]
-rondonia_overlap <- data.table::rbindlist(
-  list(
-    matched_overlap[
-      , lapply(.SD, pick_first_non_na),
-      by = key_cols,
-      .SDcols = setdiff(names(matched_overlap), key_cols)
-    ],
-    rondonia_overlap[!complete.cases(rondonia_overlap[, ..key_cols])]
-  ),
-  use.names = TRUE,
-  fill = TRUE
-)
-
-data.table::setorderv(rondonia_overlap, c("observacao_id", "profund_sup", "profund_inf"))
-rm(key_cols, pick_first_non_na, matched_overlap)
-
-nrow(rondonia_overlap)
-
-write.csv(rondonia_overlap, "tmp/rondonia_overlap_join.csv", row.names = FALSE)
-
-
-
-# Remove existing data from Rondônia (morphological descriptions)
-length(unique(soildata[, id]))
-# 13859 events
-soildata <- soildata[dataset_id != "ctb0032", ]
-length(unique(soildata[, id]))
-# 10945 events
-
 # Merge data from Rondônia with the SoilData snapshot
 col_ro <- intersect(names(soildata), names(rondonia_overlap))
 soildata <-
@@ -1023,20 +970,12 @@ soildata <-
     list(soildata, rondonia_overlap[, ..col_ro]),
     fill = TRUE
   )
-# ATTENTION: ctb0032 has morphological descriptions and soil horizons are
-# designated by camada_nome like "A", "B1", "B2", "C", etc. In ctb0033 and
-# ctb0034, the layers are not necessarily coincident with soil horizons, and
-# camada_nome is letter A, B, C, or D. For example, observacao_id = RO0607 has
-# three pedological horizons (A: 0 - 10 cm; Bw1: 10 - 50 cm; Bw2: 50 - 120 cm)
-# and three sampled layers (A: 0- 10 cm; B: 10- 20 cm; C: 50-120 cm). So, after
-# merging the datasets, we remain with the A-B-C-D names for layers.
-
-# In the future, we need to harmonize this.
-# Here what we will do is replace A-B-C-D with the depth intervals.
-soildata[
-  dataset_id == "ctb0033",
-  camada_nome := paste0(profund_sup, "-", profund_inf)
-]
+if(FALSE) {
+  View(soildata[dataset_id == "ctb0033", .(
+    observacao_id, camada_nome, profund_sup, profund_inf,
+    ph, carbono, areia, silte, argila, terrafina, ctc, dsi
+  )])
+}
 
 # Write data to disk ###########################################################
 summary_soildata(soildata)
