@@ -587,6 +587,23 @@ layer34[
 # future check. One thing that we noticed is that a few cases are Latossolos.
 layer34[, thickness := NULL]
 
+# RO3379. The source spreadsheet reports that both C and D layers for physical
+# analysis have depth intervals of 60-65 cm. The morphological description was
+# made at Bw2 50-90 cm and Bw3 90-120 cm. The chemical analysis was performed on
+# samples collected at B: 30-40, C: 65-75, and D: 115-130 cm. We think that the
+# limits recorded for the D layer are incorrect. It is vitually impossible to
+# know the correct limits for the D layer, but we can guess that it is likely to
+# be 90-95 cm, as it is 5 cm thick and falls within the limits of the
+# morphological description.
+layer34[
+  evento_id_febr == "RO3379" & camada_id_febr == "D",
+  profund_sup := ifelse(profund_sup == 60, 90, profund_sup)
+]
+layer34[
+  evento_id_febr == "RO3379" & camada_id_febr == "D",
+  profund_inf := ifelse(profund_inf == 65, 95, profund_inf)
+]
+
 # Merge the two datasets
 sapply(list(layer33, layer34), nrow)
 # 10780 and 419 layers
@@ -687,6 +704,8 @@ data.table::setnames(layerRO, old = names(new_names), new = new_names)
 cols <- intersect(names(layerRO), tolower(names(layerRO)))
 layerRO <- layerRO[, ..cols]
 layerRO[, dataset_id := NULL]
+
+
 
 # Merge events and layers ######################################################
 rondonia <- merge(eventRO, layerRO, all = TRUE)
