@@ -643,7 +643,7 @@ rondonia[, silte := silte * 10]
 rondonia[, terrafina := terrafina * 10]
 rondonia[, carbono := carbono * 10]
 
-# Duplicated layers ############################################################
+# Extra samples ################################################################
 # Deal with the identification of events containing duplicated layers. These are
 # extra samples for soil fertility assessment collected nearby the soil profile.
 # According to the source documentation, these extra samples were collected in
@@ -664,6 +664,13 @@ if (problem > 0) {
   rondonia[EXTRA == TRUE, observacao_id := paste0(observacao_id, camada_nome)]
   rondonia[, id := paste0(dataset_id, "-", observacao_id)]
 }
+if (FALSE) {
+  cols <- c("observacao_id", "camada_nome", "profund_sup", "profund_inf")
+  View(rondonia[EXTRA == TRUE, ..cols])
+}
+# Set camada_nome to profund_sup-profund_inf for duplicated layers
+rondonia[EXTRA == TRUE, camada_nome := paste0(profund_sup, "-", profund_inf)]
+
 # Next we add a random perturbation to the coordinates of those extra samples 
 # only to pass checks for duplicated events. We use a small perturbation of 1 m, 
 # which is negligible for most practical purposes. The coordinates are
