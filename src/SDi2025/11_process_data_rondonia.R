@@ -940,12 +940,9 @@ rondonia_overlap <- data.table::rbindlist(
   fill = TRUE
 )
 rm(overlap_id, unmatched_ro, unmatched_ctb0032)
-# Keep the dataset identifier from x for analytical layers and from y for
-# unmatched morphological layers.
-rondonia_overlap[
-  !is.na(i.dataset_id),
-  dataset_id := i.dataset_id
-]
+# The integrated table belongs to ctb0033, including morphology-only layers
+# retained from ctb0032.
+rondonia_overlap[, dataset_id := "ctb0033"]
 rondonia_overlap[, i.dataset_id := NULL]
 nrow(rondonia)
 # 10943 layers before the overlap join
@@ -1084,10 +1081,6 @@ soildata <-
     list(soildata, rondonia_overlap[, ..col_ro]),
     fill = TRUE
   )
-
-rondonia_overlap[, .N, by = dataset_id]
-
-
 if(FALSE) {
   View(soildata[dataset_id == "ctb0033", .(
     observacao_id, camada_nome, profund_sup, profund_inf,
@@ -1097,6 +1090,12 @@ if(FALSE) {
 
 # Write data to disk ###########################################################
 summary_soildata(soildata)
+  # Layers: 50277
+  # Events: 14003
+  # Georeference: 10903 (yes) / 3100 (no)
+  # Date: 13850 (yes) / 153 (no)
+  # Datasets: 235
+
 # Layers: 49852
 # Events: 14007
 # Georeference: 10908 (yes) / 3099 (no)
