@@ -907,13 +907,17 @@ overlap_id <- data.table::foverlaps(rondonia, ctb0032,
 )
 unmatched_ro <- rondonia[overlap_id[is.na(yid), xid]]
 nrow(unmatched_ro)
-# 330
+# 330 rows in rondonia without a corresponding morphological description. They
+# were included by default in the overlap join.
 unmatched_ctb0032 <- ctb0032[
   setdiff(
     seq_len(nrow(ctb0032)),
     unique(overlap_id[!is.na(yid), yid])
   )
 ]
+nrow(unmatched_ctb0032)
+# 429 rows in ctb0032 without a corresponding analytical layer. They were not
+# included in the overlap join.
 rondonia_overlap <- data.table::rbindlist(
   list(rondonia_overlap, unmatched_ctb0032),
   fill = TRUE
@@ -954,7 +958,7 @@ rondonia_overlap[,
   by = observacao_id
 ]
 rondonia_overlap[any_copied == TRUE, .N, by = observacao_id]
-# 107 events with duplicated layers after the overlap join.
+# 186 events with duplicated layers after the overlap join.
 if (FALSE) {
   View(rondonia_overlap[any_copied == TRUE, .(
     observacao_id, camada_nome, profund_sup, profund_inf,
@@ -971,7 +975,7 @@ rondonia_overlap[, n_copied := .N,
 rondonia_overlap[, .N, by = n_copied]
 #    n_copied     N
 #       <int> <int>
-# 1:        1 10604
+# 1:        1 11033
 # 2:        2   314
 # 3:        3    36
 if (FALSE) {
@@ -1047,18 +1051,14 @@ rondonia_overlap[!is.na(profund_sup),
   by = observacao_id
 ]
 nrow(unique(rondonia_overlap[has_topsoil != TRUE, "observacao_id"]))
-# 6 events without topsoil layers.
+# 1 events without topsoil layers.
 if (FALSE) {
   View(rondonia_overlap[has_topsoil != TRUE, .(
     observacao_id, camada_nome, profund_sup, profund_inf
   )])
 }
 
-# RO1143 has A: 3-18 cm with chemical data and A: 0-15 cm with morphological 
-# data. So we guess that the overlap join did not work for this event.
-
-# RO1901 does not have a topsoil layer with chemical data, but it has a topsoil layer
-# with morphological data. 
+# RO3379
 
 
 # Merge data from Rondônia with the SoilData snapshot
