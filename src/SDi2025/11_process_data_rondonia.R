@@ -126,10 +126,12 @@ for (id in names(taxon)) {
 }
 event32[is.na(taxon_sibcs), .N]
 # 263 still are missing soil classification. We will leave them as NA for now.
+
 # ctb0033
 event33 <- febr::observation("ctb0033", "all")
 event33 <- data.table::as.data.table(event33)
 event33[, data_coleta := as.Date(data_coleta, origin = "1899-12-30")]
+
 # ctb0034
 event34 <- febr::observation("ctb0034", "all")
 event34 <- data.table::as.data.table(event34)
@@ -245,6 +247,58 @@ rm(id)
 layer33 <- febr::layer("ctb0033", "all")
 layer33 <- data.table::as.data.table(layer33)
 layer33[, camada_id_sisb := NULL]
+
+# Data for evento_id_febr RO1081, layer A, is available only in file sdbana1.
+# We will manually add this data to the dataset.
+RO1081 <- list(
+  dataset_id = "ctb0033",
+  evento_id_febr = "RO1081",
+  camada_id_febr = "A",
+  profund_sup = 0L,
+  profund_inf = 10L,
+  ph_2.5h2o_eletrodo = 4.1,
+  ph_1kcl_eletrodo = 3.6,
+  ce_pastasat = 7.8,
+  fosforo_mehlich_xxx = 3,
+  nitrogenio_xxx_xxx_xxx = 0.18,
+  carbono_xxx_xxx = 2.1,
+  CO3 = 0,
+  ctce_soma_calc = 3.1,
+  calcio2_trocavel_xxx = 0.1,
+  magnesio2_trocavel_xxx = 0.1,
+  potassio1_trocavel_xxx = 0.2,
+  sodio_trocavel_xxx_xxx = 0,
+  hidrogenio_trocavel_xxx = 0.3,
+  aluminio3_trocavel_xxx = 2.5,
+  PBS = 12,
+  areia.05mm2_xxx_xxx = 54,
+  silte.002mm.05_xxx_xxx = 22,
+  argila0mm.002_xxx_xxx = 24,
+  calhau_xxx_xxx = 3,
+  cascalho_xxx_xxx = 47,
+  terrafina_xxx_xxx = 50,
+  MNTR = NA,
+  manganes_trocavel_xxx = NA,
+  ferro_trocavel_xxx = NA,
+  cobre_trocavel_xxx = NA,
+  zinco_trocavel_xxx = NA,
+  acidez_xxx_xxx = 8.1,
+  ctc_soma_calc = 8.5,
+  bases_saturacao_calc = 4,
+  hidrogenio1_extraivel_calc = NA,
+  argila_atividade_calc = NA,
+  ECECC = NA,
+  bases_soma_calc = NA,
+  boro_trocavel_xxx = NA,
+  enxofre_trocavel_xxx = NA,
+  matorg_xxx_xxx = NA,
+  fe2o3_sulfurico_xxx = NA,
+  al2o3_sulfurico_xxx = NA,
+  sio2_sulfurico_xxx = NA
+)
+# Add the new row to layer33 and sort
+layer33 <- rbindlist(list(layer33, RO1081), use.names = TRUE, fill = TRUE)
+layer33 <- layer33[order(evento_id_febr, camada_id_febr)]
 
 # Create a new column named thickness to store the thickness of each layer,
 # calculated as profund_inf - profund_sup. If the thickness is negative, it 
@@ -960,10 +1014,28 @@ if (FALSE) {
     i.camada_nome, i.profund_sup, i.profund_inf, n_copied
   )])
 }
-# The main assumption for using the previous strategy is that chamical and 
+# The main assumption for using the previous strategy is that chamical and
 # physical soil properties are homogeneous within each pedological horizon. We
 # know that this is not always true, and a more elegant solution should be used
 # in the future.
+
+# Topsoil layers ###############################################################
+rondonia_overlap[!is.na(profund_sup),
+  has_topsoil := any(profund_sup == 0, na.rm = TRUE),
+  by = observacao_id
+]
+nrow(unique(rondonia_overlap[has_topsoil != TRUE, "observacao_id"]))
+# 10 events without topsoil layers.
+if (FALSE) {
+  View(rondonia_overlap[has_topsoil != TRUE, .(
+    observacao_id, camada_nome, profund_sup, profund_inf
+  )])
+}
+
+
+
+
+
 
 # Merge data from Rondônia with the SoilData snapshot
 col_ro <- intersect(names(soildata), names(rondonia_overlap))
