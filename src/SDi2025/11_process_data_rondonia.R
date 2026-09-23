@@ -705,8 +705,6 @@ cols <- intersect(names(layerRO), tolower(names(layerRO)))
 layerRO <- layerRO[, ..cols]
 layerRO[, dataset_id := NULL]
 
-
-
 # Merge events and layers ######################################################
 rondonia <- merge(eventRO, layerRO, all = TRUE)
 summary_soildata(rondonia)
@@ -731,9 +729,9 @@ rondonia[, carbono := carbono * 10]
 # the 0-20 cm layer.
 rondonia[, EXTRA := duplicated(profund_sup), by = observacao_id]
 nrow(rondonia[EXTRA == TRUE, ])
-# 60 duplicated layers
+# 59 duplicated layers
 nrow(unique(rondonia[EXTRA == TRUE, "observacao_id"]))
-# 24 events with duplicated layers
+# 23 events with duplicated layers
 # Append the layer name (camada_nome) to the observation id (observacao_id) for
 # duplicated layers. This will create a new event for each duplicated layer,
 # enabling to identify the source of the sample. First check if there is any
@@ -788,8 +786,8 @@ rondonia[
 rondonia[, .N, by = coord_fonte]
 #                coord_fonte     N
 #                     <char> <int>
-# 1:                     GPS 10788
-# 2:        GPS + 1 m jitter    48
+# 1:                     GPS 10789
+# 2:        GPS + 1 m jitter    47
 # 3:                    <NA>    99
 # 4: Google Maps (curadoria)     8
 # In coord_precisao, add 1 to the existing value if it a number larger than 0.
@@ -815,9 +813,9 @@ rondonia[, dataset_licenca := "CC-BY-4.0"]
 rondonia[, organizacao_nome := "Governo do Estado de Rondônia"]
 summary_soildata(rondonia)
 # Layers: 10943
-# Events: 3058
-# Georeference: 2959 (yes) / 99 (no)
-# Date: 3058 (yes) / 0 (no)
+# Events: 3057
+# Georeference: 2958 (yes) / 99 (no)
+# Date: 3057 (yes) / 0 (no)
 # Datasets: 1
 
 # Read SoilData data processed in the previous script
@@ -926,7 +924,7 @@ overlap_id <- data.table::foverlaps(rondonia, ctb0032,
 )
 unmatched_ro <- rondonia[overlap_id[is.na(yid), xid]]
 nrow(unmatched_ro)
-# 330 rows in rondonia without a corresponding morphological description. They
+# 329 rows in rondonia without a corresponding morphological description. They
 # were included by default in the overlap join.
 unmatched_ctb0032 <- ctb0032[
   setdiff(
@@ -935,17 +933,24 @@ unmatched_ctb0032 <- ctb0032[
   )
 ]
 nrow(unmatched_ctb0032)
-# 429 rows in ctb0032 without a corresponding analytical layer. They were not
+# 428 rows in ctb0032 without a corresponding analytical layer. They were not
 # included in the overlap join.
 rondonia_overlap <- data.table::rbindlist(
   list(rondonia_overlap, unmatched_ctb0032),
   fill = TRUE
 )
 rm(overlap_id, unmatched_ro, unmatched_ctb0032)
+# Keep the dataset identifier from x for analytical layers and from y for
+# unmatched morphological layers.
+rondonia_overlap[
+  !is.na(i.dataset_id),
+  dataset_id := i.dataset_id
+]
+rondonia_overlap[, i.dataset_id := NULL]
 nrow(rondonia)
 # 10943 layers before the overlap join
 nrow(rondonia_overlap)
-# 11383
+# 11382
 # The result includes matched analytical layers, duplicated matches from
 # mult = "all", and unmatched morphological layers from ctb0032.
 # The duplicated matches occur when multiple rows in y match a single row in x.
@@ -994,7 +999,7 @@ rondonia_overlap[, n_copied := .N,
 rondonia_overlap[, .N, by = n_copied]
 #    n_copied     N
 #       <int> <int>
-# 1:        1 11033
+# 1:        1 11032
 # 2:        2   314
 # 3:        3    36
 if (FALSE) {
@@ -1070,15 +1075,7 @@ rondonia_overlap[!is.na(profund_sup),
   by = observacao_id
 ]
 nrow(unique(rondonia_overlap[has_topsoil != TRUE, "observacao_id"]))
-# 1 events without topsoil layers.
-if (FALSE) {
-  View(rondonia_overlap[has_topsoil != TRUE, .(
-    observacao_id, camada_nome, profund_sup, profund_inf
-  )])
-}
-
-# RO3379
-
+# 0 events without topsoil layers.
 
 # Merge data from Rondônia with the SoilData snapshot
 col_ro <- intersect(names(soildata), names(rondonia_overlap))
@@ -1087,6 +1084,10 @@ soildata <-
     list(soildata, rondonia_overlap[, ..col_ro]),
     fill = TRUE
   )
+
+rondonia_overlap[, .N, by = dataset_id]
+
+
 if(FALSE) {
   View(soildata[dataset_id == "ctb0033", .(
     observacao_id, camada_nome, profund_sup, profund_inf,
