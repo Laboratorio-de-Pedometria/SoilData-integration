@@ -146,6 +146,15 @@ eventRO <- merge(eventRO, event32, by = "evento_id_febr", all.x = TRUE)
 nrow(eventRO)
 # 2999 events after merge
 
+# For some reason, the merge is duplicating the event with
+# evento_id_febr == "RO1585". We will drop the duplicate and keep only one row
+# for this event.
+eventRO <- eventRO[
+  !(evento_id_febr == "RO1585" & duplicated(eventRO, by = "evento_id_febr")),
+]
+nrow(eventRO)
+# 2998
+
 # Standardize column names and data types
 eventRO[, dataset_id := "ctb0033"]
 eventRO[, coord_datum_epsg := NULL]
@@ -1035,7 +1044,7 @@ if (FALSE) {
 # RO1143 has A: 3-18 cm with chemical data and A: 0-15 cm with morpholgical 
 # data. So we guess that the overlap join did not work for this event.
 
-
+# RO1585
 
 
 # Merge data from Rondônia with the SoilData snapshot
