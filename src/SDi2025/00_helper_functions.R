@@ -27,6 +27,17 @@ tab_path <- function(filename) {
   file.path("res", "tab", paste0(sdi, "_", filename))
 }
 
+# Read Brazilian state boundaries ##############################################
+read_brazil_states <- function(file_path = "data/brazil_states.geojson") {
+  if (!file.exists(file_path)) {
+    brazil <- geobr::read_state(simplified = FALSE)
+    sf::st_write(brazil, file_path, quiet = TRUE)
+  } else {
+    brazil <- sf::st_read(file_path, quiet = TRUE)
+  }
+  brazil
+}
+
 # Describe soil data ###########################################################
 # Create function to describe a data.frame. Use an argument na.rm = TRUE.
 summary_soildata <- function(x, na.rm = TRUE) {

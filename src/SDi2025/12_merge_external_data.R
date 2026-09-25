@@ -3,14 +3,15 @@
 # author: Alessandro Samuel-Rosa
 # date: 2026
 # licence: MIT
-# summary: This script integrates external soil datasets into the main Brazilian Soil Dataset. It 
-#          begins by loading event and layer data from a local repository. The script standardizes 
-#          column names, cleans the sampling year data, and ensures all geographic coordinates are 
-#          in the WGS84 (EPSG:4326) reference system. It then loads the main dataset processed in 
-#          the previous step, merges the new external data, and generates comparison plots of the 
-#          spatial distribution before and after the merge. Finally, it populates missing metadata 
-#          (title, license, organization) for the newly integrated datasets and saves the combined 
-#          dataset to a file.
+# description: This script integrates external soil data from the FEBR
+# repository into the Brazilian Soil Dataset. It reads event and layer files,
+# standardizes variable names, converts geographic coordinates to WGS84
+# (EPSG:4326), and removes invalid sampling years. It then combines the
+# external data with the dataset produced in the previous step and creates
+# maps showing the spatial distribution before and after the integration.
+# Finally, it fills missing title, license, and organization metadata for
+# the integrated datasets and writes the resulting dataset to
+# data/12_soildata.txt.
 rm(list = ls())
 
 # Install and load required packages
@@ -28,17 +29,10 @@ if (!require("geobr")) {
 }
 
 # Source helper functions
-source("src/00_helper_functions.R")
+source("src/SDi2025/00_helper_functions.R")
 
-# Download Brazilian state boundaries
-# Check if the file already exists to avoid re-downloading
-if (!file.exists("data/brazil_states.geojson")) {
-  brazil <- geobr::read_state(simplified = FALSE)
-  # Save the data to a file for future use
-  sf::st_write(brazil, "data/brazil_states.geojson")
-} else {
-  brazil <- sf::st_read("data/brazil_states.geojson")
-}
+# Read Brazilian state boundaries
+brazil <- read_brazil_states()
 
 # Rename columns following previous standards
 rename <- c(
@@ -171,7 +165,7 @@ if (!"coord_datum_epsg" %in% colnames(soildata_02)) {
 soildata_02_sf <- soildata_02[!is.na(coord_x) & !is.na(coord_y)]
 soildata_02_sf <- sf::st_as_sf(soildata_02_sf, coords = c("coord_x", "coord_y"), crs = 4326)
 # Plot spatial distribution
-file_path <- "res/fig/121_spatial_distribution_before_external_data.png"
+file_path <- fig_path("121_spatial_distribution_before_external_data.png")
 png(file_path, width = 480 * 3, height = 480 * 3, res = 72 * 3)
 plot(brazil["code_state"],
   col = "gray95", lwd = 0.5, reset = FALSE,
@@ -199,7 +193,7 @@ summary_soildata(soildata)
 soildata_sf <- soildata[!is.na(coord_x) & !is.na(coord_y)]
 soildata_sf <- sf::st_as_sf(soildata_sf, coords = c("coord_x", "coord_y"), crs = 4326)
 # Plot spatial distribution
-file_path <- "res/fig/122_spatial_distribution_after_external_data.png"
+file_path <- fig_path("122_spatial_distribution_after_external_data.png")
 png(file_path, width = 480 * 3, height = 480 * 3, res = 72 * 3)
 plot(brazil["code_state"],
   col = "gray95", lwd = 0.5, reset = FALSE,
