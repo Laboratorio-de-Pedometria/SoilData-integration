@@ -158,6 +158,10 @@ for (i in seq_along(files_layer)) {
 }
 data_layer <- data.table::rbindlist(data_layer, fill = TRUE)
 data_layer[, camada_nome := camada_id]
+
+# Standardize layer names (camada_nome), removing spaces
+data_layer[, camada_nome := gsub(" ", "", camada_nome)]
+data_layer[, .N, by = camada_nome]
 nrow(data_layer)
 # 2134 layers
 
@@ -178,13 +182,33 @@ summary_soildata(ifndata)
 # Datasets: 7
 
 # Check IFN for outliers #######################################################
+# Run the curation checks on the merged IFN data
+ifndata <- curate_soil_data_dt(
+  dt = ifndata,
+  col_id = "id",
+  col_layer = "camada_nome",
+  col_soc = "carbono",
+  col_clay = "argila",
+  col_silt = "silte",
+  col_sand = "areia",
+  col_bd = "dsi",
+  texture_tol_pct = 0.05
+)
+# Summary of quality classification across depth layers
+ifndata[, .N, by = .(camada_nome, quality_flag)]
 
+# Subset clean records for digital soil mapping / stock modeling
+modeling_ready_dt <- ifndata[quality_flag == "Consistent"]
 
-
-
-
-
-
+# Inspect high-inconsistency records
+audit_dt <- ifndata[
+  quality_flag == "Inconsistent (Discard/Audit)", 
+  .(id, camada_nome, carbono, argila, dsi, std_ptf_res, inconsistency_score)
+]
+if (FALSE) {
+  # View high-inconsistency records
+  View(audit_dt[order(-inconsistency_score)])
+}
 
 # Read SoilData data processed in the previous scripts #########################
 soildata_02 <- data.table::fread("data/11_soildata.txt",
@@ -199,7 +223,6 @@ soildata_02_sf <- sf::st_as_sf(soildata_02_sf,
   coords = c("coord_x", "coord_y"), crs = 4326
 )
 # Plot spatial distribution
-dev.off()
 file_path <- fig_path("121_spatial_distribution_before_ifn_data.png")
 png(file_path, width = 480 * 3, height = 480 * 3, res = 72 * 3)
 plot(brazil["code_state"],
@@ -216,9 +239,9 @@ summary_soildata(soildata_02)
 # Datasets: 235
 
 # Merge SoilData data with National Forest Inventory data ######################
-soildata_01[, observacao_id := id]
-soildata_01[, id := paste0(dataset_id, "-", id)]
-soildata <- rbind(soildata_02, soildata_01, fill = TRUE)
+ifndata[, observacao_id := id]
+ifndata[, id := paste0(dataset_id, "-", id)]
+soildata <- rbind(soildata_02, ifndata, fill = TRUE)
 summary_soildata(soildata)
 # Layers: 52218
 # Events: 15054
@@ -232,7 +255,6 @@ soildata_sf <- sf::st_as_sf(soildata_sf,
   coords = c("coord_x", "coord_y"), crs = 4326
 )
 # Plot spatial distribution
-dev.off()
 file_path <- fig_path("122_spatial_distribution_after_ifn_data.png")
 png(file_path, width = 480 * 3, height = 480 * 3, res = 72 * 3)
 plot(brazil["code_state"],
