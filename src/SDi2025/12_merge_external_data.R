@@ -33,27 +33,27 @@ source("src/SDi2025/00_helper_functions.R")
 
 # Read Brazilian state boundaries
 brazil <- read_brazil_states()
+plot(brazil["code_state"], col = "gray95", lwd = 0.5, reset = FALSE)
 
 # Rename columns following previous standards
-rename <- c(
-  "dados_id_febr",                "dataset_id",
-  "evento_id_febr",               "id",
-  "camada_id_febr",               "camada_id",
-  "coord_longitude",              "coord_x",
-  "coord_latitude",               "coord_y",
-  "coord_municipio_nome",         "municipio_id",
-  "coord_estado_sigla",           "estado_id",
-  "coord_pais_id",                "pais_id",
-  "subamostra_quanti",            "amostra_quanti", 
-  "ph_h2o_25_eletrodo",           "ph",
-  "ph_h2o",                       "ph",
-  "ctc_soma_calc",                "ctc",
-  "carbono_forno_1min950_cgdct",  "carbono",
-  "argila_sodio_pipeta",          "argila",
-  "densidade_solo_cilindro",      "dsi",
-  "sibcs_20xx",                   "taxon_sibcs"
+rename <- list(
+  dados_id_febr = "dataset_id",
+  evento_id_febr = "id",
+  camada_id_febr = "camada_id",
+  coord_longitude = "coord_x",
+  coord_latitude = "coord_y",
+  coord_municipio_nome = "municipio_id",
+  coord_estado_sigla = "estado_id",
+  coord_pais_id = "pais_id",
+  subamostra_quanti = "amostra_quanti",
+  ph_h2o_25_eletrodo = "ph",
+  ph_h2o = "ph",
+  ctc_soma_calc = "ctc",
+  carbono_forno_1min950_cgdct = "carbono",
+  argila_sodio_pipeta = "argila",
+  densidade_solo_cilindro = "dsi",
+  sibcs_20xx = "taxon_sibcs"
 )
-rename <- matrix(rename, ncol = 2, byrow = TRUE)
 
 # Load external data sets
 # Events
@@ -71,7 +71,7 @@ for (i in seq_along(files_event)) {
   id <- rev(strsplit(files_event[i], split = "/")[[1]])[1]
   id <- strsplit(id, "-")[[1]][1]
   data_event[[i]][, dados_id_febr := id]
-  data.table::setnames(data_event[[i]], old = rename[, 1], new = rename[, 2], skip_absent = TRUE)
+  data.table::setnames(data_event[[i]], old = names(rename), new = unlist(rename), skip_absent = TRUE)
 }
 data_event <- data.table::rbindlist(data_event, fill = TRUE)
 nrow(data_event)
@@ -134,7 +134,7 @@ for (i in seq_along(files_layer)) {
   id <- rev(strsplit(files_layer[i], split = "/")[[1]])[1]
   id <- strsplit(id, "-")[[1]][1]
   data_layer[[i]][, dados_id_febr := id]
-  data.table::setnames(data_layer[[i]], old = rename[, 1], new = rename[, 2], skip_absent = TRUE)
+  data.table::setnames(data_layer[[i]], old = names(rename), new = unlist(rename), skip_absent = TRUE)
 }
 data_layer <- data.table::rbindlist(data_layer, fill = TRUE)
 data_layer[, camada_nome := camada_id]
