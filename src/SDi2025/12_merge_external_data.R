@@ -152,14 +152,16 @@ for (i in seq_along(files_layer)) {
   id <- rev(strsplit(files_layer[i], split = "/")[[1]])[1]
   id <- strsplit(id, "-")[[1]][1]
   data_layer[[i]][, dados_id_febr := id]
-  data.table::setnames(data_layer[[i]], old = names(rename), new = unlist(rename), skip_absent = TRUE)
+  data.table::setnames(data_layer[[i]],
+    old = names(rename), new = unlist(rename), skip_absent = TRUE
+  )
 }
 data_layer <- data.table::rbindlist(data_layer, fill = TRUE)
 data_layer[, camada_nome := camada_id]
 nrow(data_layer)
 # 2134 layers
 
-# Merge data from events and layers
+# Merge data from events and layers ############################################
 soildata_01 <- merge(data_event, data_layer, by = c("dataset_id", "id"))
 colnames(soildata_01)
 if (!"terrafina" %in% colnames(soildata_01)) {
@@ -171,18 +173,24 @@ if (!"terrafina" %in% colnames(soildata_01)) {
 summary_soildata(soildata_01)
 # Layers: 1941
 # Events: 1051
-# Georeferenced events: 1051
+# Georeference: 1051 (yes) / 0 (no)
+# Date: 1051 (yes) / 0 (no)
 # Datasets: 7
 
-# Read SoilData data processed in the previous scripts
-soildata_02 <- data.table::fread("data/11_soildata.txt", sep = "\t", na.strings = c("", "NA"))
+# Read SoilData data processed in the previous scripts #########################
+soildata_02 <- data.table::fread("data/11_soildata.txt",
+  sep = "\t", na.strings = c("", "NA")
+)
 if (!"coord_datum" %in% colnames(soildata_02)) {
   soildata_02[, coord_datum := 4326]
 }
 # Check spatial distribution before merging National Forest Inventory data
 soildata_02_sf <- soildata_02[!is.na(coord_x) & !is.na(coord_y)]
-soildata_02_sf <- sf::st_as_sf(soildata_02_sf, coords = c("coord_x", "coord_y"), crs = 4326)
+soildata_02_sf <- sf::st_as_sf(soildata_02_sf,
+  coords = c("coord_x", "coord_y"), crs = 4326
+)
 # Plot spatial distribution
+dev.off()
 file_path <- fig_path("121_spatial_distribution_before_external_data.png")
 png(file_path, width = 480 * 3, height = 480 * 3, res = 72 * 3)
 plot(brazil["code_state"],
@@ -192,9 +200,10 @@ plot(brazil["code_state"],
 plot(soildata_02_sf["estado_id"], cex = 0.3, add = TRUE, pch = 20)
 dev.off()
 summary_soildata(soildata_02)
-# Layers: 50315
-# Events: 14120
-# Georeferenced events: 10990
+# Layers: 50277
+# Events: 14003
+# Georeference: 10903 (yes) / 3100 (no)
+# Date: 13850 (yes) / 153 (no)
 # Datasets: 235
 
 # Merge SoilData data with National Forest Inventory data
