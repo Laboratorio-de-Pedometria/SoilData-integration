@@ -249,10 +249,10 @@ ifndata_filtered[, observacao_id := id]
 ifndata_filtered[, id := paste0(dataset_id, "-", id)]
 soildata <- rbind(soildata, ifndata_filtered, fill = TRUE)
 summary_soildata(soildata)
-# Layers: 52218
-# Events: 15054
-# Georeference: 11954 (yes) / 3100 (no)
-# Date: 14901 (yes) / 153 (no)
+# Layers: 51803
+# Events: 14892
+# Georeference: 11792 (yes) / 3100 (no)
+# Date: 14739 (yes) / 153 (no)
 # Datasets: 242
 
 # Check spatial distribution after merging National Forest Inventory data
@@ -270,53 +270,69 @@ plot(brazil["code_state"],
 plot(soildata_sf["estado_id"], cex = 0.3, add = TRUE, pch = 20)
 dev.off()
 
+# Identification metadata ######################################################
 # Set values for missing title
 # "ctb0055" "ctb0056" "ctb0057" "ctb0058" "ctb0059" "ctb0060" "ctb0061"
 soildata[is.na(dataset_titulo), unique(dataset_id)]
-dataset_title <- c(
-  "ctb0055" = "ctb0055-Inventário Florestal Nacional - Paraná",
-  "ctb0056" = "ctb0056-Inventário Florestal Nacional - Espírito Santo",
-  "ctb0057" = "ctb0057-Inventário Florestal Nacional - Sergipe",
-  "ctb0058" = "ctb0058-Inventário Florestal Nacional - Rio Grande do Norte",
-  "ctb0059" = "ctb0059-Inventário Florestal Nacional - Ceará",
-  "ctb0060" = "ctb0060-Inventário Florestal Nacional - Paraíba",
-  "ctb0061" = "ctb0061-Inventário Florestal Nacional - Caçador SC"
+dataset_title <- list(
+  ctb0055 = "ctb0055-Inventário Florestal Nacional - Paraná",
+  ctb0056 = "ctb0056-Inventário Florestal Nacional - Espírito Santo",
+  ctb0057 = "ctb0057-Inventário Florestal Nacional - Sergipe",
+  ctb0058 = "ctb0058-Inventário Florestal Nacional - Rio Grande do Norte",
+  ctb0059 = "ctb0059-Inventário Florestal Nacional - Ceará",
+  ctb0060 = "ctb0060-Inventário Florestal Nacional - Paraíba",
+  ctb0061 = "ctb0061-Inventário Florestal Nacional - Caçador SC"
 )
-soildata[is.na(dataset_titulo), dataset_titulo := dataset_title[dataset_id]]
-
+soildata[
+  is.na(dataset_titulo) & dataset_id %in% names(dataset_title),
+  dataset_titulo := unname(unlist(dataset_title[dataset_id]))
+]
 # Set values for missing licence
 soildata[is.na(dataset_licenca), unique(dataset_id)]
 # "ctb0055" "ctb0056" "ctb0057" "ctb0058" "ctb0059" "ctb0060" "ctb0061"
-dataset_licence <- c(
-  "ctb0055" = "CC-BY-4.0",
-  "ctb0056" = "CC-BY-4.0",
-  "ctb0057" = "CC-BY-4.0",
-  "ctb0058" = "CC-BY-4.0",
-  "ctb0059" = "CC-BY-4.0",
-  "ctb0060" = "CC-BY-4.0",
-  "ctb0061" = "CC-BY-4.0"
+dataset_licence <- list(
+  ctb0055 = "CC-BY-4.0",
+  ctb0056 = "CC-BY-4.0",
+  ctb0057 = "CC-BY-4.0",
+  ctb0058 = "CC-BY-4.0",
+  ctb0059 = "CC-BY-4.0",
+  ctb0060 = "CC-BY-4.0",
+  ctb0061 = "CC-BY-4.0"
 )
-soildata[is.na(dataset_licenca), dataset_licenca := dataset_licence[dataset_id]]
+soildata[
+  is.na(dataset_licenca) & dataset_id %in% names(dataset_licence),
+  dataset_licenca := unname(unlist(dataset_licence[dataset_id]))
+]
 
 # Set values for missing organizacao_nome
 soildata[is.na(organizacao_nome), unique(dataset_id)]
 # "ctb0055" "ctb0056" "ctb0057" "ctb0058" "ctb0059" "ctb0060" "ctb0061"
 # organizacao_nome = Serviço Florestal Brasileiro (SFB/MAPA)
-dataset_organization <- c(
-  "ctb0055" = "Serviço Florestal Brasileiro (SFB/MAPA)",
-  "ctb0056" = "Serviço Florestal Brasileiro (SFB/MAPA)",
-  "ctb0057" = "Serviço Florestal Brasileiro (SFB/MAPA)",
-  "ctb0058" = "Serviço Florestal Brasileiro (SFB/MAPA)",
-  "ctb0059" = "Serviço Florestal Brasileiro (SFB/MAPA)",
-  "ctb0060" = "Serviço Florestal Brasileiro (SFB/MAPA)",
-  "ctb0061" = "Serviço Florestal Brasileiro (SFB/MAPA)"
+dataset_organization <- list(
+  ctb0055 = "Serviço Florestal Brasileiro (SFB/MAPA)",
+  ctb0056 = "Serviço Florestal Brasileiro (SFB/MAPA)",
+  ctb0057 = "Serviço Florestal Brasileiro (SFB/MAPA)",
+  ctb0058 = "Serviço Florestal Brasileiro (SFB/MAPA)",
+  ctb0059 = "Serviço Florestal Brasileiro (SFB/MAPA)",
+  ctb0060 = "Serviço Florestal Brasileiro (SFB/MAPA)",
+  ctb0061 = "Serviço Florestal Brasileiro (SFB/MAPA)"
 )
-soildata[is.na(organizacao_nome), organizacao_nome := dataset_organization[dataset_id]]
+soildata[
+  is.na(organizacao_nome) & dataset_id %in% names(dataset_organization),
+  organizacao_nome := unname(unlist(dataset_organization[dataset_id]))
+]
 
-# Write data to disk ###############################################################################
+# Write data to disk ###########################################################
 summary_soildata(soildata)
+# Layers: 51803
+# Events: 14892
+# Georeference: 11792 (yes) / 3100 (no)
+# Date: 14739 (yes) / 153 (no)
+# Datasets: 242
+data.table::fwrite(soildata, "data/12_soildata.txt", sep = "\t")
+
+# Previous year
 # Layers: 52256
 # Events: 15171
 # Georeferenced events: 12041
 # Datasets: 242
-data.table::fwrite(soildata, "data/12_soildata.txt", sep = "\t")
