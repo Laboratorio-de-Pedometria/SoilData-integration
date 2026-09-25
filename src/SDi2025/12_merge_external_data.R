@@ -191,11 +191,11 @@ soildata_02_sf <- sf::st_as_sf(soildata_02_sf,
 )
 # Plot spatial distribution
 dev.off()
-file_path <- fig_path("121_spatial_distribution_before_external_data.png")
+file_path <- fig_path("121_spatial_distribution_before_ifn_data.png")
 png(file_path, width = 480 * 3, height = 480 * 3, res = 72 * 3)
 plot(brazil["code_state"],
   col = "gray95", lwd = 0.5, reset = FALSE,
-  main = "Spatial distribution of SoilData before merging National Forest Inventory data"
+  main = "Spatial distribution of SoilData before merging IFN data"
 )
 plot(soildata_02_sf["estado_id"], cex = 0.3, add = TRUE, pch = 20)
 dev.off()
@@ -224,11 +224,11 @@ soildata_sf <- sf::st_as_sf(soildata_sf,
 )
 # Plot spatial distribution
 dev.off()
-file_path <- fig_path("122_spatial_distribution_after_external_data.png")
+file_path <- fig_path("122_spatial_distribution_after_ifn_data.png")
 png(file_path, width = 480 * 3, height = 480 * 3, res = 72 * 3)
 plot(brazil["code_state"],
   col = "gray95", lwd = 0.5, reset = FALSE,
-  main = "Spatial distribution of SoilData after merging National Forest Inventory data"
+  main = "Spatial distribution of SoilData after merging IFN data"
 )
 plot(soildata_sf["estado_id"], cex = 0.3, add = TRUE, pch = 20)
 dev.off()
