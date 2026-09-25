@@ -1,13 +1,14 @@
 # title: SoilData Integration
-# subtitle: Merge external data
+# subtitle: Merge National Forest Inventory data
 # author: Alessandro Samuel-Rosa
 # date: 2026
 # licence: MIT
-# description: This script integrates external soil data from the FEBR
+# description: This script integrates seven soil datasets from the Brazilian
+# National Forest Inventory (Inventário Florestal Nacional) in the FEBR
 # repository into the Brazilian Soil Dataset. It reads event and layer files,
 # standardizes variable names, converts geographic coordinates to WGS84
 # (EPSG:4326), and removes invalid sampling years. It then combines the
-# external data with the dataset produced in the previous step and creates
+# National Forest Inventory data with the dataset produced in the previous step and creates
 # maps showing the spatial distribution before and after the integration.
 # Finally, it fills missing title, license, and organization metadata for
 # the integrated datasets and writes the resulting dataset to
@@ -33,7 +34,10 @@ source("src/SDi2025/00_helper_functions.R")
 
 # Read Brazilian state boundaries
 brazil <- read_brazil_states()
-plot(brazil["code_state"], col = "gray95", lwd = 0.5, reset = FALSE)
+if (FALSE) {
+  # Plot Brazilian states
+  plot(brazil["code_state"], col = "gray95", lwd = 0.5, reset = FALSE)
+}
 
 # Rename columns following previous standards
 rename <- list(
@@ -55,7 +59,7 @@ rename <- list(
   sibcs_20xx = "taxon_sibcs"
 )
 
-# Load external data sets
+# Load National Forest Inventory datasets
 # Events
 files_event <- list.files(
   path = path.expand("~/ownCloud/febr-repo/processamento"),
@@ -161,7 +165,7 @@ soildata_02 <- data.table::fread("data/11_soildata.txt", sep = "\t", na.strings 
 if (!"coord_datum_epsg" %in% colnames(soildata_02)) {
   soildata_02[, coord_datum_epsg := 4326]
 }
-# Check spatial distribution before merging external data
+# Check spatial distribution before merging National Forest Inventory data
 soildata_02_sf <- soildata_02[!is.na(coord_x) & !is.na(coord_y)]
 soildata_02_sf <- sf::st_as_sf(soildata_02_sf, coords = c("coord_x", "coord_y"), crs = 4326)
 # Plot spatial distribution
@@ -169,7 +173,7 @@ file_path <- fig_path("121_spatial_distribution_before_external_data.png")
 png(file_path, width = 480 * 3, height = 480 * 3, res = 72 * 3)
 plot(brazil["code_state"],
   col = "gray95", lwd = 0.5, reset = FALSE,
-  main = "Spatial distribution of SoilData before merging external data"
+  main = "Spatial distribution of SoilData before merging National Forest Inventory data"
 )
 plot(soildata_02_sf["estado_id"], cex = 0.3, add = TRUE, pch = 20)
 dev.off()
@@ -179,7 +183,7 @@ summary_soildata(soildata_02)
 # Georeferenced events: 10990
 # Datasets: 235
 
-# Merge SoilData data with external data
+# Merge SoilData data with National Forest Inventory data
 soildata_01[, observacao_id := id]
 soildata_01[, id := paste0(dataset_id, "-", id)]
 soildata <- rbind(soildata_02, soildata_01, fill = TRUE)
@@ -189,7 +193,7 @@ summary_soildata(soildata)
 # Georeferenced events: 12041
 # Datasets: 242
 
-# Check spatial distribution after merging external data
+# Check spatial distribution after merging National Forest Inventory data
 soildata_sf <- soildata[!is.na(coord_x) & !is.na(coord_y)]
 soildata_sf <- sf::st_as_sf(soildata_sf, coords = c("coord_x", "coord_y"), crs = 4326)
 # Plot spatial distribution
@@ -197,7 +201,7 @@ file_path <- fig_path("122_spatial_distribution_after_external_data.png")
 png(file_path, width = 480 * 3, height = 480 * 3, res = 72 * 3)
 plot(brazil["code_state"],
   col = "gray95", lwd = 0.5, reset = FALSE,
-  main = "Spatial distribution of SoilData after merging external data"
+  main = "Spatial distribution of SoilData after merging National Forest Inventory data"
 )
 plot(soildata_sf["estado_id"], cex = 0.3, add = TRUE, pch = 20)
 dev.off()
