@@ -61,8 +61,7 @@ rename <- list(
   sibcs_20xx = "taxon_sibcs"
 )
 
-# Load National Forest Inventory datasets
-# Events
+# Events #######################################################################
 files_event <- list.files(
   path = path.expand("~/ownCloud/febr-repo/processamento"),
   pattern = "-evento.txt$",
