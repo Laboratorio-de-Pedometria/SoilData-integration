@@ -84,7 +84,142 @@ summary_date <- function(x) {
   }
 }
 
-# Query SoilData API by otherIdValue (ctb) #########################################################
+# Outlier detection ############################################################
+
+# Robust outlier detection via MAD with zero-spread safety
+flag_mad_dt <- function(x, c_val = 3.0) {
+  med <- median(x, na.rm = TRUE)
+  mad_val <- mad(x, constant = 1.4826, na.rm = TRUE)
+  if (is.na(mad_val) || mad_val == 0) return(rep(FALSE, length(x)))
+  outlier <- abs(x - med) > (c_val * mad_val)
+  outlier[is.na(outlier)] <- FALSE
+  return(outlier)
+}
+
+# Main curation function
+curate_soil_data_dt <- function(dt, 
+                                col_id = "point_id", 
+                                col_layer = "layer", 
+                                col_soc = "soc", 
+                                col_clay = "clay", 
+                                col_silt = "silt", 
+                                col_sand = "sand", 
+                                col_bd = "bd",
+                                texture_tol_pct = 0.05,
+                                weight_texture = 2L,
+                                weight_inversion = 2L,
+                                weight_ptf = 2L,
+                                weight_mad = 1L,
+                                cutoff_inconsistent = 3L) {
+  
+  # Work on a shallow/deep copy to prevent unintended side effects on input
+  dt_proc <- data.table::copy(data.table::as.data.table(dt))
+  
+  # --- Test 1: Particle Size Sum Constraint (5% tolerance) ---
+  cols_texture <- c(col_clay, col_silt, col_sand)
+  if (all(cols_texture %in% names(dt_proc))) {
+    dt_proc[, texture_sum := rowSums(.SD, na.rm = FALSE), .SDcols = cols_texture]
+    
+    # Auto-detect baseline: 100% or 1000 g/kg
+    base_ref <- ifelse(median(dt_proc$texture_sum, na.rm = TRUE) > 500, 1000, 100)
+    tol <- texture_tol_pct * base_ref
+    
+    dt_proc[
+      ,
+      flag_invalid_texture := !is.na(texture_sum) & abs(texture_sum - base_ref) > tol
+    ]
+    dt_proc[, texture_sum := NULL]
+  } else {
+    dt_proc[, flag_invalid_texture := FALSE]
+  }
+
+  # --- Test 2: Vertical SOC Gradient Inversion (0-20 vs 30-50 cm) ---
+  dt_top <- dt_proc[get(col_layer) %in% c("0-20", "0_20", 1),
+    .(soc_top = get(col_soc)[1]),
+    by = col_id
+  ]
+  dt_sub <- dt_proc[get(col_layer) %in% c("30-50", "30_50", 2),
+    .(soc_sub = get(col_soc)[1]),
+    by = col_id
+  ]
+  
+  dt_paired <- merge(dt_top, dt_sub, by = col_id, all = FALSE)
+  inverted_ids <- dt_paired[
+    !is.na(soc_top) & !is.na(soc_sub) & soc_sub > soc_top, get(col_id)
+  ]
+  
+  dt_proc[, flag_soc_inversion := get(col_id) %in% inverted_ids]
+
+  # --- Test 3: Univariate Outliers via MAD (stratified by layer) ---
+  dt_proc[, `:=`(
+    flag_mad_soc  = flag_mad_dt(get(col_soc), c_val = 3.0),
+    flag_mad_bd   = if (col_bd %in% names(dt_proc)) { 
+      flag_mad_dt(get(col_bd), c_val = 3.0) } else { FALSE },
+    flag_mad_clay = if (col_clay %in% names(dt_proc)) { 
+      flag_mad_dt(get(col_clay), c_val = 3.0) } else { FALSE }
+  ), by = col_layer]
+
+  # --- Test 4: Multivariate Pedotransfer Residual Check (rlm by layer) ---
+  dt_proc[, `:=`(flag_ptf_bd = FALSE, std_ptf_res = NA_real_)]
+  
+  model_cols <- c(col_bd, col_soc, col_clay)
+  if (all(model_cols %in% names(dt_proc))) {
+    layers <- unique(dt_proc[[col_layer]])
+    
+    for (lay in layers) {
+      idx <- which(
+        dt_proc[[col_layer]] == lay & complete.cases(dt_proc[, ..model_cols])
+      )
+      
+      if (length(idx) >= 15L) {
+        formula_ptf <- as.formula(
+          paste0(col_bd, " ~ log(", col_soc, " + 0.1) + ", col_clay)
+        )
+        fit <- tryCatch(MASS::rlm(
+          formula_ptf,
+          data = dt_proc[idx], method = "M"
+        ), error = function(e) NULL)
+        
+        if (!is.null(fit)) {
+          res <- residuals(fit)
+          mad_res <- mad(res, na.rm = TRUE)
+          if (!is.na(mad_res) && mad_res > 0) {
+            std_res <- res / mad_res
+            data.table::set(dt_proc,
+              i = idx,
+              j = "std_ptf_res", value = std_res
+            )
+            data.table::set(dt_proc,
+              i = idx,
+              j = "flag_ptf_bd", value = abs(std_res) > 3.0
+            )
+          }
+        }
+      }
+    }
+  }
+
+  # --- Cross-Validation Score and Categorization ---
+  dt_proc[
+    ,
+    inconsistency_score := (as.integer(flag_invalid_texture) * weight_texture) +
+     (as.integer(flag_soc_inversion) * weight_inversion) +
+      (as.integer(flag_ptf_bd) * weight_ptf) + 
+      (as.integer(flag_mad_soc) * weight_mad) + 
+      (as.integer(flag_mad_bd) * weight_mad) + 
+      (as.integer(flag_mad_clay) * weight_mad)
+  ]
+
+  dt_proc[, quality_flag := data.table::fcase(
+    inconsistency_score == 0L, "Consistent",
+    inconsistency_score < cutoff_inconsistent, "Suspect (Inspect)",
+    default = "Inconsistent (Discard/Audit)"
+  )]
+
+  return(dt_proc)
+}
+
+# Query SoilData API by otherIdValue (ctb) #####################################
 # Function to query SoilData API by otherIdValue (ctb)
 # If doi = TRUE, return only the DOI (global_id), else return the full search_result
 # Query SoilData API by otherIdValue (ctb) with per_page control
