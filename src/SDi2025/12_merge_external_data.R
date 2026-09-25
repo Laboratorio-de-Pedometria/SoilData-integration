@@ -198,7 +198,7 @@ ifndata <- curate_soil_data_dt(
 ifndata[, .N, by = .(camada_nome, quality_flag)]
 
 # Subset clean records for digital soil mapping / stock modeling
-modeling_ready_dt <- ifndata[quality_flag == "Consistent"]
+ifndata_filtered <- ifndata[quality_flag == "Consistent"]
 
 # Inspect high-inconsistency records
 audit_dt <- ifndata[
@@ -211,15 +211,15 @@ if (FALSE) {
 }
 
 # Read SoilData data processed in the previous scripts #########################
-soildata_02 <- data.table::fread("data/11_soildata.txt",
+soildata <- data.table::fread("data/11_soildata.txt",
   sep = "\t", na.strings = c("", "NA")
 )
-if (!"coord_datum" %in% colnames(soildata_02)) {
-  soildata_02[, coord_datum := 4326]
+if (!"coord_datum" %in% colnames(soildata)) {
+  soildata[, coord_datum := 4326]
 }
 # Check spatial distribution before merging National Forest Inventory data
-soildata_02_sf <- soildata_02[!is.na(coord_x) & !is.na(coord_y)]
-soildata_02_sf <- sf::st_as_sf(soildata_02_sf,
+soildata_sf <- soildata[!is.na(coord_x) & !is.na(coord_y)]
+soildata_sf <- sf::st_as_sf(soildata_sf,
   coords = c("coord_x", "coord_y"), crs = 4326
 )
 # Plot spatial distribution
@@ -229,9 +229,9 @@ plot(brazil["code_state"],
   col = "gray95", lwd = 0.5, reset = FALSE,
   main = "Spatial distribution of SoilData before merging IFN data"
 )
-plot(soildata_02_sf["estado_id"], cex = 0.3, add = TRUE, pch = 20)
+plot(soildata_sf["estado_id"], cex = 0.3, add = TRUE, pch = 20)
 dev.off()
-summary_soildata(soildata_02)
+summary_soildata(soildata)
 # Layers: 50277
 # Events: 14003
 # Georeference: 10903 (yes) / 3100 (no)
@@ -239,9 +239,9 @@ summary_soildata(soildata_02)
 # Datasets: 235
 
 # Merge SoilData data with National Forest Inventory data ######################
-ifndata[, observacao_id := id]
-ifndata[, id := paste0(dataset_id, "-", id)]
-soildata <- rbind(soildata_02, ifndata, fill = TRUE)
+ifndata_filtered[, observacao_id := id]
+ifndata_filtered[, id := paste0(dataset_id, "-", id)]
+soildata <- rbind(soildata, ifndata_filtered, fill = TRUE)
 summary_soildata(soildata)
 # Layers: 52218
 # Events: 15054
