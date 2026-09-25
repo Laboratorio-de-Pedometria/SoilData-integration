@@ -206,20 +206,24 @@ summary_soildata(soildata_02)
 # Date: 13850 (yes) / 153 (no)
 # Datasets: 235
 
-# Merge SoilData data with National Forest Inventory data
+# Merge SoilData data with National Forest Inventory data ######################
 soildata_01[, observacao_id := id]
 soildata_01[, id := paste0(dataset_id, "-", id)]
 soildata <- rbind(soildata_02, soildata_01, fill = TRUE)
 summary_soildata(soildata)
-# Layers: 52256
-# Events: 15171
-# Georeferenced events: 12041
+# Layers: 52218
+# Events: 15054
+# Georeference: 11954 (yes) / 3100 (no)
+# Date: 14901 (yes) / 153 (no)
 # Datasets: 242
 
 # Check spatial distribution after merging National Forest Inventory data
 soildata_sf <- soildata[!is.na(coord_x) & !is.na(coord_y)]
-soildata_sf <- sf::st_as_sf(soildata_sf, coords = c("coord_x", "coord_y"), crs = 4326)
+soildata_sf <- sf::st_as_sf(soildata_sf,
+  coords = c("coord_x", "coord_y"), crs = 4326
+)
 # Plot spatial distribution
+dev.off()
 file_path <- fig_path("122_spatial_distribution_after_external_data.png")
 png(file_path, width = 480 * 3, height = 480 * 3, res = 72 * 3)
 plot(brazil["code_state"],
