@@ -8,10 +8,10 @@
 # repository into the Brazilian Soil Dataset. It reads event and layer files,
 # standardizes variable names, converts geographic coordinates to WGS84
 # (EPSG:4326), and removes invalid sampling years. It then combines the
-# National Forest Inventory data with the dataset produced in the previous step and creates
-# maps showing the spatial distribution before and after the integration.
-# Finally, it fills missing title, license, and organization metadata for
-# the integrated datasets and writes the resulting dataset to
+# National Forest Inventory data with the dataset produced in the previous step
+# and creates maps showing the spatial distribution before and after the
+# integration. Finally, it fills missing title, license, and organization
+# metadata for the integrated datasets and writes the resulting dataset to
 # data/12_soildata.txt.
 rm(list = ls())
 
@@ -42,10 +42,12 @@ if (FALSE) {
 # Rename columns following previous standards
 rename <- list(
   dados_id_febr = "dataset_id",
+  data_coleta_ano = "data_ano",
   evento_id_febr = "id",
   camada_id_febr = "camada_id",
   coord_longitude = "coord_x",
   coord_latitude = "coord_y",
+  coord_datum_epsg = "coord_datum",
   coord_municipio_nome = "municipio_id",
   coord_estado_sigla = "estado_id",
   coord_pais_id = "pais_id",
@@ -75,7 +77,9 @@ for (i in seq_along(files_event)) {
   id <- rev(strsplit(files_event[i], split = "/")[[1]])[1]
   id <- strsplit(id, "-")[[1]][1]
   data_event[[i]][, dados_id_febr := id]
-  data.table::setnames(data_event[[i]], old = names(rename), new = unlist(rename), skip_absent = TRUE)
+  data.table::setnames(data_event[[i]],
+    old = names(rename), new = unlist(rename), skip_absent = TRUE
+  )
 }
 data_event <- data.table::rbindlist(data_event, fill = TRUE)
 nrow(data_event)
@@ -83,8 +87,8 @@ nrow(data_event)
 
 # Standardize coordinate reference system
 target_crs <- 4326
-data_event[, coord_datum_epsg := as.integer(gsub("EPSG:", "", coord_datum_epsg))]
-sf_data_event <- split(data_event, data_event[, coord_datum_epsg])
+data_event[, coord_datum := as.integer(gsub("EPSG:", "", coord_datum))]
+sf_data_event <- split(data_event, data_event[, coord_datum])
 idx_transform <- which(names(sf_data_event) != target_crs)
 for (i in seq_along(sf_data_event)) {
   if (i %in% idx_transform) {
@@ -104,26 +108,37 @@ for (i in seq_along(sf_data_event)) {
 data_event <- do.call(rbind, sf_data_event)
 data_event <- cbind(sf::st_coordinates(data_event), as.data.frame(data_event))
 data_event <- data.table::as.data.table(data_event)
-data_event[coord_datum_epsg != target_crs & !is.na(coord_datum_epsg), coord_datum_epsg := target_crs]
-data.table::setnames(data_event, old = c("X", "Y"), new = c("coord_x", "coord_y"))
+data_event[
+  coord_datum != target_crs & !is.na(coord_datum),
+  coord_datum := target_crs
+]
+data.table::setnames(data_event,
+  old = c("X", "Y"), new = c("coord_x", "coord_y")
+)
 data_event[, geometry := NULL]
 summary_soildata(data_event)
 # Layers: 1662
 # Events: 1662
-# Georeferenced events: 1662
+# Georeference: 1662 (yes) / 0 (no)
+# Date: 1662 (yes) / 0 (no)
 # Datasets: 7
 
 # Clean sampling date (just to make sure)
-data_event[data_coleta_ano < 1950, data_coleta_ano := NA_integer_]
-data_event[data_coleta_ano > as.integer(format(Sys.time(), "%Y")), data_coleta_ano := NA_integer_]
-data_event[!is.na(data_coleta_ano), data_coleta_ano_fonte := "original"]
+if (any(data_event$data_ano < 2000)) {
+  stop("Some sampling years are before 2000. Setting them to NA.")
+}
+if (any(data_event$data_ano > as.integer(format(Sys.time(), "%Y")))) {
+  stop("Some sampling years are in the future. Setting them to NA.")
+}
+data_event[!is.na(data_ano), data_ano_fonte := "original"]
 summary_soildata(data_event)
 # Layers: 1662
 # Events: 1662
-# Georeferenced events: 1662
+# Georeference: 1662 (yes) / 0 (no)
+# Date: 1662 (yes) / 0 (no)
 # Datasets: 7
 
-# Layers
+# Layers #######################################################################
 files_layer <- list.files(
   path = path.expand("~/ownCloud/febr-repo/processamento"),
   pattern = "-camada.txt$",
@@ -162,8 +177,8 @@ summary_soildata(soildata_01)
 
 # Read SoilData data processed in the previous scripts
 soildata_02 <- data.table::fread("data/11_soildata.txt", sep = "\t", na.strings = c("", "NA"))
-if (!"coord_datum_epsg" %in% colnames(soildata_02)) {
-  soildata_02[, coord_datum_epsg := 4326]
+if (!"coord_datum" %in% colnames(soildata_02)) {
+  soildata_02[, coord_datum := 4326]
 }
 # Check spatial distribution before merging National Forest Inventory data
 soildata_02_sf <- soildata_02[!is.na(coord_x) & !is.na(coord_y)]
