@@ -162,20 +162,29 @@ nrow(data_layer)
 # 2134 layers
 
 # Merge data from events and layers ############################################
-soildata_01 <- merge(data_event, data_layer, by = c("dataset_id", "id"))
-colnames(soildata_01)
-if (!"terrafina" %in% colnames(soildata_01)) {
-  soildata_01[, terrafina := NA_real_]
+ifndata <- merge(data_event, data_layer, by = c("dataset_id", "id"))
+colnames(ifndata)
+if (!"terrafina" %in% colnames(ifndata)) {
+  ifndata[, terrafina := NA_real_]
 }
-# if (!"camada_nome" %in% colnames(soildata_01)) {
-#   soildata_01[, camada_nome := NA_character_]
+# if (!"camada_nome" %in% colnames(ifndata)) {
+#   ifndata[, camada_nome := NA_character_]
 # }
-summary_soildata(soildata_01)
+summary_soildata(ifndata)
 # Layers: 1941
 # Events: 1051
 # Georeference: 1051 (yes) / 0 (no)
 # Date: 1051 (yes) / 0 (no)
 # Datasets: 7
+
+# Check IFN for outliers #######################################################
+
+
+
+
+
+
+
 
 # Read SoilData data processed in the previous scripts #########################
 soildata_02 <- data.table::fread("data/11_soildata.txt",
