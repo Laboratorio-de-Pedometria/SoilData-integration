@@ -209,6 +209,12 @@ if (FALSE) {
   # View high-inconsistency records
   View(audit_dt[order(-inconsistency_score)])
 }
+summary_soildata(ifndata_filtered)
+# Layers: 1526
+# Events: 889
+# Georeference: 889 (yes) / 0 (no)
+# Date: 889 (yes) / 0 (no)
+# Datasets: 7
 
 # Read SoilData data processed in the previous scripts #########################
 soildata <- data.table::fread("data/11_soildata.txt",
