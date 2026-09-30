@@ -1,7 +1,7 @@
 # title: SoilData Integration
 # subtitle: Helper functions
-# author: Alessandro Samuel-Rosa and Taciara Zborowski Horst
-# data: 2026
+# author: Alessandro Rosa and Taciara Zborowski Horst
+# date: 2026
 # licence: MIT
 
 # Check required packages #####################################################

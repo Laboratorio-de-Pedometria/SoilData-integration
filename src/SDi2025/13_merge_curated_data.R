@@ -5,12 +5,13 @@
 # licence: MIT
 # description: This script merges datasets curated after the release of the
 # latest Brazilian Soil Dataset for the production of Collection 3 of MapBiomas
-# Soil project into the processed SoilData dataset. The curated data may include
-# new datasets or revised versions of datasets already included in this 
-# integration routine. The script reads and standardizes curated CSV files,
-# removes duplicate datasets, fills missing metadata using the SoilData
-# Dataverse API, compares spatial distributions before and after the merge, and
-# exports the resulting dataset to data/13_soildata.txt.
+# Soil into the processed SoilData dataset. The curated data may include new
+# datasets or revised versions of datasets already included in this integration
+# routine. The script clones or updates the curated-data repository as needed,
+# reads and standardizes its CSV files, adds organization metadata, removes
+# duplicate datasets, compares spatial distributions before and after the merge,
+# checks for missing dataset metadata, and exports the result to
+# data/13_soildata.txt.
 rm(list = ls())
 
 # Source helper functions

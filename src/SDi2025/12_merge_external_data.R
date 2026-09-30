@@ -1,6 +1,6 @@
 # title: SoilData Integration
 # subtitle: Merge National Forest Inventory data
-# author: Alessandro Samuel-Rosa
+# author: Alessandro Rosa
 # date: 2026
 # licence: MIT
 # description: This script integrates seven soil datasets from the Brazilian

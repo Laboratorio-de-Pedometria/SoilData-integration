@@ -1,6 +1,6 @@
 # title: SoilData Integration
 # subtitle: Process time coordinate
-# author: Alessandro Samuel-Rosa
+# author: Alessandro Rosa
 # date: 2026
 # licence: MIT
 # description: This script processes the temporal coordinate (sampling year) of
