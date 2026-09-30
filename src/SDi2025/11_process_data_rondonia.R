@@ -1095,22 +1095,16 @@ if(FALSE) {
 
 # Write data to disk ###########################################################
 summary_soildata(soildata)
-  # Layers: 50277
-  # Events: 14003
-  # Georeference: 10903 (yes) / 3100 (no)
-  # Date: 13850 (yes) / 153 (no)
-  # Datasets: 235
-
-# Layers: 49852
-# Events: 14007
-# Georeference: 10908 (yes) / 3099 (no)
-# Date: 13855 (yes) / 152 (no)
+# 2026 ---
+# Layers: 50277
+# Events: 14003
+# Georeference: 10903 (yes) / 3100 (no)
+# Date: 13850 (yes) / 153 (no)
 # Datasets: 235
-data.table::fwrite(soildata, "data/11_soildata.txt", sep = "\t")
-
-# Previous year
+# 2025 ---
 # Layers: 49684
 # Events: 14006
 # Georeference: 10907 (yes) / 3099 (no)
 # Date: 13854 (yes) / 152 (no)
 # Datasets: 235
+data.table::fwrite(soildata, "data/11_soildata.txt", sep = "\t")
