@@ -83,16 +83,19 @@ curated_list <- lapply(curated_path, function(x) {
 # rbind all datasets keeping only the matching columns
 # Target columns
 read_cols <- c(
-  "dataset_id", 
+  "dataset_id", "dataset_titulo", "dataset_licenca",
   "observacao_id",
   "data_ano", "data_ano_fonte",
   "coord_x", "coord_y", "coord_precisao", "coord_fonte", "coord_datum",
   "pais_id", "estado_id", "municipio_id",
   "amostra_area",
-  "taxon_sibcs",
+  "taxon_sibcs", "taxon_st",
+  "pedregosidade", "rochosidade",
   "camada_nome", "camada_id", "amostra_id",
   "profund_sup", "profund_inf",
-  "carbono", "ctc", "ph", "argila", "silte", "areia", "terrafina", "dsi"
+  "terrafina",
+  "argila", "silte", "areia", 
+  "carbono", "ctc", "ph", "dsi"
 )
 curated_data <- data.table::rbindlist(curated_list, fill = TRUE)
 curated_data <- curated_data[, ..read_cols]
@@ -142,12 +145,11 @@ plot(brazil["code_state"],
 plot(soildata_sf["estado_id"], cex = 0.3, add = TRUE, pch = 20)
 dev.off()
 
-# Append dataset_titulo, organizacao_nome, and dataset_licenca to curated_data
-# from soildata (first occurrence of each dataset_id)
-cols <- c("dataset_id", "dataset_titulo", "organizacao_nome", "dataset_licenca")
-curated_data <- merge(curated_data, unique(soildata[, ..cols]),
-  by = "dataset_id", all.x = TRUE
-)
+# Append organization to curated_data using the first occurrence of each dataset_id.
+metadata <- soildata[, .(
+  organizacao_nome = organizacao_nome[1L]
+), by = dataset_id]
+curated_data <- merge(curated_data, metadata, by = "dataset_id", all.x = TRUE)
 
 # Filter out duplicated datasets
 curated_ctb <- curated_data[, unique(dataset_id)]
