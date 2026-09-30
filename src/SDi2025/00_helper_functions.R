@@ -4,6 +4,15 @@
 # data: 2026
 # licence: MIT
 
+# Check required packages #####################################################
+required_packages <- c("data.table", "sf", "geobr")
+missing_packages <- required_packages[
+  !vapply(required_packages, requireNamespace, logical(1), quietly = TRUE)
+]
+if (length(missing_packages) > 0) {
+  install.packages(missing_packages)
+}
+
 # Set version ##################################################################
 sdi <- "sdi2025"
 

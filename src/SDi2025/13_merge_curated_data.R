@@ -13,22 +13,13 @@
 # exports the resulting dataset to data/13_soildata.txt.
 rm(list = ls())
 
-# Install and load required packages
-if (!require("data.table")) {
-  install.packages("data.table")
-  library(data.table)
-}
-if (!require("sf")) {
-  install.packages("sf")
-  library(sf)
-}
-if (!require("geobr")) {
-  install.packages("geobr")
-  library(geobr)
-}
-
 # Source helper functions
 source("src/00_helper_functions.R")
+
+# Load required packages
+library(data.table)
+library(sf)
+library(geobr)
 
 # Download Brazilian state boundaries
 # Check if the file already exists to avoid re-downloading
