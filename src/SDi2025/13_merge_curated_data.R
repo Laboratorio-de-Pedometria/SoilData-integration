@@ -1,6 +1,6 @@
 # title: SoilData Integration
 # subtitle: Merge curated data
-# author: Alessandro Samuel-Rosa
+# author: Alessandro Rosa
 # date: 2026
 # licence: MIT
 # description: This script merges datasets curated after the release of the
