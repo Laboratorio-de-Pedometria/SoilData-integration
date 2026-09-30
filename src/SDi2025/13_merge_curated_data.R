@@ -70,12 +70,14 @@ curated_path <- list.files(
   full.names = TRUE, recursive = TRUE
 )
 length(curated_path)
-# 40 datasets
+# 40 curated datasets
 print(curated_path)
 
 # Read all files and store them in a list
 curated_list <- lapply(curated_path, function(x) {
-  data.table::fread(x, na.strings = c("NA", ""))
+  curated <- data.table::fread(x, na.strings = c("NA", ""))
+  data.table::setnames(curated, "ano_fonte", "data_ano_fonte")
+  curated
 })
 
 # rbind all datasets keeping only the matching columns
@@ -83,8 +85,7 @@ curated_list <- lapply(curated_path, function(x) {
 read_cols <- c(
   "dataset_id",
   "observacao_id",
-  "data_ano",
-  "data_fonte",
+  "data_ano", "data_ano_fonte",
   "coord_x", "coord_y", "coord_precisao", "coord_fonte", "coord_datum",
   "pais_id", "estado_id", "municipio_id",
   "amostra_area",
@@ -96,7 +97,6 @@ read_cols <- c(
 curated_data <- data.table::rbindlist(curated_list, fill = TRUE)
 curated_data <- curated_data[, ..read_cols]
 curated_data[, id := paste0(dataset_id, "-", observacao_id)]
-curated_data[!is.na(data_ano), data_fonte := NA_character_]
 summary_soildata(curated_data)
 # Layers: 10105
 # Events: 3780
@@ -127,12 +127,6 @@ plot(brazil["code_state"],
 )
 plot(soildata_sf["estado_id"], cex = 0.3, add = TRUE, pch = 20)
 dev.off()
-
-# PREPARE FOR MERGE
-# Adjust soildata column names
-data.table::setnames(soildata, old = "data_coleta_ano", new = "data_ano")
-data.table::setnames(soildata, old = "data_coleta_ano_fonte", new = "data_fonte")
-data.table::setnames(soildata, old = "coord_datum_epsg", new = "coord_datum")
 
 # Append dataset_titulo, organizacao_nome, and dataset_licenca to curated_data
 # from soildata (first occurrence of each dataset_id)
