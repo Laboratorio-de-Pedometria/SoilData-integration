@@ -14,22 +14,15 @@
 rm(list = ls())
 
 # Source helper functions
-source("src/00_helper_functions.R")
+source("src/SDi2025/00_helper_functions.R")
 
 # Load required packages
 library(data.table)
 library(sf)
 library(geobr)
 
-# Download Brazilian state boundaries
-# Check if the file already exists to avoid re-downloading
-if (!file.exists("data/brazil_states.geojson")) {
-  brazil <- geobr::read_state(simplified = FALSE)
-  # Save the data to a file for future use
-  sf::st_write(brazil, "data/brazil_states.geojson")
-} else {
-  brazil <- sf::st_read("data/brazil_states.geojson")
-}
+# Read Brazilian state boundaries
+brazil <- read_brazil_states()
 
 # Read datasets curated for MapBiomas Soil Collection 3
 dir_path <- "~/ownCloud/SoilData"
@@ -92,7 +85,7 @@ summary_soildata(soildata)
 soildata_sf <- soildata[!is.na(coord_x) & !is.na(coord_y)]
 soildata_sf <- sf::st_as_sf(soildata_sf, coords = c("coord_x", "coord_y"), crs = 4326)
 # Plot spatial distribution
-file_path <- "res/fig/131_spatial_distribution_before_curated_data.png"
+file_path <- fig_path("131_spatial_distribution_before_curated_data.png")
 png(file_path, width = 480 * 3, height = 480 * 3, res = 72 * 3)
 plot(brazil["code_state"],
   col = "gray95", lwd = 0.5, reset = FALSE,
@@ -171,7 +164,7 @@ soildata[dataset_id %in% missing_title, .(dataset_id, dataset_titulo, dataset_li
 soildata_sf <- soildata[!is.na(coord_x) & !is.na(coord_y)]
 soildata_sf <- sf::st_as_sf(soildata_sf, coords = c("coord_x", "coord_y"), crs = 4326)
 # Plot spatial distribution
-file_path <- "res/fig/132_spatial_distribution_after_curated_data.png"
+file_path <- fig_path("132_spatial_distribution_after_curated_data.png")
 png(file_path, width = 480 * 3, height = 480 * 3, res = 72 * 3)
 plot(brazil["code_state"],
   col = "gray95", lwd = 0.5, reset = FALSE,
