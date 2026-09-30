@@ -229,7 +229,8 @@ if (length(missing_title) == 0) {
 # FIGURE 13.2
 # Check spatial distribution after merging curated data
 soildata_sf <- soildata[!is.na(coord_x) & !is.na(coord_y)]
-soildata_sf <- sf::st_as_sf(soildata_sf, coords = c("coord_x", "coord_y"), crs = 4326)
+xy_cols <- c("coord_x", "coord_y")
+soildata_sf <- sf::st_as_sf(soildata_sf, coords = xy_cols, crs = 4326)
 # Plot spatial distribution
 file_path <- fig_path("132_spatial_distribution_after_curated_data.png")
 png(file_path, width = 480 * 3, height = 480 * 3, res = 72 * 3)
@@ -240,9 +241,15 @@ plot(brazil["code_state"],
 plot(soildata_sf["estado_id"], cex = 0.3, add = TRUE, pch = 20)
 dev.off()
 
-####################################################################################################
-# Export cleaned data
+# Export cleaned data ##########################################################
 summary_soildata(soildata)
+# 2026 ---
+# Layers: 64148
+# Events: 20392
+# Georeference: 16852 (yes) / 3540 (no)
+# Date: 20237 (yes) / 155 (no)
+# Datasets: 274
+# 2025 ---
 # Layers: 61145
 # Events: 18537
 # Georeferenced events: 14995
