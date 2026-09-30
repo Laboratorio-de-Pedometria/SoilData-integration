@@ -37,7 +37,8 @@ summary_soildata(soildata)
 # Georeferenced events: 14995
 # Datasets: 263
 
-# Remove duplicates ############################################################
+# Clean datasets ###############################################################
+# Routine to clean entire datasets
 
 # ctb0002 and ctb0838
 # Some records in the ctb0002 dataset are duplicated in the ctb0838 dataset.
@@ -119,6 +120,11 @@ summary_soildata(soildata)
 # Georeference: 16710 (yes) / 3539 (no)
 # Date: 20094 (yes) / 155 (no)
 # Datasets: 271
+
+
+
+
+
 
 # LAYER ORDER
 soildata <- soildata[order(id, profund_sup, profund_inf)]
