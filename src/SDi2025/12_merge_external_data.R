@@ -216,6 +216,16 @@ summary_soildata(ifndata_filtered)
 # Date: 889 (yes) / 0 (no)
 # Datasets: 7
 
+# Missing depth information
+# Check if there are layers missing profund_sup or profund_inf
+if (ifndata_filtered[is.na(profund_sup) | is.na(profund_inf), .N] > 0) {
+  warning("Some layers are missing profund_sup or profund_inf values.")
+  # View records with missing depth information
+  print(ifndata_filtered[is.na(profund_sup) | is.na(profund_inf)])
+} else {
+  message("All layers have valid profund_sup and profund_inf values.")
+}
+
 # Read SoilData data processed in the previous scripts #########################
 soildata <- data.table::fread("data/11_soildata.txt",
   sep = "\t", na.strings = c("", "NA")
