@@ -37,13 +37,13 @@ summary_soildata(soildata)
 # Georeferenced events: 14995
 # Datasets: 263
 
-# Clean datasets
+# Remove duplicates ############################################################
 
 # ctb0002 and ctb0838
-# Some records in the ctb0002 dataset are duplicated in the ctb0838 dataset. They have about the
-# same coordinates (coord_x, coord_y) and supposedly the same soil classification (taxon_sibcs).
-# These data come from the same source/author (Elias Mendes da Costa) and thus are known
-# duplicates.
+# Some records in the ctb0002 dataset are duplicated in the ctb0838 dataset.
+# They have about the same coordinates (coord_x, coord_y) and supposedly the
+# same soil classification (taxon_sibcs). These data come from the same
+# source/author (Elias Mendes da Costa) and thus are known duplicates.
 cols <- c("dataset_id", "observacao_id", "coord_x", "coord_y", "taxon_sibcs")
 ctb0002 <- soildata[dataset_id == "ctb0002", ..cols]
 ctb0002[, coord_x := round(coord_x, 4)]
@@ -52,64 +52,73 @@ ctb0838 <- unique(soildata[dataset_id == "ctb0838", ..cols])
 ctb0838[, coord_x := round(coord_x, 4)]
 ctb0838[, coord_y := round(coord_y, 4)]
 # Check for duplicates
-duplicates <- ctb0002[ctb0838, on = .(coord_x, coord_y, taxon_sibcs), nomatch = 0]
+duplicates <- ctb0002[ctb0838,
+  on = .(coord_x, coord_y, taxon_sibcs), nomatch = 0
+]
 duplicates_idx <- duplicates[, observacao_id]
 # Drop dataset_id = ctb0002 duplicates from soildata
 soildata <- soildata[!(dataset_id == "ctb0002" & observacao_id %in% duplicates_idx)]
 summary_soildata(soildata)
-# Layers: 61130
-# Events: 18522
-# Georeferenced events: 14980
-# Datasets: 263
+# Layers: 64133
+# Events: 20377
+# Georeference: 16837 (yes) / 3540 (no)
+# Date: 20222 (yes) / 155 (no)
+# Datasets: 274
 
 # ctb0029
-# Carbono e matéria orgânica em amostras do solo do Estado do Rio Grande do Sul por diferentes
-# métodos de determinação
-# Some of the samples come from ctb0012. Those samples meet the following criteria:
-# municipio_id == "Silveira Martins" & amostra_tipo == "SIMPLES" 
+# Carbono e matéria orgânica em amostras do solo do Estado do Rio Grande do Sul
+# por diferentes métodos de determinação
+# Some of the samples come from ctb0012. Those samples meet the following
+# criteria:
+# municipio_id == "Silveira Martins" & amostra_tipo == "SIMPLES"
 # Filter out samples in ctb0029 that are also in ctb0012
-soildata <- soildata[!(dataset_id == "ctb0029" & municipio_id == "Silveira Martins" &
-  amostra_tipo == "SIMPLES"), ]
+soildata <- soildata[!(
+  dataset_id == "ctb0029" & municipio_id == "Silveira Martins" &
+    amostra_tipo == "SIMPLES"), ]
 summary_soildata(soildata)
-# Layers: 61126
-# Events: 18518
-# Georeferenced events: 14976
-# Datasets: 263
+# Layers: 64129
+# Events: 20373
+# Georeference: 16833 (yes) / 3540 (no)
+# Date: 20218 (yes) / 155 (no)
+# Datasets: 274
 
 # ctb0654 (exact duplicate of ctb0608)
-# Conjunto de dados do 'V Reunião de Classificação, Correlação e Aplicação de Levantamentos de Solo
-#  - guia de excursão de estudos de solos nos Estados de Pernambuco, Paraíba, Rio Grande do Norte,
-# Ceará e Bahia'
+# Conjunto de dados do 'V Reunião de Classificação, Correlação e Aplicação de
+# Levantamentos de Solo - guia de excursão de estudos de solos nos Estados de
+# Pernambuco, Paraíba, Rio Grande do Norte, Ceará e Bahia'
 # These datasets are exact duplicates. We remove ctb0654.
 soildata <- soildata[dataset_id != "ctb0654", ]
 summary_soildata(soildata)
-# Layers: 61018
-# Events: 18498
-# Georeferenced events: 14957
-# Datasets: 262
+# Layers: 64021
+# Events: 20353
+# Georeference: 16814 (yes) / 3539 (no)
+# Date: 20198 (yes) / 155 (no)
+# Datasets: 273
 
 # ctb0800 (many duplicates of ctb0702)
 # Estudos pedológicos e suas relações ambientais
-# Ideally we should check each duplicated event to decide which one to keep. But this is a
-# time-consuming task. So we just remove all records from ctb0800. These data need to be checked
-# in the future.
+# Ideally we should check each duplicated event to decide which one to keep. But
+# this is a time-consuming task. So we just remove all records from ctb0800. 
+# These data need to be checked in the future.
 soildata <- soildata[dataset_id != "ctb0800", ]
 summary_soildata(soildata)
-# Layers: 60773
-# Events: 18454
-# Georeferenced events: 14913
-# Datasets: 261
+# Layers: 63776
+# Events: 20309
+# Georeference: 16770 (yes) / 3539 (no)
+# Date: 20154 (yes) / 155 (no)
+# Datasets: 272
 
 # ctb0808 (exact duplicate of ctb0574)
-# Conjunto de dados do levantamento semidetalhado 'Levantamento Semidetalhado e Aptidão Agrícola dos
-# Solos do Município do Rio de Janeiro, RJ.'
+# Conjunto de dados do levantamento semidetalhado 'Levantamento Semidetalhado e
+# Aptidão Agrícola dos Solos do Município do Rio de Janeiro, RJ.'
 # These datasets are exact duplicates. We remove ctb0808.
 soildata <- soildata[dataset_id != "ctb0808", ]
 summary_soildata(soildata)
-# Layers: 60432
-# Events: 18394
-# Georeferenced events: 14853
-# Datasets: 260
+# Layers: 63435
+# Events: 20249
+# Georeference: 16710 (yes) / 3539 (no)
+# Date: 20094 (yes) / 155 (no)
+# Datasets: 271
 
 # LAYER ORDER
 soildata <- soildata[order(id, profund_sup, profund_inf)]
