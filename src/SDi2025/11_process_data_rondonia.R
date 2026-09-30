@@ -944,6 +944,11 @@ rm(overlap_id, unmatched_ro, unmatched_ctb0032)
 # retained from ctb0032.
 rondonia_overlap[, dataset_id := "ctb0033"]
 rondonia_overlap[, i.dataset_id := NULL]
+rondonia_overlap[, `:=`(
+  dataset_titulo = "Dados de 'Zoneamento Socioeconômico-Ecológico do Estado de Rondônia'",
+  dataset_licenca = "CC-BY-4.0",
+  organizacao_nome = "Governo do Estado de Rondônia"
+)]
 nrow(rondonia)
 # 10943 layers before the overlap join
 nrow(rondonia_overlap)
