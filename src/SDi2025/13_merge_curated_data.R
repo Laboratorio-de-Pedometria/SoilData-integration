@@ -27,22 +27,50 @@ brazil <- read_brazil_states()
 # Read datasets curated for MapBiomas Soil Collection 3
 # dir_path <- "~/ownCloud/SoilData"
 dir_path <- "~/projects/SoilData/SoilData-ctb"
+dir_path <- path.expand(dir_path)
+repo_url <- "https://github.com/Laboratorio-de-Pedometria/SoilData-ctb.git"
 if (!dir.exists(dir_path)) {
-  dir_path <- path.expand(dir_path)
   dir.create(dirname(dir_path), recursive = TRUE, showWarnings = FALSE)
   # Clone the curated-data repository if it is not available locally
-  repo_url <- "https://github.com/Laboratorio-de-Pedometria/SoilData-ctb.git"
   clone_status <- system2("git", c("clone", repo_url, dir_path))
   if (clone_status != 0L || !dir.exists(dir_path)) {
     stop("Could not clone curated-data repository from: ", repo_url)
   }
+} else {
+  # Check that the existing directory is a Git clone and is up to date
+  git_check <- system2(
+    "git", c("-C", dir_path, "rev-parse", "--is-inside-work-tree"),
+    stdout = TRUE, stderr = FALSE
+  )
+  if (!identical(tolower(trimws(git_check)), "true")) {
+    stop("Directory is not a Git repository: ", dir_path)
+  }
+  fetch_status <- system2("git", c("-C", dir_path, "fetch", "origin"))
+  if (fetch_status != 0L) {
+    stop("Could not fetch updates from: ", repo_url)
+  }
+  local_commit <- system2(
+    "git", c("-C", dir_path, "rev-parse", "HEAD"), stdout = TRUE
+  )
+  remote_commit <- system2(
+    "git", c("-C", dir_path, "rev-parse", "origin/main"), stdout = TRUE
+  )
+  if (!identical(trimws(local_commit), trimws(remote_commit))) {
+    stop(
+      paste("Curated-data repository is not up to date.\n",
+       "Please pull origin/main before continuing: "),
+      dir_path
+    )
+  }
 }
+
+# List curated CSV files in the directory
 curated_path <- list.files(
-  path = path.expand(dir_path), pattern = "^ctb[0-9]{4}\\.csv$",
+  path = dir_path, pattern = "^ctb[0-9]{4}\\.csv$",
   full.names = TRUE, recursive = TRUE
 )
 length(curated_path)
-# 29 datasets
+# 40 datasets
 print(curated_path)
 
 # Read all files and store them in a list
