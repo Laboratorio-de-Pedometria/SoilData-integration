@@ -98,14 +98,19 @@ curated_data <- data.table::rbindlist(curated_list, fill = TRUE)
 curated_data <- curated_data[, ..read_cols]
 curated_data[, id := paste0(dataset_id, "-", observacao_id)]
 summary_soildata(curated_data)
+# 2026 ---
+# Layers: 13561
+# Events: 5914
+# Georeference: 5472 (yes) / 442 (no)
+# Date: 5911 (yes) / 3 (no)
+# Datasets: 40
+# 2025 ---
 # Layers: 10105
 # Events: 3780
 # Georeferenced events: 3366
 # Datasets: 29
 
-# Fix known issues in curated data
-curated_data[dataset_id == "ctb0063", data_ano := ifelse(data_ano == 1, 2000, data_ano)]
-
+# Merge curated data with SoilData #############################################
 # Read SoilData data processed in the previous script
 soildata <- data.table::fread("data/12_soildata.txt", sep = "\t", na.strings = c("", "NA"))
 summary_soildata(soildata)
