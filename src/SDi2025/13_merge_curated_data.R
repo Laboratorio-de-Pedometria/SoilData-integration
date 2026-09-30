@@ -25,19 +25,25 @@ library(geobr)
 brazil <- read_brazil_states()
 
 # Read datasets curated for MapBiomas Soil Collection 3
-dir_path <- "~/ownCloud/SoilData"
-# Check if the directory exists
+# dir_path <- "~/ownCloud/SoilData"
+dir_path <- "~/projects/SoilData/SoilData-ctb"
 if (!dir.exists(dir_path)) {
-  stop("Directory does not exist: ", dir_path)
-} else {
-  curated_path <- list.files(
-    path = path.expand(dir_path), pattern = "^ctb[0-9]{4}\\.csv$",
-    full.names = TRUE, recursive = TRUE
-  )
-  length(curated_path)
-  # 29 datasets
-  print(curated_path)
+  dir_path <- path.expand(dir_path)
+  dir.create(dirname(dir_path), recursive = TRUE, showWarnings = FALSE)
+  # Clone the curated-data repository if it is not available locally
+  repo_url <- "https://github.com/Laboratorio-de-Pedometria/SoilData-ctb.git"
+  clone_status <- system2("git", c("clone", repo_url, dir_path))
+  if (clone_status != 0L || !dir.exists(dir_path)) {
+    stop("Could not clone curated-data repository from: ", repo_url)
+  }
 }
+curated_path <- list.files(
+  path = path.expand(dir_path), pattern = "^ctb[0-9]{4}\\.csv$",
+  full.names = TRUE, recursive = TRUE
+)
+length(curated_path)
+# 29 datasets
+print(curated_path)
 
 # Read all files and store them in a list
 curated_list <- lapply(curated_path, function(x) {
