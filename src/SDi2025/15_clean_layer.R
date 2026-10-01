@@ -301,93 +301,18 @@ soildata[
 soildata[, max_profund_inf := NULL]
 soildata[profund_sup == profund_inf]
 # 0 layers
-
-
-# Some events from dataset_id = ctb0033 have a single layer and the depth limit is equal to zero.
-# We remove these layers.
-# We need to check these corrections in the source data in the future.
-soildata[, n_layers := .N, by = id]
-soildata[
-  dataset_id == "ctb0033" & profund_sup == profund_inf & profund_sup == 0 & n_layers == 1,
-  .(id, camada_nome, profund_sup, profund_inf)
-]
-soildata <- soildata[
-  !(dataset_id == "ctb0033" & profund_sup == profund_inf & profund_sup == 0 & n_layers == 1)
-]
-nrow(soildata[profund_sup == profund_inf])
-# 59 layers
-soildata[, n_layers := NULL]
-print(soildata[equal_depth == TRUE, ..cols])
-# Some events with profund_sup == profund_inf and profund_sup == 0 are from ctb0631.
-# Actually, these layers have not a depth limit recorded. So we set them to NA.
-# We need to check these corrections in the source data in the future.
-soildata[
-  dataset_id == "ctb0631" & profund_sup == profund_inf & profund_sup == 0,
-  .(id, camada_nome, profund_sup, profund_inf, carbono)
-]
-soildata <- soildata[!(dataset_id == "ctb0631" & profund_sup == profund_inf & profund_sup == 0)]
-nrow(soildata[profund_sup == profund_inf])
-# 36 layers
-print(soildata[equal_depth == TRUE, ..cols])
-# For some datasets, we add a fixed depth to the lowermost layer. This decision is based on
-# visual inspection of the data. These corrections need to be checked in the source data in the
-# future.
-# ctb0691, ctb0787, ctb0675, ctb0603, ctb0645, ctb0033, ctb0678, ctb0691
-soildata[
-  dataset_id == "ctb0691" & profund_sup == profund_inf, profund_inf := profund_inf + plus_depth
-]
-soildata[
-  dataset_id == "ctb0787" & profund_sup == profund_inf, profund_inf := profund_inf + plus_depth
-]
-soildata[
-  dataset_id == "ctb0675" & profund_sup == profund_inf, profund_inf := profund_inf + plus_depth
-]
-soildata[
-  dataset_id == "ctb0603" & profund_sup == profund_inf, profund_inf := profund_inf + plus_depth
-]
-soildata[
-  dataset_id == "ctb0645" & profund_sup == profund_inf, profund_inf := profund_inf + plus_depth
-]
-soildata[
-  dataset_id == "ctb0033" & profund_sup == profund_inf, profund_inf := profund_inf + plus_depth
-]
-soildata[
-  dataset_id == "ctb0678" & profund_sup == profund_inf, profund_inf := profund_inf + plus_depth
-]
-soildata[
-  dataset_id == "ctb0691" & profund_sup == profund_inf, profund_inf := profund_inf + plus_depth
-]
-soildata[
-  id == "ctb0662-P55" & profund_sup == profund_inf, profund_inf := profund_inf + plus_depth
-]
-soildata[
-  id == "ctb0717-38" & profund_sup == profund_inf, profund_inf := profund_inf + plus_depth
-]
-# Some layers have equal values for profund_sup and profund_inf, but they are not R, D, or C layers.
-# We need to check these layers in the source data in the future. Here we simply remove these layers.
-soildata <- soildata[!(id == "ctb0809-Exame-8" & profund_sup == profund_inf)]
-# Check
-nrow(soildata[profund_sup == profund_inf])
-# 15 layers
-soildata[, equal_depth := any(profund_sup == profund_inf), by = id]
-print(soildata[equal_depth == TRUE, ..cols])
-# For some datasets, we add a fixed depth to the uppermost layer# 
-soildata[id == "ctb0775-9" & camada_nome == "B21" & profund_sup == 150 & profund_inf == 150, `:=`(
-  profund_sup = 100,
-  profund_inf = 150
-)]
-soildata[, equal_depth := any(profund_sup == profund_inf), by = id]
-# View(soildata[equal_depth == TRUE, ..cols])
-# Drop all of the remaining layers with equal depth limits
-soildata <- soildata[equal_depth == FALSE]
-nrow(soildata[profund_sup == profund_inf])
-# 0 layers
-soildata[, equal_depth := NULL]
 summary_soildata(soildata)
-# Layers: 57891
-# Events: 16868
-# Georeferenced events: 14388
-# Datasets: 255
+# Layers: 63277
+# Events: 20249
+# Georeference: 16709 (yes) / 3540 (no)
+# Date: 20092 (yes) / 157 (no)
+# Datasets: 271
+
+
+
+
+
+
 
 # Layer id
 # Sort each event (id) by layer depth (profund_sup and profund_inf)
