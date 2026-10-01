@@ -80,6 +80,8 @@ curated_list <- lapply(curated_path, function(x) {
   data.table::setnames(curated, "ano_fonte", "data_ano_fonte")
   curated
 })
+length(curated_list)
+# 40 curated datasets
 
 # rbind all datasets keeping only the matching columns
 # Target columns
@@ -103,7 +105,7 @@ curated_data <- curated_data[, ..read_cols]
 curated_data[, id := paste0(dataset_id, "-", observacao_id)]
 summary_soildata(curated_data)
 # 2026 ---
-# Layers: 13561
+# Layers: 13561 (13446?????????)
 # Events: 5914
 # Georeference: 5472 (yes) / 442 (no)
 # Date: 5911 (yes) / 3 (no)

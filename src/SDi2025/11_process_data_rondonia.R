@@ -14,28 +14,14 @@
 # dataset and merges the newly processed data, saving the result.
 rm(list = ls())
 
-# Load required packages
-if (!require("data.table")) {
-  install.packages("data.table")
-  library("data.table")
-}
-if (!require("openxlsx")) {
-  install.packages("openxlsx")
-  library("openxlsx")
-}
-if (!require("sf")) {
-  install.packages("sf")
-  library("sf")
-}
-if (!require("febr")) {
-  if (!require(remotes)) {
-    install.packages(pkgs = "remotes")
-  }
-  remotes::install_github(repo = "laboratorio-de-pedometria/febr-package")
-}
-
 # Source helper functions
 source("src/SDi2025/00_helper_functions.R")
+
+# Load required packages
+library(data.table)
+library(openxlsx)
+library(sf)
+library(febr)
 
 # Zoneamento Socioeconômico-Ecológico do Estado de Rondônia (ctb0033 and 
 # ctb0034)

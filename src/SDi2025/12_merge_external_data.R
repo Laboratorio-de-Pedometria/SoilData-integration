@@ -15,22 +15,13 @@
 # data/12_soildata.txt.
 rm(list = ls())
 
-# Install and load required packages
-if (!require("data.table")) {
-  install.packages("data.table")
-  library(data.table)
-}
-if (!require("sf")) {
-  install.packages("sf")
-  library(sf)
-}
-if (!require("geobr")) {
-  install.packages("geobr")
-  library(geobr)
-}
-
 # Source helper functions
 source("src/SDi2025/00_helper_functions.R")
+
+# Load required packages
+library(data.table)
+library(sf)
+library(geobr)
 
 # Read Brazilian state boundaries
 brazil <- read_brazil_states()
@@ -346,5 +337,3 @@ summary_soildata(soildata)
 # Georeferenced events: 12041
 # Datasets: 242
 data.table::fwrite(soildata, "data/12_soildata.txt", sep = "\t")
-
-
