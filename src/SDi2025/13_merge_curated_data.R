@@ -248,7 +248,7 @@ dev.off()
 # Export cleaned data ##########################################################
 summary_soildata(soildata)
 # 2026 ---
-# Layers: 64033
+# Layers: 64032
 # Events: 20394
 # Georeference: 16852 (yes) / 3542 (no)
 # Date: 20237 (yes) / 157 (no)
