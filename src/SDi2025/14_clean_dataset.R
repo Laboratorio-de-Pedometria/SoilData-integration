@@ -153,7 +153,7 @@ dev.off()
 # Write data to disk ###########################################################
 summary_soildata(soildata)
 # 2026 ---
-# Layers: 63320
+# Layers: 63319
 # Events: 20251
 # Georeference: 16710 (yes) / 3541 (no)
 # Date: 20094 (yes) / 157 (no)
