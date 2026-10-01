@@ -733,6 +733,12 @@ if (FALSE) {
   cols <- c("observacao_id", "camada_nome", "profund_sup", "profund_inf")
   View(rondonia[EXTRA == TRUE, ..cols])
 }
+# Extra samples with zero-width depths represent the source-documented 0-20 cm
+# layer.
+rondonia[
+  EXTRA == TRUE & profund_sup == 0 & profund_inf == 0,
+  profund_inf := 20
+]
 # Set camada_nome to profund_sup-profund_inf for duplicated layers
 rondonia[EXTRA == TRUE, camada_nome := paste0(profund_sup, "-", profund_inf)]
 
