@@ -154,8 +154,8 @@ dev.off()
 summary_soildata(soildata)
 # 2026 ---
 # Layers: 63320
-# Events: 20249
-# Georeference: 16710 (yes) / 3539 (no)
-# Date: 20094 (yes) / 155 (no)
+# Events: 20251
+# Georeference: 16710 (yes) / 3541 (no)
+# Date: 20094 (yes) / 157 (no)
 # Datasets: 271
 data.table::fwrite(soildata, "data/14_soildata.txt", sep = "\t")
