@@ -249,9 +249,9 @@ dev.off()
 summary_soildata(soildata)
 # 2026 ---
 # Layers: 64033
-# Events: 20392
-# Georeference: 16852 (yes) / 3540 (no)
-# Date: 20237 (yes) / 155 (no)
+# Events: 20394
+# Georeference: 16852 (yes) / 3542 (no)
+# Date: 20237 (yes) / 157 (no)
 # Datasets: 274
 # 2025 ---
 # Layers: 61145
