@@ -142,7 +142,7 @@ nrow(eventRO)
 # 2998
 
 # Standardize column names and data types
-eventRO[, dataset_id := "ctb0033"]
+eventRO[is.na(dataset_id), dataset_id := "ctb0033"]
 eventRO[, coord_datum_epsg := NULL]
 eventRO[, coord_datum := "EPSG:4326"]
 new_names <- c(
@@ -669,7 +669,7 @@ if (FALSE) {
 
 # Standardize column names
 str(layerRO)
-layerRO[, dataset_id := "ctb0033"]
+layerRO[is.na(dataset_id), dataset_id := "ctb0033"]
 layerRO[, i.camada_id_febr := NULL]
 layerRO[, i.profund_sup := NULL]
 layerRO[, i.profund_inf := NULL]
@@ -930,6 +930,7 @@ rm(overlap_id, unmatched_ro, unmatched_ctb0032)
 # retained from ctb0032.
 rondonia_overlap[, dataset_id := "ctb0033"]
 rondonia_overlap[, i.dataset_id := NULL]
+rondonia_overlap[is.na(id), id := paste0(dataset_id, "-", observacao_id)]
 rondonia_overlap[, `:=`(
   dataset_titulo = "Dados de 'Zoneamento Socioeconômico-Ecológico do Estado de Rondônia'",
   dataset_licenca = "CC-BY-4.0",
@@ -1083,9 +1084,9 @@ if(FALSE) {
 summary_soildata(soildata)
 # 2026 ---
 # Layers: 50277
-# Events: 14003
-# Georeference: 10903 (yes) / 3100 (no)
-# Date: 13850 (yes) / 153 (no)
+# Events: 14005
+# Georeference: 10903 (yes) / 3102 (no)
+# Date: 13850 (yes) / 155 (no)
 # Datasets: 235
 # 2025 ---
 # Layers: 49684
