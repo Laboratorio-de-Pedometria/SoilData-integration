@@ -122,10 +122,10 @@ file <- "data/12_soildata.txt"
 soildata <- data.table::fread(file, sep = "\t", na.strings = c("", "NA"))
 summary_soildata(soildata)
 # 2026 ---
-# Layers: 51803
-# Events: 14892
-# Georeference: 11792 (yes) / 3100 (no)
-# Date: 14739 (yes) / 153 (no)
+# Layers: 51802
+# Events: 14894
+# Georeference: 11792 (yes) / 3102 (no)
+# Date: 14739 (yes) / 155 (no)
 # Datasets: 242
 # 2025 ---
 # Layers: 52256
@@ -160,10 +160,10 @@ curated_ctb <- curated_data[, unique(dataset_id)]
 soildata <- soildata[!dataset_id %in% curated_ctb]
 summary_soildata(soildata)
 # 2026 ---
-# Layers: 50587
-# Events: 14478
-# Georeference: 11380 (yes) / 3098 (no)
-# Date: 14326 (yes) / 152 (no)
+# Layers: 50586
+# Events: 14480
+# Georeference: 11380 (yes) / 3100 (no)
+# Date: 14326 (yes) / 154 (no)
 # Datasets: 234
 # 2025 ---
 # Layers: 51040
@@ -175,10 +175,10 @@ summary_soildata(soildata)
 soildata <- rbind(soildata, curated_data, fill = TRUE)
 summary_soildata(soildata)
 # 2026 ---
-# Layers: 64033
-# Events: 20392
-# Georeference: 16852 (yes) / 3540 (no)
-# Date: 20237 (yes) / 155 (no)
+# Layers: 64032
+# Events: 20394
+# Georeference: 16852 (yes) / 3542 (no)
+# Date: 20237 (yes) / 157 (no)
 # Datasets: 274
 # 2025 ---
 # Layers: 61145
