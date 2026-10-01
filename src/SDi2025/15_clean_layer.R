@@ -24,6 +24,11 @@ brazil <- read_brazil_states()
 # Read the dataset-cleaned SoilData from the previous script
 soildata <- data.table::fread("data/14_soildata.txt", sep = "\t")
 summary_soildata(soildata)
+# Layers: 63320
+# Events: 20251
+# Georeference: 16710 (yes) / 3541 (no)
+# Date: 20094 (yes) / 157 (no)
+# Datasets:271
 
 # Order layers by event (id) and layer depth (profund_sup and profund_inf)
 soildata <- soildata[order(id, profund_sup, profund_inf)]
@@ -41,7 +46,6 @@ soildata[id == "ctb0636-Perfil-03" & camada_nome == "Ao", camada_nome := "A1"]
 # limits and then correct them. Here we simply reverse the depth limits. The
 # corrections need to be checked in the source data in the future.
 cols <- c("id", "camada_nome", "profund_sup", "profund_inf")
-soildata[profund_sup > profund_inf, ..cols]
 nrow(soildata[profund_sup > profund_inf])
 # 0 layers with incorrect depth limits
 # The following layers were already corrected in a previous script:
@@ -81,14 +85,144 @@ nrow(soildata[profund_sup > profund_inf])
 # }
 # rm(negative_depths)
 
-# Some layers have equal values for profund_sup and profund_inf.
-# This may occur when the soil profile sampling and description ended at the top of the layer,
-# producing a censoring effect. If the layer has a name containing R, D, or C, we add a fixed depth
-# (plus_depth).
+# profund_sup == profund_inf
+# Some layers have equal values for profund_sup and profund_inf. This may occur
+# when the soil profile sampling and description ended at the top of the layer,
+# producing a censoring effect. If the layer has a name containing R, D, or C, 
+# we add a fixed depth (plus_depth).
 nrow(soildata[profund_sup == profund_inf])
-# 222 layers
+# 203 layers
 soildata[, equal_depth := any(profund_sup == profund_inf), by = id]
-print(soildata[equal_depth == TRUE, ..cols])
+if (FALSE) {
+  View(soildata[
+    equal_depth == TRUE,
+    .(id, camada_nome, profund_sup, profund_inf, carbono)
+  ])
+}
+# Manual correction for a few cases:
+# ctb0606-Perfil-02
+# This has already been corrected in the source spreadsheet.
+soildata[id == "ctb0606-Perfil-02" & camada_nome == "CR3", `:=`(
+  profund_sup = 120,
+  profund_inf = 150
+)]
+soildata[id == "ctb0606-Perfil-02" & camada_nome == "CR", `:=`(
+  profund_sup = 150,
+  profund_inf = 170
+)]
+# Some profiles have both profund_sup and profund_inf equal to zero and/or NA
+# for all layers. Identify these cases.
+soildata[
+  equal_depth == TRUE & profund_sup == 0 & profund_inf == 0,
+  .(id, camada_nome, profund_sup, profund_inf)
+]
+# ctb0617-Extra-28: Depths were not recorded in the source document, but 
+# erroneously recorded as 0 in the source spreadsheet. This was corrected in the
+# source spreadsheet. We set the depth limits to NA. This was already corrected 
+# in the source spreadsheet.
+soildata[id == "ctb0617-Extra-28", `:=`(
+  profund_sup = NA_real_,
+  profund_inf = NA_real_
+)]
+# ctb0627-Pinheiro-Pr-25. We do not have access to the source document. However,
+# in the source spreadsheet, the depth limits were erroneously recorded as 0. We
+# set the depth limits to NA.
+soildata[id == "ctb0627-Pinheiro-Pr-25", `:=`(
+  profund_sup = NA_real_,
+  profund_inf = NA_real_
+)]
+# ctb0631-PC-130. Depths were not recorded in the source document, but 
+# erroneously recorded as 0 in the source spreadsheet. We set the depth limits 
+# to NA. This was already corrected in the source spreadsheet.
+soildata[id == "ctb0631-PC-130", `:=`(
+  profund_sup = NA_real_,
+  profund_inf = NA_real_
+)]
+# ctb0631-PC-30. Depths were not recorded in the source document, but
+# erroneously recorded as 0 in the source spreadsheet. We set the depth limits 
+# to NA. This was already corrected in the source spreadsheet.
+soildata[id == "ctb0631-PC-30", `:=`(
+  profund_sup = NA_real_,
+  profund_inf = NA_real_
+)]
+# ctb0631-PC-32. Depths were not recorded in the source document, but
+# erroneously recorded as 0 in the source spreadsheet. We set the depth limits
+# to NA. This was already corrected in the source spreadsheet.
+soildata[id == "ctb0631-PC-32", `:=`(
+  profund_sup = NA_real_,
+  profund_inf = NA_real_
+)]
+# ctb0631-PC-68. Depths were not recorded in the source document, but
+# erroneously recorded as 0 in the source spreadsheet. We set the depth limits
+# to NA. This was already corrected in the source spreadsheet.
+soildata[id == "ctb0631-PC-68", `:=`(
+  profund_sup = NA_real_,
+  profund_inf = NA_real_
+)]
+# ctb0631-PC-72. Depths were not recorded in the source document, but
+# erroneously recorded as 0 in the source spreadsheet. We set the depth limits
+# to NA. This was already corrected in the source spreadsheet.
+soildata[id == "ctb0631-PC-72", `:=`(
+  profund_sup = NA_real_,
+  profund_inf = NA_real_
+)]
+# ctb0631-PC-73. Depths were not recorded in the source document, but
+# erroneously recorded as 0 in the source spreadsheet. We set the depth limits
+# to NA. This was already corrected in the source spreadsheet.
+soildata[id == "ctb0631-PC-73", `:=`(
+  profund_sup = NA_real_,
+  profund_inf = NA_real_
+)]
+# ctb0631-PC-80. Depths were not recorded in the source document, but
+# erroneously recorded as 0 in the source spreadsheet. We set the depth limits
+# to NA. This was already corrected in the source spreadsheet.
+soildata[id == "ctb0631-PC-80", `:=`(
+  profund_sup = NA_real_,
+  profund_inf = NA_real_
+)]
+# ctb0631-PC-81. Depths were not recorded in the source document, but
+# erroneously recorded as 0 in the source spreadsheet. We set the depth limits
+# to NA. This was already corrected in the source spreadsheet.
+soildata[id == "ctb0631-PC-81", `:=`(
+  profund_sup = NA_real_,
+  profund_inf = NA_real_
+)]
+# ctb0631-PC-82. Depths were not recorded in the source document, but
+# erroneously recorded as 0 in the source spreadsheet. We set the depth limits
+# to NA. This was already corrected in the source spreadsheet.
+soildata[id == "ctb0631-PC-82", `:=`(
+  profund_sup = NA_real_,
+  profund_inf = NA_real_
+)]
+# ctb0631-PC-83. Depths were not recorded in the source document, but
+# erroneously recorded as 0 in the source spreadsheet. We set the depth limits
+# to NA. This was already corrected in the source spreadsheet.
+soildata[id == "ctb0631-PC-83", `:=`(
+  profund_sup = NA_real_,
+  profund_inf = NA_real_
+)]
+# ctb0631-PC-84. Depths were not recorded in the source document, but
+# erroneously recorded as 0 in the source spreadsheet. We set the depth limits
+# to NA. This was already corrected in the source spreadsheet.
+soildata[id == "ctb0631-PC-84", `:=`(
+  profund_sup = NA_real_,
+  profund_inf = NA_real_
+)]
+# Check if the layer with profund_sup == profund_inf is the lowermost layer of
+# the profile. If so, we add a fixed depth (plus_depth) to the lowermost layer.
+plus_depth <- 20
+soildata[, max_profund_inf := if (all(is.na(profund_inf))) {
+  NA_real_
+} else {
+  max(profund_inf, na.rm = TRUE)
+}, by = id]
+soildata[
+  profund_sup == profund_inf & profund_inf == max_profund_inf,
+  profund_inf := profund_inf + plus_depth
+]
+soildata[, max_profund_inf := NULL]
+
+
 # Add a fixed depth (10 cm) to R, D, and C layers with equal depth limits
 # We need to check these corrections in the source data in the future.
 plus_depth <- 10
