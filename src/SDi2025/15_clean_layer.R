@@ -62,23 +62,24 @@ nrow(soildata[profund_sup > profund_inf])
 #   profund_inf = 120
 # )]
 
-# Correct negative (profund_sup < 0) depth limit of topsoil layers
-# Check each soil profile (id) for negative depth limits. Store the result in a new column
-# "negative_depth" (TRUE/FALSE). If a profile has negative depth limits, add the absolute value of
-# the negative depth limit to the depth limits (profund_sup and profund_inf) of all layers of that
-# profile.
-# This means that we standardize the topsoil layer to start at 0 cm depth. We still need to 
-# think about the best way to handle negative depth limits (organic layers).
-negative_depths <- soildata[, .(min_depth = min(profund_sup)), by = id][min_depth < 0]
-print(negative_depths)
-if (nrow(negative_depths) > 0) {
-  soildata[negative_depths, on = "id", `:=` (
-    profund_sup = profund_sup + abs(i.min_depth),
-    profund_inf = profund_inf + abs(i.min_depth)
-    )
-  ]
-}
-rm(negative_depths)
+# WE WILL KEEEP NEGATIVE DEPTHS TO IDENTIFY LITTER LAYERS
+# # Correct negative (profund_sup < 0) depth limit of topsoil layers
+# # Check each soil profile (id) for negative depth limits. Store the result in a
+# # new column "negative_depth" (TRUE/FALSE). If a profile has negative depth 
+# # limits, add the absolute value of the negative depth limit to the depth limits
+# # (profund_sup and profund_inf) of all layers of that profile. This means that 
+# # we standardize the topsoil layer to start at 0 cm depth. We still need to 
+# # think about the best way to handle negative depth limits (organic layers).
+# negative_depths <- soildata[, .(min_depth = min(profund_sup)), by = id][min_depth < 0]
+# print(negative_depths)
+# if (nrow(negative_depths) > 0) {
+#   soildata[negative_depths, on = "id", `:=` (
+#     profund_sup = profund_sup + abs(i.min_depth),
+#     profund_inf = profund_inf + abs(i.min_depth)
+#     )
+#   ]
+# }
+# rm(negative_depths)
 
 # Some layers have equal values for profund_sup and profund_inf.
 # This may occur when the soil profile sampling and description ended at the top of the layer,
