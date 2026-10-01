@@ -139,9 +139,16 @@ soildata[id == "ctb0631-PC-130", `:=`(
   profund_inf = NA_real_
 )]
 # ctb0631-PC-30. Depths were not recorded in the source document, but
-# erroneously recorded as 0 in the source spreadsheet. We set the depth limits 
+# erroneously recorded as 0 in the source spreadsheet. We set the depth limits
 # to NA. This was already corrected in the source spreadsheet.
 soildata[id == "ctb0631-PC-30", `:=`(
+  profund_sup = NA_real_,
+  profund_inf = NA_real_
+)]
+# ctb0631-PC-31. Depths were not recorded in the source document, but
+# erroneously recorded as 0 in the source spreadsheet. We set the depth limits
+# to NA. This was already corrected in the source spreadsheet.
+soildata[id == "ctb0631-PC-31", `:=`(
   profund_sup = NA_real_,
   profund_inf = NA_real_
 )]
@@ -208,6 +215,7 @@ soildata[id == "ctb0631-PC-84", `:=`(
   profund_sup = NA_real_,
   profund_inf = NA_real_
 )]
+
 # Check if the layer with profund_sup == profund_inf is the lowermost layer of
 # the profile. If so, we add a fixed depth (plus_depth) to the lowermost layer.
 plus_depth <- 20
