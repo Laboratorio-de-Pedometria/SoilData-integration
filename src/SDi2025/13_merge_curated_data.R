@@ -80,6 +80,8 @@ curated_list <- lapply(curated_path, function(x) {
   data.table::setnames(curated, "ano_fonte", "data_ano_fonte")
   curated
 })
+length(curated_list)
+# 40 curated datasets
 
 # rbind all datasets keeping only the matching columns
 # Target columns
