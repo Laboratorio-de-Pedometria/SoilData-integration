@@ -24,10 +24,10 @@ brazil <- read_brazil_states()
 soildata <- data.table::fread("data/13_soildata.txt", sep = "\t")
 summary_soildata(soildata)
 # 2026 ---
-# Layers: 64033
-# Events: 20392
-# Georeference: 16852 (yes) / 3540 (no)
-# Date: 20237 (yes) / 155 (no)
+# Layers: 64032
+# Events: 20394
+# Georeference: 16852 (yes) / 3542 (no)
+# Date: 20237 (yes) / 157 (no)
 # Datasets: 274
 # 2025 ---
 # Layers: 61145
@@ -65,10 +65,10 @@ if (length(duplicates_idx) > 0L) {
 # Drop dataset_id = ctb0002 duplicates from soildata
 soildata <- soildata[!(dataset_id == "ctb0002" & observacao_id %in% duplicates_idx)]
 summary_soildata(soildata)
-# Layers: 64018
-# Events: 20377
-# Georeference: 16837 (yes) / 3540 (no)
-# Date: 20222 (yes) / 155 (no)
+# Layers: 64017
+# Events: 20379
+# Georeference: 16837 (yes) / 3542 (no)
+# Date: 20222 (yes) / 157 (no)
 # Datasets: 274
 
 # ctb0029
@@ -92,10 +92,10 @@ soildata <- soildata[!(
   dataset_id == "ctb0029" & municipio_id == "Silveira Martins" &
     amostra_tipo == "SIMPLES"), ]
 summary_soildata(soildata)
-# Layers: 64014
-# Events: 20373
-# Georeference: 16833 (yes) / 3540 (no)
-# Date: 20218 (yes) / 155 (no)
+# Layers: 64013
+# Events: 20375
+# Georeference: 16833 (yes) / 3542 (no)
+# Date: 20218 (yes) / 157 (no)
 # Datasets: 274
 
 # ctb0654 (exact duplicate of ctb0608)
@@ -105,10 +105,10 @@ summary_soildata(soildata)
 # These datasets are exact duplicates. We remove ctb0654.
 soildata <- soildata[dataset_id != "ctb0654", ]
 summary_soildata(soildata)
-# Layers: 63906
-# Events: 20353
-# Georeference: 16814 (yes) / 3539 (no)
-# Date: 20198 (yes) / 155 (no)
+# Layers: 63905
+# Events: 20355
+# Georeference: 16814 (yes) / 3541 (no)
+# Date: 20198 (yes) / 157 (no)
 # Datasets: 273
 
 # ctb0800 (many duplicates of ctb0702)
@@ -118,10 +118,10 @@ summary_soildata(soildata)
 # These data need to be checked in the future.
 soildata <- soildata[dataset_id != "ctb0800", ]
 summary_soildata(soildata)
-# Layers: 63661
-# Events: 20309
-# Georeference: 16770 (yes) / 3539 (no)
-# Date: 20154 (yes) / 155 (no)
+# Layers: 63660
+# Events: 20311
+# Georeference: 16770 (yes) / 3541 (no)
+# Date: 20154 (yes) / 157 (no)
 # Datasets: 272
 
 # ctb0808 (exact duplicate of ctb0574)
@@ -130,10 +130,10 @@ summary_soildata(soildata)
 # These datasets are exact duplicates. We remove ctb0808.
 soildata <- soildata[dataset_id != "ctb0808", ]
 summary_soildata(soildata)
-# Layers: 63320
-# Events: 20249
-# Georeference: 16710 (yes) / 3539 (no)
-# Date: 20094 (yes) / 155 (no)
+# Layers: 63319
+# Events: 20251
+# Georeference: 16710 (yes) / 3541 (no)
+# Date: 20094 (yes) / 157 (no)
 # Datasets: 271
 
 # FIGURE 14.1
