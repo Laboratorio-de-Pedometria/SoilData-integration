@@ -278,13 +278,14 @@ soildata[id == "ctb0821-P43" & camada_nome == "C", profund_inf := 150]
 #  corrected in the source spreadsheet.
 soildata[id == "ctb0775-9" & camada_nome == "B21", profund_sup := 100]
 
-# Profiles with duplication
-# ctb0635-PERFIL-DF-43. This profile is completely messed up and requires a
-# complete revision. We remove it from the dataset.
-soildata <- soildata[id != "ctb0635-PERFIL-DF-43"]
-# ctb0717-38. This profile has many duplicated layers. We drop it from the
-# dataset. We need to check this profile in the source data in the future.
-soildata <- soildata[id != "ctb0717-38"]
+# Profiles with duplicated layers
+# ctb0635-PERFIL-DF-43. This profile has duplicated layers and appears to
+# include data from two different soil profiles.
+# ctb0717-38. This profile has duplicated layers.
+# We will identify the duplicated layers and remove them from the dataset.
+soildata[id %in% c("ctb0635-PERFIL-DF-43", "ctb0717-38") &
+  duplicated(camada_nome) & duplicated(profund_sup) & duplicated(profund_inf) & duplicated(carbono), duplicated := TRUE]
+soildata <- soildata[duplicated != TRUE | is.na(duplicated)]
 
 # Check if the layer with profund_sup == profund_inf is the lowermost layer of
 # the profile. If so, we add a fixed depth (plus_depth) to the lowermost layer.
@@ -308,27 +309,25 @@ summary_soildata(soildata)
 # Date: 20092 (yes) / 157 (no)
 # Datasets: 271
 
-
-
-
-
-
-
 # Layer id
 # Sort each event (id) by layer depth (profund_sup and profund_inf)
 # Update the columns camada_id
 soildata <- soildata[order(id, profund_sup, profund_inf)]
 soildata[, camada_id := 1:.N, by = id]
 
+
+
+
 # Remove repeated layers
-# Some layers are repeated in the same event (id). These layers have equal values for camada_nome,
-# profund_sup, and profund_inf. We create a new variable called repeated to identify these layers.
-# Then, we filter out these layers.
+# Some layers are repeated in the same event (id). These layers have equal 
+# values for camada_nome, profund_sup, and profund_inf. We create a new variable
+# called repeated to identify these layers. Then, we filter out these layers.
 soildata[,
   repeated := duplicated(camada_nome) & duplicated(profund_sup) & duplicated(profund_inf),
   by = id
 ]
 print(soildata[repeated == TRUE, .(id, camada_nome, profund_sup, profund_inf, carbono)])
+
 # ATTENTION: REPEATED LAYERS IN DATA FROM THE NATIONAL FOREST INVENTORY HAVE DIFFERENT SOIL
 # PROPERTY VALUES. THIS IS A PROBLEM THAT NEEDS TO BE SOLVED IN THE FUTURE!
 print(soildata[id == "ctb0055-PR_4", .(id, camada_nome, profund_sup, profund_inf, carbono)])
