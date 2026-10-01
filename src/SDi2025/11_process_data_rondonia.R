@@ -1,6 +1,6 @@
 # title: SoilData Integration
 # subtitle: Process data from Rondônia
-# author: Alessandro Samuel-Rosa
+# author: Alessandro Rosa
 # date: 2026
 # licence: MIT
 # description: This script processes soil data from the Socioeconomic-Ecological
