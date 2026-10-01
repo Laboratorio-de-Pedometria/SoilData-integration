@@ -25,55 +25,15 @@ brazil <- read_brazil_states()
 soildata <- data.table::fread("data/14_soildata.txt", sep = "\t")
 summary_soildata(soildata)
 
-# Clean layers #################################################################
-# Routine to clean individual layers
-
-# layer order
+# Order layers by event (id) and layer depth (profund_sup and profund_inf)
 soildata <- soildata[order(id, profund_sup, profund_inf)]
 
-# Correct layer names (if necessary)
-if (FALSE) {
-  View(soildata[, .N, by = camada_nome])
-}
-# Here we only correct a few known cases. Correction needs to be done in the
-# source data in the future.
+# Correct a few layer names
+# Here we only correct a few known cases. These corrections need to be done in 
+# the source data in the future. Further corrections are performed below.
 soildata[camada_nome == "", camada_nome := NA_character_]
-soildata[
-  id == "ctb0770-100" & camada_nome == "B21H",
-  camada_nome := ifelse(camada_nome == "B21H", "B21h", camada_nome)
-]
-soildata[
-  id == "ctb0636-Perfil-03" & profund_sup == 0,
-  camada_nome := ifelse(camada_nome == "Ao", "A1", camada_nome)
-]
-# Ç -> C
-soildata[, camada_nome := gsub("Ç", "C", camada_nome, ignore.case = FALSE)]
-# Letter "h" alone in layer name -> "H"
-soildata[, camada_nome := gsub("^h$", "H", camada_nome, ignore.case = FALSE)]
-# B w1 -> Bw1
-soildata[, camada_nome := gsub("^B w1$", "Bw1", camada_nome, ignore.case = FALSE)]
-# ctb0574 GB-16 2E2
-soildata[id == "ctb0574-GB-16" & camada_nome == "2,00E+02", camada_nome := "2E2"]
-# IIICg3 -> 3Cg3
-soildata[, camada_nome := gsub("^IIICg3$", "3Cg3", camada_nome, ignore.case = FALSE)]
-# IIC3G -> 2Cg3
-soildata[, camada_nome := gsub("^IIC3G$", "2Cg3", camada_nome, ignore.case = FALSE)]
-# IVC3cn
-soildata[, camada_nome := gsub("^IVC3cn$", "4C3cn", camada_nome, ignore.case = FALSE)]
-# 2ª cam. -> 2a cam.
-soildata[, camada_nome := gsub("2ª cam\\.", "2a cam.", camada_nome, ignore.case = FALSE)]
-# 2ªCAM -> 2a cam.
-soildata[, camada_nome := gsub("2ªCAM", "2a cam.", camada_nome, ignore.case = FALSE)]
-# 2ªCAMADA -> 2a cam.
-soildata[, camada_nome := gsub("2ªCAMADA", "2a cam.", camada_nome, ignore.case = FALSE)]
-# 2ªCamada -> 2a cam.
-soildata[, camada_nome := gsub("2ªCamada", "2a cam.", camada_nome, ignore.case = FALSE)]
-# 2ªcamada -> 2a cam.
-soildata[, camada_nome := gsub("2ªcamada", "2a cam.", camada_nome, ignore.case = FALSE)]
-# 3 camada -> 3a cam.
-soildata[, camada_nome := gsub("3 camada", "3a cam.", camada_nome, ignore.case = FALSE)]
-
-
+soildata[id == "ctb0770-100" & camada_nome == "B21H", camada_nome := "B21h"]
+soildata[id == "ctb0636-Perfil-03" & camada_nome == "Ao", camada_nome := "A1"]
 
 
 
