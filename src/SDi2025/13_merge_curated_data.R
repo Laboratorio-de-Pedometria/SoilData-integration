@@ -105,7 +105,7 @@ curated_data <- curated_data[, ..read_cols]
 curated_data[, id := paste0(dataset_id, "-", observacao_id)]
 summary_soildata(curated_data)
 # 2026 ---
-# Layers: 13561 (13446?????????)
+# Layers: 13446
 # Events: 5914
 # Georeference: 5472 (yes) / 442 (no)
 # Date: 5911 (yes) / 3 (no)
@@ -148,7 +148,8 @@ plot(brazil["code_state"],
 plot(soildata_sf["estado_id"], cex = 0.3, add = TRUE, pch = 20)
 dev.off()
 
-# Append organization to curated_data using the first occurrence of each dataset_id.
+# Append organization to curated_data using the first occurrence of each 
+# dataset_id.
 metadata <- soildata[, .(
   organizacao_nome = organizacao_nome[1L]
 ), by = dataset_id]
@@ -174,7 +175,7 @@ summary_soildata(soildata)
 soildata <- rbind(soildata, curated_data, fill = TRUE)
 summary_soildata(soildata)
 # 2026 ---
-# Layers: 64148
+# Layers: 64033
 # Events: 20392
 # Georeference: 16852 (yes) / 3540 (no)
 # Date: 20237 (yes) / 155 (no)
@@ -247,7 +248,7 @@ dev.off()
 # Export cleaned data ##########################################################
 summary_soildata(soildata)
 # 2026 ---
-# Layers: 64148
+# Layers: 64033
 # Events: 20392
 # Georeference: 16852 (yes) / 3540 (no)
 # Date: 20237 (yes) / 155 (no)
