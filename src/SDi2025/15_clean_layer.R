@@ -274,6 +274,9 @@ soildata[id == "ctb0821-P43" & camada_nome == "A", `:=`(
 # ctb0821-P43. For the C layer, depths are profund_sup == 130 and profund_inf
 # == 130+. We set profund_inf of the C layer to 150.
 soildata[id == "ctb0821-P43" & camada_nome == "C", profund_inf := 150]
+# ctb0775-9. For the B21 layer should be profund_sup == 100. This was already
+#  corrected in the source spreadsheet.
+soildata[id == "ctb0775-9" & camada_nome == "B21", profund_sup := 100]
 
 # Profiles with duplication
 # ctb0635-PERFIL-DF-43. This profile is completely messed up and requires a
@@ -296,19 +299,10 @@ soildata[
   profund_inf := profund_inf + plus_depth
 ]
 soildata[, max_profund_inf := NULL]
+soildata[profund_sup == profund_inf]
+# 0 layers
 
 
-# Add a fixed depth (10 cm) to R, D, and C layers with equal depth limits
-# We need to check these corrections in the source data in the future.
-plus_depth <- 10
-soildata[
-  profund_sup == profund_inf & grepl("R|D|C", camada_nome),
-  profund_inf := profund_inf + plus_depth
-]
-nrow(soildata[profund_sup == profund_inf])
-# 67 layers
-soildata[, equal_depth := any(profund_sup == profund_inf), by = id]
-# View(soildata[equal_depth == TRUE, ..cols])
 # Some events from dataset_id = ctb0033 have a single layer and the depth limit is equal to zero.
 # We remove these layers.
 # We need to check these corrections in the source data in the future.
