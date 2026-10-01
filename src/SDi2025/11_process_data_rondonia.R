@@ -852,6 +852,16 @@ soildata[
   dataset_id == "ctb0032" & observacao_id == "RO2322" & camada_nome == "Cg2",
   profund_inf := ifelse(profund_inf == 90, 120, profund_inf)
 ]
+# RO1639
+soildata[
+  dataset_id == "ctb0032" & observacao_id == "RO1639" & camada_nome == "Bi2",
+  profund_inf := ifelse(profund_inf == 100, 120, profund_inf)
+]
+# RO3059
+soildata[
+  dataset_id == "ctb0032" & observacao_id == "RO3059" & camada_nome == "Bi",
+  profund_inf := ifelse(profund_inf == 15, 30, profund_inf)
+]
 
 # From observacao_id == "RO1687", drop layer with camada_nome == "Bw3"
 # After checking the documentation, we decided that this is a possible duplicate
@@ -1089,7 +1099,7 @@ if(FALSE) {
 # Write data to disk ###########################################################
 summary_soildata(soildata)
 # 2026 ---
-# Layers: 50277
+# Layers: 50276
 # Events: 14005
 # Georeference: 10903 (yes) / 3102 (no)
 # Date: 13850 (yes) / 155 (no)
