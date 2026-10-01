@@ -6,3 +6,4 @@ res/tab/*.txt
 .Rhistory
 data/*.csv
 tmp/*.csv
+tmp/*.txt
