@@ -275,8 +275,13 @@ soildata[id == "ctb0821-P43" & camada_nome == "A", `:=`(
 # == 130+. We set profund_inf of the C layer to 150.
 soildata[id == "ctb0821-P43" & camada_nome == "C", profund_inf := 150]
 
-
-
+# Profiles with duplication
+# ctb0635-PERFIL-DF-43. This profile is completely messed up and requires a
+# complete revision. We remove it from the dataset.
+soildata <- soildata[id != "ctb0635-PERFIL-DF-43"]
+# ctb0717-38. This profile has many duplicated layers. We drop it from the
+# dataset. We need to check this profile in the source data in the future.
+soildata <- soildata[id != "ctb0717-38"]
 
 # Check if the layer with profund_sup == profund_inf is the lowermost layer of
 # the profile. If so, we add a fixed depth (plus_depth) to the lowermost layer.
