@@ -105,7 +105,7 @@ curated_data <- curated_data[, ..read_cols]
 curated_data[, id := paste0(dataset_id, "-", observacao_id)]
 summary_soildata(curated_data)
 # 2026 ---
-# Layers: 13561
+# Layers: 13561 (13446?????????)
 # Events: 5914
 # Georeference: 5472 (yes) / 442 (no)
 # Date: 5911 (yes) / 3 (no)
