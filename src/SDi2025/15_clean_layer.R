@@ -35,33 +35,32 @@ soildata[camada_nome == "", camada_nome := NA_character_]
 soildata[id == "ctb0770-100" & camada_nome == "B21H", camada_nome := "B21h"]
 soildata[id == "ctb0636-Perfil-03" & camada_nome == "Ao", camada_nome := "A1"]
 
-
-
-
-
 # Incorrect depth limits: profund_sup > profund_inf
-# Check layers with incorrect depth limits (profund_sup > profund_inf). These layers need to be
-# corrected manually. We print the layers with incorrect depth limits and then correct them. Here we
-# simply reverse the depth limits. The corrections need to be checked in the source data in the
-# future.
+# Check layers with incorrect depth limits (profund_sup > profund_inf). These
+# layers need to be corrected manually. We print the layers with incorrect depth
+# limits and then correct them. Here we simply reverse the depth limits. The
+# corrections need to be checked in the source data in the future.
 cols <- c("id", "camada_nome", "profund_sup", "profund_inf")
 soildata[profund_sup > profund_inf, ..cols]
-soildata[id == "ctb0033-RO1154" & profund_sup == 80, `:=` (
-  profund_sup = 70,
-  profund_inf = 80
-)]
-soildata[id == "ctb0033-RO2463" & profund_sup == 80, `:=` (
-  profund_sup = 70,
-  profund_inf = 80
-)]
-soildata[id == "ctb0033-RO2826" & profund_sup == 140, `:=` (
-  profund_sup = 140,
-  profund_inf = 160
-)]
-soildata[id == "ctb0033-RO3542" & profund_sup == 110, `:=`(
-  profund_sup = 110,
-  profund_inf = 120
-)]
+nrow(soildata[profund_sup > profund_inf])
+# 0 layers with incorrect depth limits
+# The following layers were already corrected in a previous script:
+# soildata[id == "ctb0033-RO1154" & profund_sup == 80, `:=` (
+#   profund_sup = 70,
+#   profund_inf = 80
+# )]
+# soildata[id == "ctb0033-RO2463" & profund_sup == 80, `:=` (
+#   profund_sup = 70,
+#   profund_inf = 80
+# )]
+# soildata[id == "ctb0033-RO2826" & profund_sup == 140, `:=` (
+#   profund_sup = 140,
+#   profund_inf = 160
+# )]
+# soildata[id == "ctb0033-RO3542" & profund_sup == 110, `:=`(
+#   profund_sup = 110,
+#   profund_inf = 120
+# )]
 
 # Correct negative (profund_sup < 0) depth limit of topsoil layers
 # Check each soil profile (id) for negative depth limits. Store the result in a new column
