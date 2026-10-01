@@ -285,6 +285,12 @@ soildata[id == "ctb0775-9" & camada_nome == "B21", profund_sup := 100]
 # We will identify the duplicated layers and remove them from the dataset.
 soildata[id %in% c("ctb0635-PERFIL-DF-43", "ctb0717-38") &
   duplicated(camada_nome) & duplicated(profund_sup) & duplicated(profund_inf) & duplicated(carbono), duplicated := TRUE]
+if (FALSE) {
+  View(soildata[
+    duplicated == TRUE,
+    .(id, camada_nome, profund_sup, profund_inf, carbono)
+  ])
+}
 soildata <- soildata[duplicated != TRUE | is.na(duplicated)]
 
 # Check if the layer with profund_sup == profund_inf is the lowermost layer of
@@ -300,13 +306,13 @@ soildata[
   profund_inf := profund_inf + plus_depth
 ]
 soildata[, max_profund_inf := NULL]
-soildata[profund_sup == profund_inf]
+nrow(soildata[profund_sup == profund_inf])
 # 0 layers
 summary_soildata(soildata)
-# Layers: 63277
-# Events: 20249
-# Georeference: 16709 (yes) / 3540 (no)
-# Date: 20092 (yes) / 157 (no)
+# Layers: 63281
+# Events: 20251
+# Georeference: 16710 (yes) / 3541 (no)
+# Date: 20094 (yes) / 157 (no)
 # Datasets: 271
 
 # Layer id
@@ -315,34 +321,37 @@ summary_soildata(soildata)
 soildata <- soildata[order(id, profund_sup, profund_inf)]
 soildata[, camada_id := 1:.N, by = id]
 
-
-
-
 # Remove repeated layers
-# Some layers are repeated in the same event (id). These layers have equal 
-# values for camada_nome, profund_sup, and profund_inf. We create a new variable
-# called repeated to identify these layers. Then, we filter out these layers.
+# Some layers are repeated in the same event (id). These layers have equal
+# values for camada_nome, profund_sup, profund_inf, and carbono. We create a
+# new variable called repeated to identify these layers.
 soildata[,
-  repeated := duplicated(camada_nome) & duplicated(profund_sup) & duplicated(profund_inf),
+  repeated := duplicated(camada_nome) & duplicated(profund_sup) & duplicated(profund_inf) & duplicated(carbono),
   by = id
 ]
-print(soildata[repeated == TRUE, .(id, camada_nome, profund_sup, profund_inf, carbono)])
-
-# ATTENTION: REPEATED LAYERS IN DATA FROM THE NATIONAL FOREST INVENTORY HAVE DIFFERENT SOIL
-# PROPERTY VALUES. THIS IS A PROBLEM THAT NEEDS TO BE SOLVED IN THE FUTURE!
-print(soildata[id == "ctb0055-PR_4", .(id, camada_nome, profund_sup, profund_inf, carbono)])
+nrow(soildata[
+  repeated == TRUE,
+  .(id, camada_nome, profund_sup, profund_inf, carbono)
+])
+# 552 layers
+# Then, we filter out these layers.
 soildata <- soildata[repeated == FALSE, ]
 soildata[, repeated := NULL]
 summary_soildata(soildata)
-# Layers: 57327
-# Events: 16868
-# Georeferenced events: 14387
-# Datasets: 255
+# Layers: 62729
+# Events: 20251
+# Georeference: 16710 (yes) / 3541 (no)
+# Date: 20094 (yes) / 157 (no)
+# Datasets: 271
 
 # Update layer id
 # Sort each event (id) by layer depth (profund_sup and profund_inf)
 soildata <- soildata[order(id, profund_sup, profund_inf)]
 soildata[, camada_id := 1:.N, by = id]
+
+
+
+
 
 # Fine earth
 # R layers are consolidated rock layers. These layers should have terrafina == NA_real.
