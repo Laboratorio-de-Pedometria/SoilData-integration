@@ -326,7 +326,7 @@ soildata[
 # Write data to disk ###########################################################
 summary_soildata(soildata)
 # 2026 ---
-# Layers: 51803
+# Layers: 51802
 # Events: 14894
 # Georeference: 11792 (yes) / 3102 (no)
 # Date: 14739 (yes) / 155 (no)
