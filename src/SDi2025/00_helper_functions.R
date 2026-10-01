@@ -45,7 +45,7 @@ tab_path <- function(filename) {
 # Read Brazilian state boundaries ##############################################
 read_brazil_states <- function(file_path = "data/brazil_states.geojson") {
   if (!file.exists(file_path)) {
-    brazil <- geobr::read_state(simplified = FALSE)
+    brazil <- geobr::read_state(year = 2025L, simplified = FALSE)
     sf::st_write(brazil, file_path, quiet = TRUE)
   } else {
     brazil <- sf::st_read(file_path, quiet = TRUE)
