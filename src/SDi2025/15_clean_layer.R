@@ -215,6 +215,68 @@ soildata[id == "ctb0631-PC-84", `:=`(
   profund_sup = NA_real_,
   profund_inf = NA_real_
 )]
+# ctb0642-Perfil-3. profund_inf of A1 should be 10 cm. This was already 
+# corrected in the source spreadsheet.
+soildata[id == "ctb0642-Perfil-3" & camada_nome == "A1", profund_inf := 10]
+# ctb0645-Perfil-2. profund_inf of A1 should be 60 cm. This was already 
+# corrected in the source spreadsheet.
+soildata[id == "ctb0645-Perfil-2" & camada_nome == "A1", profund_inf := 60]
+# ctb0809-Exame-20. profund_sup of B should be 40 and profund_inf of B should be
+# 40+, thus we set profund_inf of B to 60. This was already corrected in the
+# source spreadsheet.
+soildata[id == "ctb0809-Exame-20" & camada_nome == "B", profund_sup := 40]
+soildata[id == "ctb0809-Exame-20" & camada_nome == "B", profund_inf := 60]
+# ctb0809-Exame-8. This layer was erroneously entered in the source spreadsheet.
+# We remove it. This was already corrected in the source spreadsheet.
+soildata <- soildata[!(id == "ctb0809-Exame-8" & profund_sup == profund_inf)]
+# There is a second nonexistent layer in ctb0809-Exame-8: profund_sup == 50 and
+# profund_inf == 80. This layer was erroneously entered in the source
+# spreadsheet. We remove it. This was already corrected in the source
+# spreadsheet.
+soildata <- soildata[
+  !(id == "ctb0809-Exame-8" & profund_sup == 50 & profund_inf == 80)
+]
+# ctb0810-Exame-4. Depths were not recorded in the source document for layer A, 
+# but erroneously recorded as 0 in the source spreadsheet. We set the depth 
+# limits to NA. This was already corrected in the source spreadsheet.
+soildata[id == "ctb0810-Exame-4" & camada_nome == "A", `:=`(
+  profund_sup = NA_real_,
+  profund_inf = NA_real_
+)]
+# ctb0810-Exame-6. Depths were not recorded in the source document for both 
+# layers, but erroneously recorded as 0 in the source spreadsheet. We set the 
+# depth limits to NA. This was already corrected in the source spreadsheet.
+soildata[id == "ctb0810-Exame-6", `:=`(
+  profund_sup = NA_real_,
+  profund_inf = NA_real_
+)]
+# ctb0821-P35. Depths were not recorded in the source document for both layers,
+# but erroneously recorded as 0 in the source spreadsheet. We set the depth 
+# limits to NA. This was already corrected in the source spreadsheet.
+soildata[id == "ctb0821-P35", `:=`(
+  profund_sup = NA_real_,
+  profund_inf = NA_real_
+)]
+# ctb0821-P39. Depths were not recorded in the source document for both layers, 
+# but erroneously recorded as 0 in the source spreadsheet. We set the depth 
+# limits to NA. This was already corrected in the source spreadsheet.
+soildata[id == "ctb0821-P39", `:=`(
+  profund_sup = NA_real_,
+  profund_inf = NA_real_
+)]
+# ctb0821-P43. Depths were not recorded in the source document for the A layer,
+# but erroneously recorded as 0 in the source spreadsheet. We set the depth
+# limits to NA. This was already corrected in the source spreadsheet.
+soildata[id == "ctb0821-P43" & camada_nome == "A", `:=`(
+  profund_sup = NA_real_,
+  profund_inf = NA_real_
+)]
+# ctb0821-P43. For the C layer, depths are profund_sup == 130 and profund_inf
+# == 130+. We set profund_inf of the C layer to 150.
+soildata[id == "ctb0821-P43" & camada_nome == "C", profund_inf := 150]
+
+
+
 
 # Check if the layer with profund_sup == profund_inf is the lowermost layer of
 # the profile. If so, we add a fixed depth (plus_depth) to the lowermost layer.
