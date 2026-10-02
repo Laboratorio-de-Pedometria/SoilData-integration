@@ -316,6 +316,7 @@ soildata[
 soildata[, max_profund_inf := NULL]
 nrow(soildata[profund_sup == profund_inf])
 # 0 layers
+
 summary_soildata(soildata)
 # Layers: 63281
 # Events: 20251
@@ -366,6 +367,16 @@ summary_soildata(soildata)
 # Sort each event (id) by layer depth (profund_sup and profund_inf)
 soildata <- soildata[order(id, profund_sup, profund_inf)]
 soildata[, camada_id := 1:.N, by = id]
+
+
+
+
+
+
+
+
+
+
 
 
 
