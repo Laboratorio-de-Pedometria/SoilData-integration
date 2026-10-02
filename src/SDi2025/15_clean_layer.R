@@ -40,7 +40,9 @@ soildata[camada_nome == "", camada_nome := NA_character_]
 soildata[id == "ctb0770-100" & camada_nome == "B21H", camada_nome := "B21h"]
 soildata[id == "ctb0636-Perfil-03" & camada_nome == "Ao", camada_nome := "A1"]
 
-# Incorrect depth limits: profund_sup > profund_inf
+# Depth limits #################################################################
+
+# profund_sup > profund_inf
 # Check layers with incorrect depth limits (profund_sup > profund_inf). These
 # layers need to be corrected manually. We print the layers with incorrect depth
 # limits and then correct them. Here we simply reverse the depth limits. The
@@ -88,7 +90,8 @@ nrow(soildata[profund_sup > profund_inf])
 # Some layers have equal values for profund_sup and profund_inf. This may occur
 # when the soil profile sampling and description ended at the top of the layer,
 # producing a censoring effect. If the layer has a name containing R, D, or C, 
-# we add a fixed depth (plus_depth).
+# we add a fixed depth (plus_depth). It can also occurr due to errros in the 
+# source data. We will check these cases and correct them manually.
 nrow(soildata[profund_sup == profund_inf])
 # 203 layers
 soildata[, equal_depth := any(profund_sup == profund_inf), by = id]
@@ -109,6 +112,15 @@ soildata[id == "ctb0606-Perfil-02" & camada_nome == "CR", `:=`(
   profund_sup = 150,
   profund_inf = 170
 )]
+# ctb0821-P43
+# For the C layer, depths are profund_sup == 130 and profund_inf == 130+. We set
+# profund_inf of the C layer to 150.
+soildata[id == "ctb0821-P43" & camada_nome == "C", profund_inf := 150]
+# ctb0775-9. For the B21 layer should be profund_sup == 100. This was already
+#  corrected in the source spreadsheet.
+soildata[id == "ctb0775-9" & camada_nome == "B21", profund_sup := 100]
+
+# profund_sup == profund_inf == 0
 # Some profiles have both profund_sup and profund_inf equal to zero and/or NA
 # for all layers. Identify these cases.
 soildata[
@@ -225,16 +237,6 @@ soildata[id == "ctb0645-Perfil-2" & camada_nome == "A1", profund_inf := 60]
 # source spreadsheet.
 soildata[id == "ctb0809-Exame-20" & camada_nome == "B", profund_sup := 40]
 soildata[id == "ctb0809-Exame-20" & camada_nome == "B", profund_inf := 60]
-# ctb0809-Exame-8. This layer was erroneously entered in the source spreadsheet.
-# We remove it. This was already corrected in the source spreadsheet.
-soildata <- soildata[!(id == "ctb0809-Exame-8" & profund_sup == profund_inf)]
-# There is a second nonexistent layer in ctb0809-Exame-8: profund_sup == 50 and
-# profund_inf == 80. This layer was erroneously entered in the source
-# spreadsheet. We remove it. This was already corrected in the source
-# spreadsheet.
-soildata <- soildata[
-  !(id == "ctb0809-Exame-8" & profund_sup == 50 & profund_inf == 80)
-]
 # ctb0810-Exame-4. Depths were not recorded in the source document for layer A, 
 # but erroneously recorded as 0 in the source spreadsheet. We set the depth 
 # limits to NA. This was already corrected in the source spreadsheet.
@@ -270,12 +272,22 @@ soildata[id == "ctb0821-P43" & camada_nome == "A", `:=`(
   profund_sup = NA_real_,
   profund_inf = NA_real_
 )]
-# ctb0821-P43. For the C layer, depths are profund_sup == 130 and profund_inf
-# == 130+. We set profund_inf of the C layer to 150.
-soildata[id == "ctb0821-P43" & camada_nome == "C", profund_inf := 150]
-# ctb0775-9. For the B21 layer should be profund_sup == 100. This was already
-#  corrected in the source spreadsheet.
-soildata[id == "ctb0775-9" & camada_nome == "B21", profund_sup := 100]
+
+# Nonexistent layers
+# ctb0809-Exame-8. This layer was erroneously entered in the source spreadsheet.
+# We remove it. This was already corrected in the source spreadsheet.
+soildata <- soildata[!(id == "ctb0809-Exame-8" & profund_sup == profund_inf)]
+# There is a second nonexistent layer in ctb0809-Exame-8: profund_sup == 50 and
+# profund_inf == 80. This layer was erroneously entered in the source
+# spreadsheet. We remove it. This was already corrected in the source
+# spreadsheet.
+soildata <- soildata[
+  !(id == "ctb0809-Exame-8" & profund_sup == 50 & profund_inf == 80)
+]
+
+
+
+
 
 # Profiles with duplicated layers
 # ctb0635-PERFIL-DF-43. This profile has duplicated layers and appears to
