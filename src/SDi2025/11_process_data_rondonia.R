@@ -1277,7 +1277,15 @@ rondonia_overlap[!is.na(profund_sup),
   by = observacao_id
 ]
 nrow(unique(rondonia_overlap[has_topsoil != TRUE, "observacao_id"]))
-# 0 events without topsoil layers.
+# 5 events without topsoil layers.
+# Set the profund_sup of only the first (shallowest) layer to 0 for events
+# without topsoil layers; other layers in the same event stay untouched.
+first_layer_idx <- rondonia_overlap[
+  has_topsoil != TRUE,
+  .I[which.min(profund_sup)],
+  by = observacao_id
+]$V1
+rondonia_overlap[first_layer_idx, profund_sup := 0]
 
 # Merge data from Rondônia with the SoilData snapshot
 col_ro <- intersect(names(soildata), names(rondonia_overlap))
