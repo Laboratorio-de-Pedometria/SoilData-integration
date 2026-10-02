@@ -1098,26 +1098,19 @@ unmatched_ctb0032 <- ctb0032[
 ]
 nrow(unmatched_ctb0032)
 # 427 rows in ctb0032 without a corresponding analytical layer. They were not
-# included in the overlap join.
+# included in the overlap join. We cannot simply merge them with the analytical
+# data as this would create unwanted problems of partially overlaping layers.
 if (FALSE) {
   View(unmatched_ctb0032[
     ,
     .(observacao_id, camada_nome, profund_sup, profund_inf)
   ])
 }
-
-
-
-
-
-
-# WE DID NOT ADD THESE HORIZONS AS THEY CREATE
-# OVERLAPPING DEPTH LIMITS THAT ARE DIFFICULT TO SOLVE.
 # rondonia_overlap <- data.table::rbindlist(
 #   list(rondonia_overlap, unmatched_ctb0032),
 #   fill = TRUE
 # )
-rm(overlap_id, unmatched_ro, unmatched_ctb0032)
+rm(overlap_id, unmatched_ro)
 # The integrated table belongs to ctb0033, including morphology-only layers
 # retained from ctb0032.
 rondonia_overlap[, dataset_id := "ctb0033"]
@@ -1145,6 +1138,7 @@ nrow(rondonia_overlap)
 
 # First fill-in missing values
 # If camada_nome is NA, set it to i.profund_sup-i.profund_inf
+rondonia_overlap[, needs_horizon_name := is.na(camada_nome)]
 rondonia_overlap[
   is.na(camada_nome),
   camada_nome := paste0(i.profund_sup, "-", i.profund_inf)
@@ -1251,6 +1245,56 @@ if (FALSE) {
 # know that this is not always true, and a more elegant solution should be used
 # in the future.
 
+# Analytical layers and morphological horizons
+# Check whether an unmatched morphological horizon is within an analytical
+# interval that did not receive a morphological name in the first join.
+tmp <- rondonia_overlap[
+  needs_horizon_name == TRUE,
+  .(
+    rondonia_row_id = .I, observacao_id, profund_sup, profund_inf
+  )
+]
+# Keep the candidate horizon name explicit in the join result.
+unmatched_horizons <- unmatched_ctb0032[
+  ,
+  .(
+    observacao_id, morphological_name = camada_nome,
+    profund_sup, profund_inf
+  )
+]
+# Set keys
+data.table::setkey(tmp, observacao_id, profund_sup, profund_inf)
+data.table::setkey(unmatched_horizons, observacao_id, profund_sup, profund_inf)
+# Perform an overlap join, keeping all candidates so ambiguity can be checked.
+tmp <- data.table::foverlaps(
+  x = unmatched_horizons,
+  y = tmp,
+  type = "within", mult = "all"
+)
+# A single analytical interval may contain multiple morphological horizons. In
+# that case, use the thickest contained horizon (ties: the shallowest one).
+# After the join, i.profund_sup and i.profund_inf are the horizon limits.
+matched_horizons <- tmp[!is.na(morphological_name)]
+matched_horizons[, thickness := i.profund_inf - i.profund_sup]
+data.table::setorder(
+  matched_horizons, rondonia_row_id, -thickness, i.profund_sup
+)
+matched_horizons <- matched_horizons[
+  , .(camada_nome = morphological_name[1L]), by = rondonia_row_id
+]
+# Assign each matched name to the exact analytical row used by the join.
+rondonia_overlap[
+  matched_horizons$rondonia_row_id,
+  camada_nome := matched_horizons$camada_nome
+]
+# Print the events that had unmatched morphological horizons to check the result
+View(rondonia_overlap[needs_horizon_name == TRUE, .(
+  observacao_id, profund_sup, profund_inf, camada_nome
+)])
+
+# rondonia_overlap[, needs_horizon_name := NULL]
+
+
 # Overlapping layers
 # Check for overlapping layers within each event (id)
 # Overlap occurs when profund_inf[i] > profund_sup[i+1], meaning layer i extends
@@ -1306,6 +1350,15 @@ rondonia_overlap[, `:=`(
   profund_sup_next = NULL, has_overlap = NULL, any_overlap = NULL,
   overlap_avg = NULL, overlap_avg_prev = NULL, check_sup_next = NULL
 )]
+
+
+
+
+
+
+
+
+
 
 # Topsoil layers ###############################################################
 rondonia_overlap[!is.na(profund_sup),
