@@ -323,33 +323,40 @@ summary_soildata(soildata)
 # Date: 20094 (yes) / 157 (no)
 # Datasets: 271
 
-
-
-
 # Layer id
 # Sort each event (id) by layer depth (profund_sup and profund_inf)
 # Update the columns camada_id
 soildata <- soildata[order(id, profund_sup, profund_inf)]
 soildata[, camada_id := 1:.N, by = id]
 
-# Remove repeated layers
+# Duplicated layers ############################################################
+
 # Some layers are repeated in the same event (id). These layers have equal
-# values for camada_nome, profund_sup, profund_inf, and carbono. We create a
-# new variable called repeated to identify these layers.
-soildata[,
-  repeated := duplicated(camada_nome) & duplicated(profund_sup) & duplicated(profund_inf) & duplicated(carbono),
+# values for camada_nome, profund_sup, profund_inf, carbono, and argila. We
+# create a new variable called repeated to identify these layers. Then we create 
+# a new variable called any_repeated to identify events (id) with repeated 
+# layers.
+soildata[
+  ,
+  repeated := duplicated(camada_nome) & duplicated(profund_sup) & duplicated(profund_inf) & duplicated(carbono) & duplicated(argila),
   by = id
 ]
-nrow(soildata[
-  repeated == TRUE,
-  .(id, camada_nome, profund_sup, profund_inf, carbono)
-])
-# 552 layers
-# Then, we filter out these layers.
+nrow(soildata[repeated == TRUE, ])
+# 550 layers
+soildata[, any_repeated := any(repeated == TRUE), by = id]
+if (FALSE) {
+  View(soildata[
+    any_repeated == TRUE,
+    .(id, camada_nome, profund_sup, profund_inf, carbono, argila, repeated)
+  ])
+}
+# Filter out layers with repeated == TRUE. These layers need to be checked in 
+# the source data in the future.
 soildata <- soildata[repeated == FALSE, ]
 soildata[, repeated := NULL]
+soildata[, any_repeated := NULL]
 summary_soildata(soildata)
-# Layers: 62729
+# Layers: 62731
 # Events: 20251
 # Georeference: 16710 (yes) / 3541 (no)
 # Date: 20094 (yes) / 157 (no)
