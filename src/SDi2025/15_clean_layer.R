@@ -24,11 +24,11 @@ brazil <- read_brazil_states()
 # Read the dataset-cleaned SoilData from the previous script
 soildata <- data.table::fread("data/14_soildata.txt", sep = "\t")
 summary_soildata(soildata)
-# Layers: 63320
+# Layers: 63319
 # Events: 20251
 # Georeference: 16710 (yes) / 3541 (no)
 # Date: 20094 (yes) / 157 (no)
-# Datasets:271
+# Datasets: 271
 
 # Order layers by event (id) and layer depth (profund_sup and profund_inf)
 soildata <- soildata[order(id, profund_sup, profund_inf)]
@@ -45,7 +45,6 @@ soildata[id == "ctb0636-Perfil-03" & camada_nome == "Ao", camada_nome := "A1"]
 # layers need to be corrected manually. We print the layers with incorrect depth
 # limits and then correct them. Here we simply reverse the depth limits. The
 # corrections need to be checked in the source data in the future.
-cols <- c("id", "camada_nome", "profund_sup", "profund_inf")
 nrow(soildata[profund_sup > profund_inf])
 # 0 layers with incorrect depth limits
 # The following layers were already corrected in a previous script:
