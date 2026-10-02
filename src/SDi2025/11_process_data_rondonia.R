@@ -1304,10 +1304,10 @@ if(FALSE) {
 # Write data to disk ###########################################################
 summary_soildata(soildata)
 # 2026 ---
-# Layers: 50276
-# Events: 14005
-# Georeference: 10903 (yes) / 3102 (no)
-# Date: 13850 (yes) / 155 (no)
+# Layers: 49837
+# Events: 14002
+# Georeference: 10903 (yes) / 3099 (no)
+# Date: 13850 (yes) / 152 (no)
 # Datasets: 235
 # 2025 ---
 # Layers: 49684
