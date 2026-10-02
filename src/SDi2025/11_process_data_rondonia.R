@@ -935,7 +935,7 @@ unmatched_ctb0032 <- ctb0032[
   )
 ]
 nrow(unmatched_ctb0032)
-# 428 rows in ctb0032 without a corresponding analytical layer. They were not
+# 427 rows in ctb0032 without a corresponding analytical layer. They were not
 # included in the overlap join.
 rondonia_overlap <- data.table::rbindlist(
   list(rondonia_overlap, unmatched_ctb0032),
@@ -955,7 +955,7 @@ rondonia_overlap[, `:=`(
 nrow(rondonia)
 # 10943 layers before the overlap join
 nrow(rondonia_overlap)
-# 11382
+# 11381
 # The result includes matched analytical layers, duplicated matches from
 # mult = "all", and unmatched morphological layers from ctb0032.
 # The duplicated matches occur when multiple rows in y match a single row in x.
@@ -987,7 +987,7 @@ rondonia_overlap[,
   by = observacao_id
 ]
 rondonia_overlap[any_copied == TRUE, .N, by = observacao_id]
-# 186 events with duplicated layers after the overlap join.
+# 184 events with duplicated layers after the overlap join.
 if (FALSE) {
   View(rondonia_overlap[any_copied == TRUE, .(
     observacao_id, camada_nome, profund_sup, profund_inf,
@@ -1004,7 +1004,7 @@ rondonia_overlap[, n_copied := .N,
 rondonia_overlap[, .N, by = n_copied]
 #    n_copied     N
 #       <int> <int>
-# 1:        1 11032
+# 1:        1 11031
 # 2:        2   314
 # 3:        3    36
 if (FALSE) {
