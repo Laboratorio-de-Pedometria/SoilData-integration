@@ -1038,65 +1038,14 @@ ctb0032[
   observacao_id == "RO3562" & camada_nome == "Bw1" & profund_sup == 20,
   profund_sup := 50
 ]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# Average the overlapping boundary between layer i (profund_inf) and the next
-# layer i+1 (profund_sup), then assign the average back to both layers.
-# profund_sup/profund_inf are integer; convert to double first so the averaged
-# (fractional) boundary isn't truncated.
+# RO2040: camada_nome == Bw1; profund_inf == 180; correct to 80
+ctb0032[
+  observacao_id == "RO2040" & camada_nome == "Bw1" & profund_inf == 180,
+  profund_inf := 80
+]
 ctb0032[, `:=`(
-  profund_sup = as.double(profund_sup),
-  profund_inf = as.double(profund_inf)
+  profund_sup_next = NULL, has_overlap = NULL, any_overlap = NULL
 )]
-rondonia[, overlap_avg := ifelse(
-  has_overlap, (profund_inf + profund_sup_next) / 2, NA_real_
-)]
-rondonia[, overlap_avg_prev := shift(overlap_avg, type = "lag"), by = id]
-rondonia[has_overlap == TRUE, profund_inf := overlap_avg]
-rondonia[!is.na(overlap_avg_prev), profund_sup := overlap_avg_prev]
-rondonia[, check_sup_next := shift(profund_sup, type = "lead"), by = id]
-nrow(rondonia[profund_inf > check_sup_next, ])
-# 0 layers with overlapping depth limits after the correction
-# Guard against the averaging producing degenerate (zero/negative-thickness)
-# layers, which would happen for near-containment overlaps.
-nrow(rondonia[profund_sup > profund_inf, ])
-# 0 layers with invalid depth limits after the correction
-if (FALSE) {
-  View(rondonia[
-    any_overlap == TRUE,
-    .(id, camada_nome, profund_sup, profund_inf, carbono, argila)
-  ])
-}
-rondonia[, `:=`(
-  profund_sup_next = NULL, has_overlap = NULL, any_overlap = NULL,
-  overlap_avg = NULL, overlap_avg_prev = NULL, check_sup_next = NULL
-)]
-
-
-
-
-
-
-
-
-
-
 
 # Perform a join between the analythical data from Rondônia (rondonia) and the
 # morphological descriptions from ctb0032
@@ -1116,7 +1065,7 @@ overlap_id <- data.table::foverlaps(rondonia, ctb0032,
 )
 unmatched_ro <- rondonia[overlap_id[is.na(yid), xid]]
 nrow(unmatched_ro)
-# 329 rows in rondonia without a corresponding morphological description. They
+# 325 rows in rondonia without a corresponding morphological description. They
 # were included by default in the overlap join.
 unmatched_ctb0032 <- ctb0032[
   setdiff(
@@ -1126,11 +1075,12 @@ unmatched_ctb0032 <- ctb0032[
 ]
 nrow(unmatched_ctb0032)
 # 427 rows in ctb0032 without a corresponding analytical layer. They were not
-# included in the overlap join.
-rondonia_overlap <- data.table::rbindlist(
-  list(rondonia_overlap, unmatched_ctb0032),
-  fill = TRUE
-)
+# included in the overlap join. WE DID NOT ADD THESE HORIZONS AS THEY CREATE
+# OVERLAPPING DEPTH LIMITS THAT ARE DIFFICULT TO SOLVE.
+# rondonia_overlap <- data.table::rbindlist(
+#   list(rondonia_overlap, unmatched_ctb0032),
+#   fill = TRUE
+# )
 rm(overlap_id, unmatched_ro, unmatched_ctb0032)
 # The integrated table belongs to ctb0033, including morphology-only layers
 # retained from ctb0032.
@@ -1143,9 +1093,9 @@ rondonia_overlap[, `:=`(
   organizacao_nome = "Governo do Estado de Rondônia"
 )]
 nrow(rondonia)
-# 10943 layers before the overlap join
+# 10942 layers before the overlap join
 nrow(rondonia_overlap)
-# 11381
+# 10942 (11369 WHEN UNMATCHED HORIZONTS ARE ADDED)
 # The result includes matched analytical layers, duplicated matches from
 # mult = "all", and unmatched morphological layers from ctb0032.
 # The duplicated matches occur when multiple rows in y match a single row in x.
@@ -1177,7 +1127,8 @@ rondonia_overlap[,
   by = observacao_id
 ]
 rondonia_overlap[any_copied == TRUE, .N, by = observacao_id]
-# 184 events with duplicated layers after the overlap join.
+# 99 (175 WHEN UNMATCHED HORIZONTS ARE ADDED) events with duplicated layers 
+# after the overlap join.
 if (FALSE) {
   View(rondonia_overlap[any_copied == TRUE, .(
     observacao_id, camada_nome, profund_sup, profund_inf,
@@ -1194,9 +1145,9 @@ rondonia_overlap[, n_copied := .N,
 rondonia_overlap[, .N, by = n_copied]
 #    n_copied     N
 #       <int> <int>
-# 1:        1 11031
-# 2:        2   314
-# 3:        3    36
+# 1:        1 10608 (11035)
+# 2:        2   304
+# 3:        3    30
 if (FALSE) {
   View(rondonia_overlap[n_copied > 1, .(
     observacao_id, camada_nome, profund_sup, profund_inf,
@@ -1280,7 +1231,7 @@ rondonia_overlap[, profund_sup_next := shift(profund_sup, type = "lead"), by = i
 rondonia_overlap[, has_overlap := !is.na(profund_sup_next) & profund_inf > profund_sup_next]
 n_overlaps <- rondonia_overlap[has_overlap == TRUE, .N]
 print(n_overlaps)
-# 286 layers with overlapping depth limits
+# 102 (267) layers with overlapping depth limits
 rondonia_overlap[, any_overlap := any(has_overlap == TRUE), by = id]
 if (FALSE) {
   View(rondonia_overlap[
@@ -1288,8 +1239,37 @@ if (FALSE) {
     .(id, camada_nome, profund_sup, profund_inf, carbono, argila, has_overlap)
   ])
 }
-# rondonia_overlap[, `:=`(profund_sup_next = NULL, has_overlap = NULL)]
-
+# Average the overlapping boundary between layer i (profund_inf) and the next
+# layer i+1 (profund_sup), then assign the average back to both layers.
+# profund_sup/profund_inf are integer; convert to double first so the averaged
+# (fractional) boundary isn't truncated.
+rondonia_overlap[, `:=`(
+  profund_sup = as.double(profund_sup),
+  profund_inf = as.double(profund_inf)
+)]
+rondonia_overlap[, overlap_avg := ifelse(
+  has_overlap, (profund_inf + profund_sup_next) / 2, NA_real_
+)]
+rondonia_overlap[, overlap_avg_prev := shift(overlap_avg, type = "lag"), by = id]
+rondonia_overlap[has_overlap == TRUE, profund_inf := overlap_avg]
+rondonia_overlap[!is.na(overlap_avg_prev), profund_sup := overlap_avg_prev]
+rondonia_overlap[, check_sup_next := shift(profund_sup, type = "lead"), by = id]
+nrow(rondonia_overlap[profund_inf > check_sup_next, ])
+# 0 layers with overlapping depth limits after the correction
+# Guard against the averaging producing degenerate (zero/negative-thickness)
+# layers, which would happen for near-containment overlaps.
+nrow(rondonia_overlap[profund_sup > profund_inf, ])
+# 0 layers with invalid depth limits after the correction
+if (FALSE) {
+  View(rondonia_overlap[
+    any_overlap == TRUE,
+    .(id, camada_nome, profund_sup, profund_inf, carbono, argila)
+  ])
+}
+rondonia_overlap[, `:=`(
+  profund_sup_next = NULL, has_overlap = NULL, any_overlap = NULL,
+  overlap_avg = NULL, overlap_avg_prev = NULL, check_sup_next = NULL
+)]
 
 # Topsoil layers ###############################################################
 rondonia_overlap[!is.na(profund_sup),
