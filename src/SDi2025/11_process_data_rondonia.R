@@ -810,6 +810,73 @@ summary_soildata(rondonia)
 # Date: 3057 (yes) / 0 (no)
 # Datasets: 1
 
+# Overlapping layers
+# Overlap occurs when profund_inf[i] > profund_sup[i+1], meaning layer i extends
+# into layer i+1. Strategy: compute the average between profund_inf[i] and 
+# profund_sup[i+1], then adjust both:
+#   - Set profund_inf[i] to the average
+#   - Set profund_sup[i+1] to the average
+# This approach assumes uncertainty in both measurements and splits the 
+# difference. The source of the overlap is unknown, but it could be due to 
+# errors in the source data and should be corrected in the source data.
+rondonia <- rondonia[order(id, profund_sup, profund_inf)]
+rondonia[, profund_sup_next := shift(profund_sup, type = "lead"), by = id]
+rondonia[, has_overlap := !is.na(profund_sup_next) & profund_inf > profund_sup_next]
+n_overlaps <- rondonia[has_overlap == TRUE, .N]
+print(n_overlaps)
+# 22 layers with overlapping depth limits
+rondonia[, any_overlap := any(has_overlap == TRUE), by = id]
+if (FALSE) {
+  View(rondonia[
+    any_overlap == TRUE,
+    .(id, camada_nome, profund_sup, profund_inf, carbono, argila, has_overlap)
+  ])
+}
+# Average the overlapping boundary between layer i (profund_inf) and the next
+# layer i+1 (profund_sup), then assign the average back to both layers.
+# profund_sup/profund_inf are integer; convert to double first so the averaged
+# (fractional) boundary isn't truncated.
+rondonia[, `:=`(
+  profund_sup = as.double(profund_sup),
+  profund_inf = as.double(profund_inf)
+)]
+rondonia[, overlap_avg := ifelse(
+  has_overlap, (profund_inf + profund_sup_next) / 2, NA_real_
+)]
+rondonia[, overlap_avg_prev := shift(overlap_avg, type = "lag"), by = id]
+rondonia[has_overlap == TRUE, profund_inf := overlap_avg]
+rondonia[!is.na(overlap_avg_prev), profund_sup := overlap_avg_prev]
+rondonia[, check_sup_next := shift(profund_sup, type = "lead"), by = id]
+nrow(rondonia[profund_inf > check_sup_next, ])
+# 0 layers with overlapping depth limits after the correction
+# Guard against the averaging producing degenerate (zero/negative-thickness)
+# layers, which would happen for near-containment overlaps.
+nrow(rondonia[profund_sup > profund_inf, ])
+# 2 layers with invalid depth limits after the correction
+if (FALSE) {
+  View(rondonia[
+    any_overlap == TRUE,
+    .(id, camada_nome, profund_sup, profund_inf, carbono, argila)
+  ])
+}
+rondonia[, `:=`(
+  profund_sup_next = NULL, has_overlap = NULL, any_overlap = NULL,
+  overlap_avg = NULL, overlap_avg_prev = NULL, check_sup_next = NULL
+)]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Read SoilData data processed in the previous script
 soildata <- data.table::fread(
   input = "data/10_soildata.txt",
@@ -1073,6 +1140,33 @@ if (FALSE) {
 # physical soil properties are homogeneous within each pedological horizon. We
 # know that this is not always true, and a more elegant solution should be used
 # in the future.
+
+# Overlapping layers
+# Check for overlapping layers within each event (id)
+# Overlap occurs when profund_inf[i] > profund_sup[i+1], meaning layer i extends
+# into layer i+1. Strategy: compute the average between profund_inf[i] and
+# profund_sup[i+1], then adjust both:
+#   - Set profund_inf[i] to the average
+#   - Set profund_sup[i+1] to the average
+# This approach assumes uncertainty in both measurements and splits the 
+# difference.
+# Re-sort first: depth limits were edited above for specific layers, so row
+# order no longer reliably reflects sorted depths within each event.
+rondonia_overlap <- rondonia_overlap[order(id, profund_sup, profund_inf)]
+rondonia_overlap[, profund_sup_next := shift(profund_sup, type = "lead"), by = id]
+rondonia_overlap[, has_overlap := !is.na(profund_sup_next) & profund_inf > profund_sup_next]
+n_overlaps <- rondonia_overlap[has_overlap == TRUE, .N]
+print(n_overlaps)
+# 286 layers with overlapping depth limits
+rondonia_overlap[, any_overlap := any(has_overlap == TRUE), by = id]
+if (FALSE) {
+  View(rondonia_overlap[
+    any_overlap == TRUE,
+    .(id, camada_nome, profund_sup, profund_inf, carbono, argila, has_overlap)
+  ])
+}
+# rondonia_overlap[, `:=`(profund_sup_next = NULL, has_overlap = NULL)]
+
 
 # Topsoil layers ###############################################################
 rondonia_overlap[!is.na(profund_sup),
