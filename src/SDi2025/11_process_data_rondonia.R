@@ -603,7 +603,7 @@ layer34[
 
 # Merge the two datasets
 sapply(list(layer33, layer34), nrow)
-# 10780 and 419 layers
+# 10779 and 419 layers
 
 # Join layers from ctb0033 and ctb0034 #########################################
 # Apply overlap joint to merge layers from ctb0033 and ctb0034
@@ -618,7 +618,7 @@ sapply(list(layer33, layer34), nrow)
 # This is some messy data!
 data.table::setkey(layer33, evento_id_febr, profund_sup, profund_inf)
 nrow(layer33)
-# 10780 layers
+# 10779 layers
 data.table::setkey(layer34, evento_id_febr, profund_sup, profund_inf)
 nrow(layer34)
 # 419 layers
@@ -643,7 +643,7 @@ layerRO <- data.table::rbindlist(
   fill = TRUE
 )
 nrow(layerRO)
-# 10943 layers
+# 10942 layers
 rm(overlap_id, unmatched33)
 
 # Fill-in missing values: if profund_sup, profund_inf, and camada_id_febr are
@@ -667,7 +667,7 @@ layerRO <- layerRO[
   order(evento_id_febr, camada_id_febr, profund_sup, profund_inf)
 ]
 nrow(layerRO)
-# 10943 layers
+# 10942 layers
 
 if (FALSE) {
   cols <- c(
@@ -705,7 +705,7 @@ layerRO[, dataset_id := NULL]
 # Merge events and layers ######################################################
 rondonia <- merge(eventRO, layerRO, all = TRUE)
 summary_soildata(rondonia)
-# Layers: 10943
+# Layers: 10942
 # Events: 2998
 # Georeference: 2911 (yes) / 87 (no)
 # Date: 2998 (yes) / 0 (no)
@@ -815,7 +815,7 @@ rondonia[, dataset_titulo := title]
 rondonia[, dataset_licenca := "CC-BY-4.0"]
 rondonia[, organizacao_nome := "Governo do Estado de Rondônia"]
 summary_soildata(rondonia)
-# Layers: 10943
+# Layers: 10942
 # Events: 3057
 # Georeference: 2958 (yes) / 99 (no)
 # Date: 3057 (yes) / 0 (no)
@@ -835,7 +835,7 @@ rondonia[, profund_sup_next := shift(profund_sup, type = "lead"), by = id]
 rondonia[, has_overlap := !is.na(profund_sup_next) & profund_inf > profund_sup_next]
 n_overlaps <- rondonia[has_overlap == TRUE, .N]
 print(n_overlaps)
-# 22 layers with overlapping depth limits
+# 20 layers with overlapping depth limits
 rondonia[, any_overlap := any(has_overlap == TRUE), by = id]
 if (FALSE) {
   View(rondonia[
@@ -863,7 +863,7 @@ nrow(rondonia[profund_inf > check_sup_next, ])
 # Guard against the averaging producing degenerate (zero/negative-thickness)
 # layers, which would happen for near-containment overlaps.
 nrow(rondonia[profund_sup > profund_inf, ])
-# 2 layers with invalid depth limits after the correction
+# 0 layers with invalid depth limits after the correction
 if (FALSE) {
   View(rondonia[
     any_overlap == TRUE,
@@ -875,19 +875,7 @@ rondonia[, `:=`(
   overlap_avg = NULL, overlap_avg_prev = NULL, check_sup_next = NULL
 )]
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+# SoilData #####################################################################
 # Read SoilData data processed in the previous script
 soildata <- data.table::fread(
   input = "data/10_soildata.txt",
