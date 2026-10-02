@@ -422,6 +422,17 @@ layer33[
   evento_id_febr == "RO3213" & camada_id_febr == "C",
   profund_inf := ifelse(profund_inf == 40, 90, profund_inf)
 ]
+# RO3172
+# The source document does not report a E layer sampled for chemical analysis.
+# In the source spreadsheet, the E layer overlaps the D layer. It also has a
+# laboratory code (41770) that is far from the other layers. So we drop it.
+layer33 <- layer33[!(evento_id_febr == "RO3172" & camada_id_febr == "E")]
+# RO3923. The source document reports A: 0-515 cm, when it should likely be A: 
+# 0-15 cm. We correct the depth intervals to 0-15 cm.
+layer33[
+  evento_id_febr == "RO3923" & camada_id_febr == "A",
+  profund_inf := ifelse(profund_inf == 515, 15, profund_inf)
+]
 rm(cols)
 
 # ctb0034
