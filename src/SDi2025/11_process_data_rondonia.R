@@ -789,7 +789,7 @@ rondonia[
 rondonia[, .N, by = coord_fonte]
 #                coord_fonte     N
 #                     <char> <int>
-# 1:                     GPS 10789
+# 1:                     GPS 10788
 # 2:        GPS + 1 m jitter    47
 # 3:                    <NA>    99
 # 4: Google Maps (curadoria)     8
@@ -832,7 +832,10 @@ summary_soildata(rondonia)
 # errors in the source data and should be corrected in the source data.
 rondonia <- rondonia[order(id, profund_sup, profund_inf)]
 rondonia[, profund_sup_next := shift(profund_sup, type = "lead"), by = id]
-rondonia[, has_overlap := !is.na(profund_sup_next) & profund_inf > profund_sup_next]
+rondonia[
+  ,
+  has_overlap := !is.na(profund_sup_next) & profund_inf > profund_sup_next
+]
 n_overlaps <- rondonia[has_overlap == TRUE, .N]
 print(n_overlaps)
 # 20 layers with overlapping depth limits
@@ -974,10 +977,20 @@ soildata <- soildata[dataset_id != "ctb0032", ]
 length(unique(soildata[, id]))
 # 10945 events
 
-# Check for overlapping depth limits
+# Check for overlapping depth limits in pedogenetic horizons (ctb0032). Overlap 
+# occurs when profund_inf[i] > profund_sup[i+1], meaning layer i extends into 
+# layer i+1. When this happens, we will correct the depth limits by averaging 
+# the overlapping boundary between layer i (profund_inf) and the next layer i+1
+# (profund_sup), then assigning the average back to both layers.
 ctb0032 <- ctb0032[order(observacao_id, profund_sup, profund_inf)]
-ctb0032[, profund_sup_next := shift(profund_sup, type = "lead"), by = observacao_id]
-ctb0032[, has_overlap := !is.na(profund_sup_next) & profund_inf > profund_sup_next]
+ctb0032[,
+  profund_sup_next := shift(profund_sup, type = "lead"),
+  by = observacao_id
+]
+ctb0032[
+  ,
+  has_overlap := !is.na(profund_sup_next) & profund_inf > profund_sup_next
+]
 n_overlaps <- ctb0032[has_overlap == TRUE, .N]
 print(n_overlaps)
 # 10 layers with overlapping depth limits
@@ -988,6 +1001,9 @@ if (FALSE) {
     .(observacao_id, camada_nome, profund_sup, profund_inf, has_overlap)
   ])
 }
+# We notice that the overlapping depth limits are due to errors in the source 
+# data. We will correct the depth limits for specific events in ctb0032 after 
+# checking the source documentation.
 # RO1173: camada_nome == Bt1, profund_inf == 501; correct to 50
 ctb0032[
   observacao_id == "RO1173" & camada_nome == "Bt1" & profund_inf == 501,
@@ -1067,6 +1083,13 @@ unmatched_ro <- rondonia[overlap_id[is.na(yid), xid]]
 nrow(unmatched_ro)
 # 325 rows in rondonia without a corresponding morphological description. They
 # were included by default in the overlap join.
+if (FALSE) {
+  View(unmatched_ro[
+    ,
+    .(observacao_id, camada_nome, profund_sup, profund_inf, carbono, argila, dsi)
+  ])
+}
+# Check the unmatched rows in ctb0032
 unmatched_ctb0032 <- ctb0032[
   setdiff(
     seq_len(nrow(ctb0032)),
@@ -1075,7 +1098,20 @@ unmatched_ctb0032 <- ctb0032[
 ]
 nrow(unmatched_ctb0032)
 # 427 rows in ctb0032 without a corresponding analytical layer. They were not
-# included in the overlap join. WE DID NOT ADD THESE HORIZONS AS THEY CREATE
+# included in the overlap join.
+if (FALSE) {
+  View(unmatched_ctb0032[
+    ,
+    .(observacao_id, camada_nome, profund_sup, profund_inf)
+  ])
+}
+
+
+
+
+
+
+# WE DID NOT ADD THESE HORIZONS AS THEY CREATE
 # OVERLAPPING DEPTH LIMITS THAT ARE DIFFICULT TO SOLVE.
 # rondonia_overlap <- data.table::rbindlist(
 #   list(rondonia_overlap, unmatched_ctb0032),
