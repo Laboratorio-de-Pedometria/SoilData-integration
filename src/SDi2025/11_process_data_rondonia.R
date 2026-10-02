@@ -974,6 +974,130 @@ soildata <- soildata[dataset_id != "ctb0032", ]
 length(unique(soildata[, id]))
 # 10945 events
 
+# Check for overlapping depth limits
+ctb0032 <- ctb0032[order(observacao_id, profund_sup, profund_inf)]
+ctb0032[, profund_sup_next := shift(profund_sup, type = "lead"), by = observacao_id]
+ctb0032[, has_overlap := !is.na(profund_sup_next) & profund_inf > profund_sup_next]
+n_overlaps <- ctb0032[has_overlap == TRUE, .N]
+print(n_overlaps)
+# 10 layers with overlapping depth limits
+ctb0032[, any_overlap := any(has_overlap == TRUE), by = observacao_id]
+if (FALSE) {
+  View(ctb0032[
+    any_overlap == TRUE,
+    .(observacao_id, camada_nome, profund_sup, profund_inf, has_overlap)
+  ])
+}
+# RO1173: camada_nome == Bt1, profund_inf == 501; correct to 50
+ctb0032[
+  observacao_id == "RO1173" & camada_nome == "Bt1" & profund_inf == 501,
+  profund_inf := 50
+]
+# RO1997: camada_nome == Bw1; profund_inf == 95; correct to 45
+ctb0032[
+  observacao_id == "RO1997" & camada_nome == "Bw1" & profund_inf == 95,
+  profund_inf := 45
+]
+# RO2038: camada_nome == BC; profund_sup == 15; correct to 45
+ctb0032[
+  observacao_id == "RO2038" & camada_nome == "BC" & profund_sup == 15,
+  profund_sup := 45
+]
+# RO2038: camada_nome == Bw1; profund_inf == 180; correct to 80
+ctb0032[
+  observacao_id == "RO2038" & camada_nome == "Bw1" & profund_inf == 180,
+  profund_inf := 80
+]
+# RO2058: camada_nome == Bt2; profund_inf == 120; correct to 75
+ctb0032[
+  observacao_id == "RO2058" & camada_nome == "Bt2" & profund_inf == 120,
+  profund_inf := 75
+]
+# RO2715: camada_nome == A; profund_inf == 80; correct to 20
+ctb0032[
+  observacao_id == "RO2715" & camada_nome == "A" & profund_inf == 80,
+  profund_inf := 20
+]
+# RO2800: camada_nome == AB; profund_sup == 20; correct to 25
+ctb0032[
+  observacao_id == "RO2800" & camada_nome == "AB" & profund_sup == 20,
+  profund_sup := 25
+]
+# RO2817: camada_nome == C; profund_inf == 100; correct to 90
+ctb0032[
+  observacao_id == "RO2817" & camada_nome == "C" & profund_inf == 100,
+  profund_inf := 90
+]
+# RO3334: camada_nome == Bw2; profund_inf == 160; correct to 100
+ctb0032[
+  observacao_id == "RO3334" & camada_nome == "Bw2" & profund_inf == 160,
+  profund_inf := 100
+]
+# RO3562: camada_nome == Bw1; profund_sup == 20; correct to 50
+ctb0032[
+  observacao_id == "RO3562" & camada_nome == "Bw1" & profund_sup == 20,
+  profund_sup := 50
+]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Average the overlapping boundary between layer i (profund_inf) and the next
+# layer i+1 (profund_sup), then assign the average back to both layers.
+# profund_sup/profund_inf are integer; convert to double first so the averaged
+# (fractional) boundary isn't truncated.
+ctb0032[, `:=`(
+  profund_sup = as.double(profund_sup),
+  profund_inf = as.double(profund_inf)
+)]
+rondonia[, overlap_avg := ifelse(
+  has_overlap, (profund_inf + profund_sup_next) / 2, NA_real_
+)]
+rondonia[, overlap_avg_prev := shift(overlap_avg, type = "lag"), by = id]
+rondonia[has_overlap == TRUE, profund_inf := overlap_avg]
+rondonia[!is.na(overlap_avg_prev), profund_sup := overlap_avg_prev]
+rondonia[, check_sup_next := shift(profund_sup, type = "lead"), by = id]
+nrow(rondonia[profund_inf > check_sup_next, ])
+# 0 layers with overlapping depth limits after the correction
+# Guard against the averaging producing degenerate (zero/negative-thickness)
+# layers, which would happen for near-containment overlaps.
+nrow(rondonia[profund_sup > profund_inf, ])
+# 0 layers with invalid depth limits after the correction
+if (FALSE) {
+  View(rondonia[
+    any_overlap == TRUE,
+    .(id, camada_nome, profund_sup, profund_inf, carbono, argila)
+  ])
+}
+rondonia[, `:=`(
+  profund_sup_next = NULL, has_overlap = NULL, any_overlap = NULL,
+  overlap_avg = NULL, overlap_avg_prev = NULL, check_sup_next = NULL
+)]
+
+
+
+
+
+
+
+
+
+
+
 # Perform a join between the analythical data from Rondônia (rondonia) and the
 # morphological descriptions from ctb0032
 data.table::setorder(ctb0032, observacao_id, profund_sup, profund_inf)
