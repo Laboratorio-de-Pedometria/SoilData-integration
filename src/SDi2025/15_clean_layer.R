@@ -285,15 +285,12 @@ soildata <- soildata[
   !(id == "ctb0809-Exame-8" & profund_sup == 50 & profund_inf == 80)
 ]
 
-
-
-
-
 # Profiles with duplicated layers
 # ctb0635-PERFIL-DF-43. This profile has duplicated layers and appears to
 # include data from two different soil profiles.
 # ctb0717-38. This profile has duplicated layers.
-# We will identify the duplicated layers and remove them from the dataset.
+# We will identify the duplicated layers based on camada_nome, profund_sup,
+# profund_inf, and carbono and then remove them from the dataset.
 soildata[id %in% c("ctb0635-PERFIL-DF-43", "ctb0717-38") &
   duplicated(camada_nome) & duplicated(profund_sup) & duplicated(profund_inf) & duplicated(carbono), duplicated := TRUE]
 if (FALSE) {
@@ -325,6 +322,9 @@ summary_soildata(soildata)
 # Georeference: 16710 (yes) / 3541 (no)
 # Date: 20094 (yes) / 157 (no)
 # Datasets: 271
+
+
+
 
 # Layer id
 # Sort each event (id) by layer depth (profund_sup and profund_inf)
