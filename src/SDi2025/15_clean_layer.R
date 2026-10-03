@@ -137,9 +137,9 @@ soildata[id == "ctb0617-Extra-28", `:=`(
   profund_sup = NA_real_,
   profund_inf = NA_real_
 )]
-# ctb0627-Pinheiro-Pr-25. We do not have access to the source document. However,
-# in the source spreadsheet, the depth limits were erroneously recorded as 0. We
-# set the depth limits to NA.
+# ctb0627-Pinheiro-Pr-25. Depths were not recorded in the source document, but
+# erroneously recorded as 0 in the source spreadsheet. We set the depth limits 
+# to NA.
 soildata[id == "ctb0627-Pinheiro-Pr-25", `:=`(
   profund_sup = NA_real_,
   profund_inf = NA_real_
