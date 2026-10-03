@@ -128,10 +128,10 @@ nrow(soildata[profund_sup > profund_inf])
 # WE WILL KEEEP NEGATIVE DEPTHS TO IDENTIFY LITTER LAYERS
 # # Correct negative (profund_sup < 0) depth limit of topsoil layers
 # # Check each soil profile (id) for negative depth limits. Store the result in a
-# # new column "negative_depth" (TRUE/FALSE). If a profile has negative depth 
+# # new column "negative_depth" (TRUE/FALSE). If a profile has negative depth
 # # limits, add the absolute value of the negative depth limit to the depth limits
-# # (profund_sup and profund_inf) of all layers of that profile. This means that 
-# # we standardize the topsoil layer to start at 0 cm depth. We still need to 
+# # (profund_sup and profund_inf) of all layers of that profile. This means that
+# # we standardize the topsoil layer to start at 0 cm depth. We still need to
 # # think about the best way to handle negative depth limits (organic layers).
 # negative_depths <- soildata[, .(min_depth = min(profund_sup)), by = id][min_depth < 0]
 # print(negative_depths)
@@ -143,6 +143,12 @@ nrow(soildata[profund_sup > profund_inf])
 #   ]
 # }
 # rm(negative_depths)
+
+# ctb0671-13-ATM
+soildata[id == "ctb0671-13-ATM" & camada_nome == "O2", `:=`(
+  profund_sup = -2,
+  profund_inf = 0
+)]
 
 # profund_sup == profund_inf ################################################
 
@@ -354,11 +360,108 @@ summary_soildata(soildata)
 # Date: 20094 (yes) / 157 (no)
 # Datasets: 271
 
-# 
+# Layers from two different profiles ###########################################
+# Some profiles (events) have layers from two different profiles. These layers 
+# have the same id, but different values for profund_sup and profund_inf. For 
+# example:
+# soildata[id == "ctb0717-38", .(id, camada_nome, profund_sup, profund_inf)]
+#            id camada_nome profund_sup profund_inf
+#        <char>      <char>       <num>       <num>
+# 1: ctb0717-38         A11           0          12
+# 2: ctb0717-38          A1           0          40
+# 3: ctb0717-38         A12          12          35
+# 4: ctb0717-38         A21          35         100
+# 5: ctb0717-38         A12          40          55
+# 6: ctb0717-38        C1ca          55          70
+# 7: ctb0717-38        C2ca          70          85
+# 8: ctb0717-38         A22         100         190
+# 9: ctb0717-38          Bh         190         210
+# We identify these cases and create a new id for the second profile. These 
+# layers need to be checked in the source data in the future.
+
+# Partition valid depth intervals into the minimum number of non-overlapping
+# profile sequences. Layers with missing or invalid depths remain in lane 0.
+assign_profile_lane <- function(profund_sup, profund_inf) {
+  lane <- integer(length(profund_sup))
+  valid <- which(is.finite(profund_sup) & is.finite(profund_inf) & profund_sup < profund_inf)
+  if (length(valid) == 0L) return(lane)
+
+  ordered <- valid[order(profund_sup[valid], profund_inf[valid], valid)]
+  lane_end <- numeric()
+  for (row in ordered) {
+    available <- which(lane_end <= profund_sup[row])
+    lane_id <- if (length(available) > 0L) available[1L] else length(lane_end) + 1L
+    lane_end[lane_id] <- profund_inf[row]
+    lane[row] <- lane_id
+  }
+  lane
+}
+# We assign a profile lane to each layer. Layers with missing or invalid depths
+# remain in lane 0.
+soildata[, profile_lane := assign_profile_lane(profund_sup, profund_inf), by = id]
+if (FALSE) {
+  View(soildata[
+    profile_lane > 0L,
+    .(id, camada_nome, profund_sup, profund_inf, profile_lane)
+  ])
+}
+
+profile_stats <- soildata[profile_lane > 0L, .(
+  n_layers = .N,
+  top_depth = min(profund_sup)
+), by = .(id, profile_lane)]
+profile_candidates <- profile_stats[, .(
+  n_profiles = .N,
+  min_layers = min(n_layers),
+  shared_top = data.table::uniqueN(top_depth) == 1L
+), by = id][n_profiles > 1L & min_layers >= 2L & shared_top == TRUE]
+
+# Split only well-supported cases: every sequence has multiple layers and
+# starts at the same surface depth. Keep id as the source event identifier.
+soildata[, profile_id := id]
+profile_assignments <- profile_stats[
+  id %in% profile_candidates$id & profile_lane > 1L,
+  .(id, profile_lane, profile_id = paste0(id, "-profile-", profile_lane))
+]
+if (nrow(profile_assignments) > 0L) {
+  soildata[
+    profile_assignments,
+    on = .(id, profile_lane),
+    profile_id := i.profile_id
+  ]
+}
+cat("Events split into multiple profiles:", nrow(profile_candidates), "\n")
+print(profile_candidates[, .(id, n_profiles)])
+soildata[, profile_lane := NULL]
+
+# Recheck zero-thickness bottom layers after separating profiles. The earlier
+# event-level pass cannot identify the bottom of a shallower second profile.
+soildata[, max_profund_inf := if (all(is.na(profund_inf))) {
+  NA_real_
+} else {
+  max(profund_inf, na.rm = TRUE)
+}, by = profile_id]
+soildata[
+  profund_sup == profund_inf & profund_inf == max_profund_inf,
+  profund_inf := profund_inf + plus_depth
+]
+soildata[, max_profund_inf := NULL]
 
 
 
-# Overlapping layers
+
+
+
+
+
+
+
+
+
+
+
+
+# Overlapping layers ###########################################################
 
 
 
