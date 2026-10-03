@@ -185,6 +185,7 @@ soildata[
 
 
 
+
 # profund_sup > profund_inf ####################################################
 
 # Check layers with incorrect depth limits (profund_sup > profund_inf). These
@@ -237,6 +238,15 @@ soildata[id == "ctb0671-13-ATM" & camada_nome == "O2", `:=`(
   profund_sup = -2,
   profund_inf = 0
 )]
+# ctb0678-88. When camada_nome == "O1", set profund_sup == -2 and
+# profund_inf == 0. This was not changed in the source spreadsheet, but we keep
+# it here to identify litter layers.
+soildata[
+  id == "ctb0678-88" & camada_nome == "O1", `:=`(
+    profund_sup = -2,
+    profund_inf = 0
+  )
+]
 
 # profund_sup == profund_inf ###################################################
 
