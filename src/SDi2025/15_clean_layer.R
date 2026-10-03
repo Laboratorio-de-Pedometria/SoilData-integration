@@ -40,6 +40,19 @@ soildata[camada_nome == "", camada_nome := NA_character_]
 soildata[id == "ctb0770-100" & camada_nome == "B21H", camada_nome := "B21h"]
 soildata[id == "ctb0636-Perfil-03" & camada_nome == "Ao", camada_nome := "A1"]
 
+# Nonexistent layers ###########################################################
+
+# ctb0809-Exame-8. This layer was erroneously entered in the source spreadsheet.
+# We remove it. This was already corrected in the source spreadsheet.
+soildata <- soildata[!(id == "ctb0809-Exame-8" & profund_sup == profund_inf)]
+# There is a second nonexistent layer in ctb0809-Exame-8: profund_sup == 50 and
+# profund_inf == 80. This layer was erroneously entered in the source
+# spreadsheet. We remove it. This was already corrected in the source
+# spreadsheet.
+soildata <- soildata[
+  !(id == "ctb0809-Exame-8" & profund_sup == 50 & profund_inf == 80)
+]
+
 # profund_sup > profund_inf #####################################################
 
 # Check layers with incorrect depth limits (profund_sup > profund_inf). These
@@ -274,18 +287,6 @@ soildata[id == "ctb0821-P43" & camada_nome == "A", `:=`(
   profund_sup = NA_real_,
   profund_inf = NA_real_
 )]
-
-# Nonexistent layers
-# ctb0809-Exame-8. This layer was erroneously entered in the source spreadsheet.
-# We remove it. This was already corrected in the source spreadsheet.
-soildata <- soildata[!(id == "ctb0809-Exame-8" & profund_sup == profund_inf)]
-# There is a second nonexistent layer in ctb0809-Exame-8: profund_sup == 50 and
-# profund_inf == 80. This layer was erroneously entered in the source
-# spreadsheet. We remove it. This was already corrected in the source
-# spreadsheet.
-soildata <- soildata[
-  !(id == "ctb0809-Exame-8" & profund_sup == 50 & profund_inf == 80)
-]
 
 # Profiles with duplicated layers
 # ctb0635-PERFIL-DF-43. This profile has duplicated layers and appears to
