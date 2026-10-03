@@ -434,12 +434,19 @@ layer33[
   profund_inf := ifelse(profund_inf == 515, 15, profund_inf)
 ]
 # RO1005
-# The source document reports A: 0-15, B: 10-20, and C: 20-30 cm. The horizons
-# are A: 0-15, Bw1: 15-80, and Bw2: 80-90 cm. We expect that the B layer should 
-# be 20-30 cm.
+# The source document reports A: 0-15, B: 10-20, and C: 70-80 cm. The horizons
+# are A: 0-15, Bw1: 15-80, and Bw2: 80-90 cm. It is difficult to expect that the
+# authors would describe a Bw horizon of only 10 cm thick and not sample it. So,
+# we will change the depth intervals of layer B to 20-30 cm. And we will change 
+# the lowermost depth of horizon Bw1 and the uppermost depth of horizon Bw2
+# to 70 cm (this will be done later on when we load ctb0032).
 layer33[
   evento_id_febr == "RO1005" & camada_id_febr == "B",
   profund_sup := ifelse(profund_sup == 10, 20, profund_sup)
+]
+layer33[
+  evento_id_febr == "RO1005" & camada_id_febr == "B",
+  profund_inf := ifelse(profund_inf == 20, 30, profund_inf)
 ]
 rm(cols)
 
@@ -1330,8 +1337,24 @@ rm(n_overlapping, morphology_only)
 data.table::setorder(rondonia_overlap, observacao_id, profund_sup, profund_inf)
 # Print the events that had any unmatched morphological horizons
 View(rondonia_overlap[observacao_id %in% unmatched_ctb0032$observacao_id, .(
-  observacao_id, camada_nome, profund_sup, profund_inf
+  observacao_id, camada_nome, profund_sup, profund_inf, carbono
 )])
+
+# RO1034. Layer C spans two morphological horizons (Bw1 and Bw2). Set 50-80 as
+# Bw1.
+rondonia_overlap[
+  observacao_id == "RO1034" & camada_nome == "50-80",
+  camada_nome := "Bw1"
+]
+# RO1078. Layer C goes beyond the Bc2 horizon. Set 25-35 as Bc2.
+rondonia_overlap[
+  observacao_id == "RO1078" & camada_nome == "25-35",
+  camada_nome := "Bc2"
+] 
+# There are more cases, but we will not correct them for now. 
+
+
+
 
 
 
