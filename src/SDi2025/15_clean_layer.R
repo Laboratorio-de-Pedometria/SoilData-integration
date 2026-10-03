@@ -158,7 +158,7 @@ soildata[id == "ctb0671-13-ATM" & camada_nome == "O2", `:=`(
   profund_inf = 0
 )]
 
-# profund_sup == profund_inf ################################################
+# profund_sup == profund_inf ###################################################
 
 # Some layers have equal values for profund_sup and profund_inf. This may occur
 # when the soil profile sampling and description ended at the top of the layer,
@@ -386,6 +386,10 @@ summary_soildata(soildata)
 # 9: ctb0717-38          Bh         190         210
 # We identify these cases and create a new id for the second profile. These 
 # layers need to be checked in the source data in the future.
+# Start by identifying events (id) with two layers where profund_sup == 0.
+soildata[, n_surface_layers := sum(profund_sup == 0), by = id]
+View(soildata[n_surface_layers >= 2, .(id, camada_nome, profund_sup, profund_inf)])
+
 
 # Partition valid depth intervals into the minimum number of non-overlapping
 # profile sequences. Layers with missing or invalid depths remain in lane 0.
@@ -418,18 +422,21 @@ if (FALSE) {
   ])
 }
 
+profile_candidates <- soildata[
+  profund_sup == 0 & has_multiple_profiles == TRUE,
+  .(n_surface_layers = .N),
+  by = id
+][n_surface_layers >= 2L]
 profile_stats <- soildata[profile_lane > 0L, .(
-  n_layers = .N,
-  top_depth = min(profund_sup)
+  n_layers = .N
 ), by = .(id, profile_lane)]
-profile_candidates <- profile_stats[, .(
-  n_profiles = .N,
-  min_layers = min(n_layers),
-  shared_top = data.table::uniqueN(top_depth) == 1L
-), by = id][n_profiles > 1L & min_layers >= 2L & shared_top == TRUE]
+profile_candidates <- profile_stats[
+  id %in% profile_candidates$id,
+  .(n_profiles = .N),
+  by = id
+]
 
-# Split only well-supported cases: every sequence has multiple layers and
-# starts at the same surface depth. Keep id as the source event identifier.
+# Keep id as the source event identifier and assign a separate profile_id.
 soildata[, profile_id := id]
 profile_assignments <- profile_stats[
   id %in% profile_candidates$id & profile_lane > 1L,
