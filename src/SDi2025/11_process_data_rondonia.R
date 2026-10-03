@@ -1351,17 +1351,6 @@ rondonia_overlap <- data.table::rbindlist(
   fill = TRUE
 )
 rm(n_overlapping, morphology_only)
-# # RO1034. Layer C spans two morphological horizons (Bw1 and Bw2). Set 50-80 as
-# # Bw1.
-# rondonia_overlap[
-#   observacao_id == "RO1034" & camada_nome == "50-80",
-#   camada_nome := "Bw1"
-# ]
-# # RO1078. Layer C goes beyond the Bc2 horizon. Set 25-35 as Bc2.
-# rondonia_overlap[
-#   observacao_id == "RO1078" & camada_nome == "25-35",
-#   camada_nome := "Bc2"
-# ]
 # Set order by observacao_id, profund_sup, and profund_inf
 data.table::setorder(rondonia_overlap, observacao_id, profund_sup, profund_inf)
 # Print the events that had any unmatched morphological horizons
