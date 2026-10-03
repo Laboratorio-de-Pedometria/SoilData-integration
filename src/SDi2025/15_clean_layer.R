@@ -273,6 +273,20 @@ soildata[
     profund_inf = 0
   )
 ]
+# ctb0753-101. When camada_nome == "O2", set profund_sup == -5 and profund_inf
+# == 0. This has also been corrected in the source spreadsheet.
+soildata[
+  id == "ctb0753-101" & camada_nome == "O2", `:=`(
+    profund_sup = -5,
+    profund_inf = 0
+  )
+]
+# ctb0788-12-EXTRA. We do not have access to the source document. The data in
+# the source spreadsheet is inconsistent. We drop this observation.
+soildata <- soildata[!(id == "ctb0788-12-EXTRA")]
+
+
+
 
 
 
