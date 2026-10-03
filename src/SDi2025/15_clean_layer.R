@@ -311,6 +311,12 @@ soildata[
 soildata[
   id == "ctb0811-80" & camada_nome == "Ezn", profund_sup := 15
 ]
+# ctb0815-E13. The source document is incomplete and does not contain data for
+# all observations in the source spreadsheet. However, there apears to be an
+# extra layer in the source spreadsheet. We drop the row with amostra_id ==
+# 44693.
+soildata <- soildata[!(id == "ctb0815-E13" & amostra_id == 44693)]
+
 
 
 
