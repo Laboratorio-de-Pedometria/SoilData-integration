@@ -24,7 +24,7 @@ brazil <- read_brazil_states()
 # Read the dataset-cleaned SoilData from the previous script
 soildata <- data.table::fread("data/14_soildata.txt", sep = "\t")
 summary_soildata(soildata)
-# Layers: 63319
+# Layers: 63146
 # Events: 20251
 # Georeference: 16710 (yes) / 3541 (no)
 # Date: 20094 (yes) / 157 (no)
@@ -318,7 +318,7 @@ nrow(soildata[profund_sup == profund_inf])
 # 0 layers
 
 summary_soildata(soildata)
-# Layers: 63281
+# Layers: 63108
 # Events: 20251
 # Georeference: 16710 (yes) / 3541 (no)
 # Date: 20094 (yes) / 157 (no)
@@ -357,7 +357,7 @@ soildata <- soildata[repeated == FALSE, ]
 soildata[, repeated := NULL]
 soildata[, any_repeated := NULL]
 summary_soildata(soildata)
-# Layers: 62731
+# Layers: 62558
 # Events: 20251
 # Georeference: 16710 (yes) / 3541 (no)
 # Date: 20094 (yes) / 157 (no)
@@ -370,7 +370,7 @@ soildata[, camada_id := 1:.N, by = id]
 
 
 
-
+# Overlapping layers
 
 
 
