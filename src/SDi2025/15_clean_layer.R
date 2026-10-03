@@ -334,6 +334,15 @@ soildata <- soildata[!(id == "ctb0815-E14")]
 # ctb0815-E16. The source spreadsheet reports a layer A	from 0-40. This layer is
 # not present in the source document. We drop this layer: amostra_id == 44712.
 soildata <- soildata[!(id == "ctb0815-E16" & amostra_id == 44712)]
+# ctb0815-E17. These observation (Terra Roxa Estruturada) has seven layers in 
+# the source spreadsheet, but the source document reports only three. The other
+# layers seem to be from a Latossolo. Because the source document is incomplete,
+# we will drop the four layers that are not present in the source document: 
+# amostra_id == 44715, 44717, 44719, 44721.
+soildata <- soildata[
+  !(id == "ctb0815-E17" & amostra_id %in% c(44715, 44717, 44719, 44721))
+]
+
 
 
 
