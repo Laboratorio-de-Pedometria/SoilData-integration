@@ -262,6 +262,20 @@ soildata[
     id = "ctb0686-RL-9-extra"
   )
 ]
+# ctb0691-10. Drop layer where camada_nome == O1. Rename camada_name O2 to
+# "O1 e O2" and set profund = -3-0. This has also been corrected in the source
+# spreadsheet.
+soildata <- soildata[!(id == "ctb0691-10" & camada_nome == "O1")]
+soildata[
+  id == "ctb0691-10" & camada_nome == "O2", `:=`(
+    camada_nome = "O1 e O2",
+    profund_sup = -3,
+    profund_inf = 0
+  )
+]
+
+
+
 
 
 
