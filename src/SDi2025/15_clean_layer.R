@@ -40,9 +40,8 @@ soildata[camada_nome == "", camada_nome := NA_character_]
 soildata[id == "ctb0770-100" & camada_nome == "B21H", camada_nome := "B21h"]
 soildata[id == "ctb0636-Perfil-03" & camada_nome == "Ao", camada_nome := "A1"]
 
-# Depth limits #################################################################
+# profund_sup > profund_inf #####################################################
 
-# profund_sup > profund_inf
 # Check layers with incorrect depth limits (profund_sup > profund_inf). These
 # layers need to be corrected manually. We print the layers with incorrect depth
 # limits and then correct them. Here we simply reverse the depth limits. The
@@ -67,6 +66,8 @@ nrow(soildata[profund_sup > profund_inf])
 #   profund_inf = 120
 # )]
 
+# Negative depth ##############################################################
+
 # WE WILL KEEEP NEGATIVE DEPTHS TO IDENTIFY LITTER LAYERS
 # # Correct negative (profund_sup < 0) depth limit of topsoil layers
 # # Check each soil profile (id) for negative depth limits. Store the result in a
@@ -86,11 +87,12 @@ nrow(soildata[profund_sup > profund_inf])
 # }
 # rm(negative_depths)
 
-# profund_sup == profund_inf
+# profund_sup == profund_inf ################################################
+
 # Some layers have equal values for profund_sup and profund_inf. This may occur
 # when the soil profile sampling and description ended at the top of the layer,
-# producing a censoring effect. If the layer has a name containing R, D, or C, 
-# we add a fixed depth (plus_depth). It can also occurr due to errros in the 
+# producing a censoring effect. 
+# It can also occurr due to errros in the 
 # source data. We will check these cases and correct them manually.
 nrow(soildata[profund_sup == profund_inf])
 # 203 layers
