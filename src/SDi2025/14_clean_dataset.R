@@ -24,7 +24,7 @@ brazil <- read_brazil_states()
 soildata <- data.table::fread("data/13_soildata.txt", sep = "\t")
 summary_soildata(soildata)
 # 2026 ---
-# Layers: 64032
+# Layers: 63859
 # Events: 20394
 # Georeference: 16852 (yes) / 3542 (no)
 # Date: 20237 (yes) / 157 (no)
@@ -65,7 +65,7 @@ if (length(duplicates_idx) > 0L) {
 # Drop dataset_id = ctb0002 duplicates from soildata
 soildata <- soildata[!(dataset_id == "ctb0002" & observacao_id %in% duplicates_idx)]
 summary_soildata(soildata)
-# Layers: 64017
+# Layers: 63844
 # Events: 20379
 # Georeference: 16837 (yes) / 3542 (no)
 # Date: 20222 (yes) / 157 (no)
@@ -92,7 +92,7 @@ soildata <- soildata[!(
   dataset_id == "ctb0029" & municipio_id == "Silveira Martins" &
     amostra_tipo == "SIMPLES"), ]
 summary_soildata(soildata)
-# Layers: 64013
+# Layers: 63840
 # Events: 20375
 # Georeference: 16833 (yes) / 3542 (no)
 # Date: 20218 (yes) / 157 (no)
@@ -105,7 +105,7 @@ summary_soildata(soildata)
 # These datasets are exact duplicates. We remove ctb0654.
 soildata <- soildata[dataset_id != "ctb0654", ]
 summary_soildata(soildata)
-# Layers: 63905
+# Layers: 63732
 # Events: 20355
 # Georeference: 16814 (yes) / 3541 (no)
 # Date: 20198 (yes) / 157 (no)
@@ -118,7 +118,7 @@ summary_soildata(soildata)
 # These data need to be checked in the future.
 soildata <- soildata[dataset_id != "ctb0800", ]
 summary_soildata(soildata)
-# Layers: 63660
+# Layers: 63487
 # Events: 20311
 # Georeference: 16770 (yes) / 3541 (no)
 # Date: 20154 (yes) / 157 (no)
@@ -130,7 +130,7 @@ summary_soildata(soildata)
 # These datasets are exact duplicates. We remove ctb0808.
 soildata <- soildata[dataset_id != "ctb0808", ]
 summary_soildata(soildata)
-# Layers: 63319
+# Layers: 63146
 # Events: 20251
 # Georeference: 16710 (yes) / 3541 (no)
 # Date: 20094 (yes) / 157 (no)
@@ -153,7 +153,7 @@ dev.off()
 # Write data to disk ###########################################################
 summary_soildata(soildata)
 # 2026 ---
-# Layers: 63319
+# Layers: 63146
 # Events: 20251
 # Georeference: 16710 (yes) / 3541 (no)
 # Date: 20094 (yes) / 157 (no)
