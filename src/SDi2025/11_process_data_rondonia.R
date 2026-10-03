@@ -433,6 +433,14 @@ layer33[
   evento_id_febr == "RO3923" & camada_id_febr == "A",
   profund_inf := ifelse(profund_inf == 515, 15, profund_inf)
 ]
+# RO1005
+# The source document reports A: 0-15, B: 10-20, and C: 20-30 cm. The horizons
+# are A: 0-15, Bw1: 15-80, and Bw2: 80-90 cm. We expect that the B layer should 
+# be 20-30 cm.
+layer33[
+  evento_id_febr == "RO1005" & camada_id_febr == "B",
+  profund_sup := ifelse(profund_sup == 10, 20, profund_sup)
+]
 rm(cols)
 
 # ctb0034
@@ -1325,7 +1333,7 @@ View(rondonia_overlap[observacao_id %in% unmatched_ctb0032$observacao_id, .(
   observacao_id, camada_nome, profund_sup, profund_inf
 )])
 
-ctb0032[observacao_id == "RO0661"]
+
 
 # rondonia_overlap[, needs_horizon_name := NULL]
 
