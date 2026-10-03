@@ -209,6 +209,32 @@ soildata[
     id = "ctb0683-3-extra"
   )
 ]
+# ctb0683-3. When camada_nome == "A", set observacao_id == "3-extra" and id == 
+# "ctb0683-3-extra". This has also been corrected in the source spreadsheet.
+soildata[
+  id == "ctb0683-3" & camada_nome == "A", `:=`(
+    observacao_id = "3-extra",
+    id = "ctb0683-3-extra"
+  )
+]
+# ctb0683-3. When profund = 20	40, set observacao_id == "3-extra" and id ==
+# "ctb0683-3-extra". This has also been corrected in the source spreadsheet.
+soildata[
+  id == "ctb0683-3" & profund_sup == 20 & profund_inf == 40, `:=`(
+    observacao_id = "3-extra",
+    id = "ctb0683-3-extra"
+  )
+]
+# ctb0683-3. When profund = 60	80, set observacao_id == "3-extra" and id == 
+# "ctb0683-3-extra". This has also been corrected in the source spreadsheet.
+soildata[
+  id == "ctb0683-3" & profund_sup == 60 & profund_inf == 80, `:=`(
+    observacao_id = "3-extra",
+    id = "ctb0683-3-extra"
+  )
+]
+
+
 
 
 
