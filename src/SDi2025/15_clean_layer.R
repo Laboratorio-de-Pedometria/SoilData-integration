@@ -233,6 +233,16 @@ soildata[
     id = "ctb0683-3-extra"
   )
 ]
+# ctb0683-41. When camada_nome == A1, A2, or Bt, set observacao_id == "41-extra"
+# and id == "ctb0683-41-extra". This has also been corrected in the source 
+# spreadsheet.
+soildata[
+  id == "ctb0683-41" & camada_nome %in% c("A1", "A2", "Bt"), `:=`(
+    observacao_id = "41-extra",
+    id = "ctb0683-41-extra"
+  )
+]
+
 
 
 
