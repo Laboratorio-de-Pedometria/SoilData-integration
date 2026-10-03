@@ -1365,19 +1365,14 @@ rondonia_overlap[
 # Set order by observacao_id, profund_sup, and profund_inf
 data.table::setorder(rondonia_overlap, observacao_id, profund_sup, profund_inf)
 # Print the events that had any unmatched morphological horizons
-View(rondonia_overlap[observacao_id %in% unmatched_ctb0032$observacao_id, .(
-  observacao_id, camada_nome, profund_sup, profund_inf, carbono
-)])
+if (FALSE) {
+  View(rondonia_overlap[
+    observacao_id %in% unmatched_ctb0032$observacao_id,
+    .(observacao_id, camada_nome, profund_sup, profund_inf, carbono)
+  ])
+}
 # There are more cases, but we will not correct them for now.
- 
-
-
-
-
-
-
-# rondonia_overlap[, needs_horizon_name := NULL]
-
+rondonia_overlap[, needs_horizon_name := NULL]
 
 # Overlapping layers
 # Check for overlapping layers within each event (id)
@@ -1395,7 +1390,7 @@ rondonia_overlap[, profund_sup_next := shift(profund_sup, type = "lead"), by = i
 rondonia_overlap[, has_overlap := !is.na(profund_sup_next) & profund_inf > profund_sup_next]
 n_overlaps <- rondonia_overlap[has_overlap == TRUE, .N]
 print(n_overlaps)
-# 102 (267) layers with overlapping depth limits
+# 100 layers with overlapping depth limits
 rondonia_overlap[, any_overlap := any(has_overlap == TRUE), by = id]
 if (FALSE) {
   View(rondonia_overlap[
@@ -1434,15 +1429,6 @@ rondonia_overlap[, `:=`(
   profund_sup_next = NULL, has_overlap = NULL, any_overlap = NULL,
   overlap_avg = NULL, overlap_avg_prev = NULL, check_sup_next = NULL
 )]
-
-
-
-
-
-
-
-
-
 
 # Topsoil layers ###############################################################
 rondonia_overlap[!is.na(profund_sup),
