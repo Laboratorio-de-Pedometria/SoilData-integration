@@ -139,6 +139,20 @@ soildata[
     profund_inf = 64
   )
 ]
+# ctb0667-A-E-41. The source spreadsheet had three additional layers that
+# possibly are from another soil profile. We drop them here. This has also been
+# corrected in the source spreadsheet.
+# Drop camada_nome == "B1t" and "IIB2tp1".
+nrow(soildata)
+soildata <- soildata[
+  !(id == "ctb0667-A-E-41" & camada_nome %in% c("B1t", "IIB2tp1"))
+]
+# Drop camada_nome == A & amostra_id == 25377
+soildata <- soildata[
+  !(id == "ctb0667-A-E-41" & camada_nome == "A" & amostra_id == 25377)
+]
+nrow(soildata)
+
 
 
 
