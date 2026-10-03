@@ -158,6 +158,25 @@ soildata[
     profund_inf = 16
   )
 ]
+# ctb0673-2-EXTRA. When camada_nome == "B1", set profund_sup == 30 and
+# profund_inf == 50. This has also been corrected in the source spreadsheet.
+soildata[
+  id == "ctb0673-2-EXTRA" & camada_nome == "B1", `:=`(
+    profund_sup = 30,
+    profund_inf = 50
+  )
+]
+# ctb0678-46. When camada_nome == "A3", set profund_sup == 10 and
+# profund_inf == 28. This has also been corrected in the source spreadsheet.
+soildata[
+  id == "ctb0678-46" & camada_nome == "A3", `:=`(
+    profund_sup = 10,
+    profund_inf = 28
+  )
+]
+
+
+
 
 
 
