@@ -331,6 +331,7 @@ soildata[id == "ctb0821-P43" & camada_nome == "A", `:=`(
   profund_inf = NA_real_
 )]
 
+# Lowermost layer?
 # Check if the layer with profund_sup == profund_inf is the lowermost layer of
 # the profile. If so, we add a fixed depth (plus_depth) to the lowermost layer.
 plus_depth <- 20
@@ -346,9 +347,8 @@ soildata[
 soildata[, max_profund_inf := NULL]
 nrow(soildata[profund_sup == profund_inf])
 # 0 layers
-
 summary_soildata(soildata)
-# Layers: 63108
+# Layers: 62574
 # Events: 20251
 # Georeference: 16710 (yes) / 3541 (no)
 # Date: 20094 (yes) / 157 (no)
