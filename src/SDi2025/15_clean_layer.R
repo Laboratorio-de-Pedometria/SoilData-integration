@@ -242,6 +242,17 @@ soildata[
     id = "ctb0683-41-extra"
   )
 ]
+# ctb0683-5. When profund = 0	20, 20	40, and 60	80, set observacao_id ==
+# "5-extra" and id == "ctb0683-5-extra". This has also been corrected in the
+# source spreadsheet.
+soildata[
+  id == "ctb0683-5" & profund_sup %in% c(0, 20, 60) & profund_inf %in% c(20, 40, 80), `:=`(
+    observacao_id = "5-extra",
+    id = "ctb0683-5-extra"
+  )
+]
+
+
 
 
 
