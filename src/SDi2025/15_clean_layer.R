@@ -285,10 +285,18 @@ soildata[
 # the source spreadsheet is inconsistent. We drop this observation.
 soildata <- soildata[!(id == "ctb0788-12-EXTRA")]
 # ctb0811-8. The source spreadsheet contains eight layers, but the source
-# document contains only five. We drop the three additional layers: amostra_id
-# == 44258, 44259, and 44260. This has also been corrected in the source
-# spreadsheet.
-soildata <- soildata[!(id == "ctb0811-8" & amostra_id %in% c(44258, 44259, 44260))]
+# document contains only five. The source document does not contain all soil
+# profiles and layers. It appears that these layers are from another soil 
+# profile. When amostra_id == 44258, 44259, and 44260, set observacao_id == 
+# "8-extra" and id == "ctb0811-8-extra". This has also been corrected in the 
+# source spreadsheet.
+soildata[
+  id == "ctb0811-8" & amostra_id %in% c(44258, 44259, 44260), `:=`(
+    observacao_id = "8-extra",
+    id = "ctb0811-8-extra"
+  )
+]
+# ctb0811-80
 
 
 
