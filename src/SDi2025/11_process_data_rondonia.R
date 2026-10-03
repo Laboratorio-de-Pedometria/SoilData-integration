@@ -1248,10 +1248,12 @@ if (FALSE) {
 # Analytical layers and morphological horizons
 # Check whether an unmatched morphological horizon is within an analytical
 # interval that did not receive a morphological name in the first join.
+# .I inside a filtered i would index the subset, so use row numbers of the full table.
 tmp <- rondonia_overlap[
   needs_horizon_name == TRUE,
   .(
-    rondonia_row_id = .I, observacao_id, profund_sup, profund_inf
+    rondonia_row_id = which(rondonia_overlap$needs_horizon_name == TRUE),
+    observacao_id, profund_sup, profund_inf
   )
 ]
 # Keep the candidate horizon name explicit in the join result.
@@ -1274,7 +1276,7 @@ tmp <- data.table::foverlaps(
 # A single analytical interval may contain multiple morphological horizons. In
 # that case, use the thickest contained horizon (ties: the shallowest one).
 # After the join, i.profund_sup and i.profund_inf are the horizon limits.
-matched_horizons <- tmp[!is.na(morphological_name)]
+matched_horizons <- tmp[!is.na(rondonia_row_id)]
 matched_horizons[, thickness := i.profund_inf - i.profund_sup]
 data.table::setorder(
   matched_horizons, rondonia_row_id, -thickness, i.profund_sup
@@ -1287,10 +1289,14 @@ rondonia_overlap[
   matched_horizons$rondonia_row_id,
   camada_nome := matched_horizons$camada_nome
 ]
-# Print the events that had unmatched morphological horizons to check the result
-View(rondonia_overlap[needs_horizon_name == TRUE, .(
-  observacao_id, profund_sup, profund_inf, camada_nome
+# Set order by observacao_id, profund_sup, and profund_inf
+data.table::setorder(rondonia_overlap, observacao_id, profund_sup, profund_inf)
+# Print the events that had any unmatched morphological horizons
+View(rondonia_overlap[observacao_id %in% unmatched_ctb0032$observacao_id, .(
+  observacao_id, camada_nome, profund_sup, profund_inf
 )])
+
+ctb0032[observacao_id == "RO0661"]
 
 # rondonia_overlap[, needs_horizon_name := NULL]
 
