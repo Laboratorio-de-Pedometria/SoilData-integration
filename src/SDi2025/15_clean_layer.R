@@ -284,6 +284,13 @@ soildata[
 # ctb0788-12-EXTRA. We do not have access to the source document. The data in
 # the source spreadsheet is inconsistent. We drop this observation.
 soildata <- soildata[!(id == "ctb0788-12-EXTRA")]
+# ctb0811-8. The source spreadsheet contains eight layers, but the source
+# document contains only five. We drop the three additional layers: amostra_id
+# == 44258, 44259, and 44260. This has also been corrected in the source
+# spreadsheet.
+soildata <- soildata[!(id == "ctb0811-8" & amostra_id %in% c(44258, 44259, 44260))]
+
+
 
 
 
