@@ -143,7 +143,6 @@ soildata[
 # possibly are from another soil profile. We drop them here. This has also been
 # corrected in the source spreadsheet.
 # Drop camada_nome == "B1t" and "IIB2tp1".
-nrow(soildata)
 soildata <- soildata[
   !(id == "ctb0667-A-E-41" & camada_nome %in% c("B1t", "IIB2tp1"))
 ]
@@ -151,7 +150,15 @@ soildata <- soildata[
 soildata <- soildata[
   !(id == "ctb0667-A-E-41" & camada_nome == "A" & amostra_id == 25377)
 ]
-nrow(soildata)
+# ctb0673-11. When camada_nome == A12, set profund_sup == 8 and 
+# profund_inf == 16. This has also been corrected in the source spreadsheet.
+soildata[
+  id == "ctb0673-11" & camada_nome == "A12", `:=`(
+    profund_sup = 8,
+    profund_inf = 16
+  )
+]
+
 
 
 
