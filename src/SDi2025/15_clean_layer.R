@@ -104,6 +104,46 @@ soildata[
   id == "ctb0014-Perfil_5" & camada_nome == "Bw3",
   profund_inf := ifelse(profund_inf == 114, 144, profund_inf)
 ]
+# ctb0594-COMPLEMENTAR-92
+# If profund_sup == 0 and profund_inf == 20, set observacao_id ==
+# "COMPLEMENTAR-92-Neo" and id == "ctb0594-COMPLEMENTAR-92-Neo". Else, set
+# observacao_id == "COMPLEMENTAR-92-Cambi" and id ==
+# "ctb0594-COMPLEMENTAR-92-Cambi". This was already corrected in the source.
+soildata[
+  id == "ctb0594-COMPLEMENTAR-92" & profund_sup == 0 & profund_inf == 20,
+  `:=`(
+    observacao_id = "COMPLEMENTAR-92-Neo",
+    id = "ctb0594-COMPLEMENTAR-92-Neo"
+  )
+]
+soildata[
+  id == "ctb0594-COMPLEMENTAR-92",
+  `:=`(
+    observacao_id = "COMPLEMENTAR-92-Cambi",
+    id = "ctb0594-COMPLEMENTAR-92-Cambi"
+  )
+]
+# ctb0599-AC-13: if camada_nome == 3ªCAM, profund_sup == 50 and profund_inf ==
+# 70. This was already corrected in the source spreadsheet.
+soildata[
+  id == "ctb0599-AC-13" & camada_nome == "3ªCAM", `:=`(
+    profund_sup = 50,
+    profund_inf = 70
+  )
+]
+# ctb0605-P-10. When camada_nome == "BC", set profund_sup == 40 and 
+# profund_inf == 64
+soildata[
+  id == "ctb0605-P-10" & camada_nome == "BC", `:=`(
+    profund_sup = 40,
+    profund_inf = 64
+  )
+]
+
+
+
+
+
 
 # profund_sup > profund_inf ####################################################
 
