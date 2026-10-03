@@ -239,7 +239,7 @@ plot(brazil["code_state"],
 plot(soildata_sf["estado_id"], cex = 0.3, add = TRUE, pch = 20)
 dev.off()
 summary_soildata(soildata)
-# Layers: 50276
+# Layers: 50103
 # Events: 14005
 # Georeference: 10903 (yes) / 3102 (no)
 # Date: 13850 (yes) / 155 (no)
@@ -250,7 +250,7 @@ ifndata_filtered[, observacao_id := id]
 ifndata_filtered[, id := paste0(dataset_id, "-", id)]
 soildata <- rbind(soildata, ifndata_filtered, fill = TRUE)
 summary_soildata(soildata)
-# Layers: 51802
+# Layers: 51629
 # Events: 14894
 # Georeference: 11792 (yes) / 3102 (no)
 # Date: 14739 (yes) / 155 (no)
@@ -326,7 +326,7 @@ soildata[
 # Write data to disk ###########################################################
 summary_soildata(soildata)
 # 2026 ---
-# Layers: 51802
+# Layers: 51629
 # Events: 14894
 # Georeference: 11792 (yes) / 3102 (no)
 # Date: 14739 (yes) / 155 (no)
