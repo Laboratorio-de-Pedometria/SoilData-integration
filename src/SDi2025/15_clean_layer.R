@@ -286,9 +286,9 @@ soildata[
 soildata <- soildata[!(id == "ctb0788-12-EXTRA")]
 # ctb0811-8. The source spreadsheet contains eight layers, but the source
 # document contains only five. The source document does not contain all soil
-# profiles and layers. It appears that these layers are from another soil 
-# profile. When amostra_id == 44258, 44259, and 44260, set observacao_id == 
-# "8-extra" and id == "ctb0811-8-extra". This has also been corrected in the 
+# profiles and layers. It appears that these layers are from another soil
+# profile. When amostra_id == 44258, 44259, and 44260, set observacao_id ==
+# "8-extra" and id == "ctb0811-8-extra". This has also been corrected in the
 # source spreadsheet.
 soildata[
   id == "ctb0811-8" & amostra_id %in% c(44258, 44259, 44260), `:=`(
@@ -296,7 +296,25 @@ soildata[
     id = "ctb0811-8-extra"
   )
 ]
-# ctb0811-80
+# ctb0811-80. The source document does not contain data for this observation.
+# The source spreadsheet contains layers Azn and Ezn sharing the same depth
+# interval (0-25). Layer Ezn contains data only for morphological description,
+# but no data for soil properties. The third layer (2Btzn) extends from 25 to 50
+# cm. We suspect that the Azn horizon extends from 0 to only 15 cm, and the Ezn
+# horizon extends from 15 to 25 cm. A ~10-cm thick E horizon is usual in the 
+# region as reported in the source spreadsheet for other soil profiles. This
+# was already corrected in the source spreadsheet. We set profund_inf of Azn to 
+# 15 and profund_sup of Ezn to 15.
+soildata[
+  id == "ctb0811-80" & camada_nome == "Azn", profund_inf := 15
+]
+soildata[
+  id == "ctb0811-80" & camada_nome == "Ezn", profund_sup := 15
+]
+
+
+
+
 
 
 
