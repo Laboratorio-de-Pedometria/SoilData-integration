@@ -1436,7 +1436,7 @@ rondonia_overlap[!is.na(profund_sup),
   by = observacao_id
 ]
 nrow(unique(rondonia_overlap[has_topsoil != TRUE, "observacao_id"]))
-# 5 events without topsoil layers.
+# 3 events without topsoil layers.
 # Set the profund_sup of only the first (shallowest) layer to 0 for events
 # without topsoil layers; other layers in the same event stay untouched.
 first_layer_idx <- rondonia_overlap[
@@ -1463,10 +1463,10 @@ if(FALSE) {
 # Write data to disk ###########################################################
 summary_soildata(soildata)
 # 2026 ---
-# Layers: 49837
-# Events: 14002
-# Georeference: 10903 (yes) / 3099 (no)
-# Date: 13850 (yes) / 152 (no)
+# Layers: 50103
+# Events: 14005
+# Georeference: 10903 (yes) / 3102 (no)
+# Date: 13850 (yes) / 155 (no)
 # Datasets: 235
 # 2025 ---
 # Layers: 49684
