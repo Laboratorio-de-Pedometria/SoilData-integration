@@ -316,6 +316,27 @@ soildata[
 # extra layer in the source spreadsheet. We drop the row with amostra_id ==
 # 44693.
 soildata <- soildata[!(id == "ctb0815-E13" & amostra_id == 44693)]
+# ctb0815-E14. After analysis of the source document, we conclude that this
+# observation contains an extra layer from E15. When amostra_id == 44706, set
+# observacao_id == "E15" and id == "ctb0815-E15". This has also been corrected 
+# in the source spreadsheet.
+soildata[
+  id == "ctb0815-E14" & amostra_id == 44706, `:=`(
+    observacao_id = "E15",
+    id = "ctb0815-E15"
+  )
+]
+# ctb0815-E14. Data attributed to E14 in the source spreadsheet consists of six
+# layers, which seems a lot for an extra sample. Besides, the data reflects a
+# Latossolo, while the source document reports that E14 is a Areia Quartzoza.
+# Here we will drop this observation entirely.
+soildata <- soildata[!(id == "ctb0815-E14")]
+# ctb0815-E16. The source spreadsheet reports a layer A	from 0-40. This layer is
+# not present in the source document. We drop this layer: amostra_id == 44712.
+soildata <- soildata[!(id == "ctb0815-E16" & amostra_id == 44712)]
+
+
+
 
 
 
