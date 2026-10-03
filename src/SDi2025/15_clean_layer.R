@@ -97,6 +97,14 @@ summary_soildata(soildata)
 soildata <- soildata[order(id, profund_sup, profund_inf)]
 soildata[, camada_id := 1:.N, by = id]
 
+# Wrong depth limits ###########################################################
+
+# ctb0014-Perfil_5. Bw3: 114 -> 144 (not corrected in the source)
+soildata[
+  id == "ctb0014-Perfil_5" & camada_nome == "Bw3",
+  profund_inf := ifelse(profund_inf == 114, 144, profund_inf)
+]
+
 # profund_sup > profund_inf ####################################################
 
 # Check layers with incorrect depth limits (profund_sup > profund_inf). These
@@ -398,10 +406,14 @@ assign_profile_lane <- function(profund_sup, profund_inf) {
 }
 # We assign a profile lane to each layer. Layers with missing or invalid depths
 # remain in lane 0.
-soildata[, profile_lane := assign_profile_lane(profund_sup, profund_inf), by = id]
+soildata[,
+  profile_lane := assign_profile_lane(profund_sup, profund_inf),
+  by = id
+]
+soildata[, has_multiple_profiles := any(profile_lane > 1L), by = id]
 if (FALSE) {
   View(soildata[
-    profile_lane > 0L,
+    has_multiple_profiles == TRUE,
     .(id, camada_nome, profund_sup, profund_inf, profile_lane)
   ])
 }
