@@ -1289,6 +1289,35 @@ rondonia_overlap[
   matched_horizons$rondonia_row_id,
   camada_nome := matched_horizons$camada_nome
 ]
+# Retain morphology-only horizons that do not overlap any layer of the same
+# event (e.g., a deeper horizon with no analytical data). Horizons that overlap
+# an analytical layer are already represented and are not added.
+n_overlapping <- rondonia_overlap[
+  unmatched_ctb0032,
+  on = .(observacao_id, profund_sup < profund_inf, profund_inf > profund_sup),
+  .N,
+  by = .EACHI
+]$N
+morphology_only <- data.table::copy(unmatched_ctb0032[n_overlapping == 0L])
+nrow(morphology_only)
+morphology_only[, `:=`(
+  dataset_id = "ctb0033",
+  needs_horizon_name = FALSE
+)]
+morphology_only[, id := rondonia_overlap$id[
+  match(observacao_id, rondonia_overlap$observacao_id)
+]]
+morphology_only[is.na(id), id := paste0(dataset_id, "-", observacao_id)]
+morphology_only[, `:=`(
+  dataset_titulo = "Dados de 'Zoneamento Socioeconômico-Ecológico do Estado de Rondônia'",
+  dataset_licenca = "CC-BY-4.0",
+  organizacao_nome = "Governo do Estado de Rondônia"
+)]
+rondonia_overlap <- data.table::rbindlist(
+  list(rondonia_overlap, morphology_only),
+  fill = TRUE
+)
+rm(n_overlapping, morphology_only)
 # Set order by observacao_id, profund_sup, and profund_inf
 data.table::setorder(rondonia_overlap, observacao_id, profund_sup, profund_inf)
 # Print the events that had any unmatched morphological horizons
