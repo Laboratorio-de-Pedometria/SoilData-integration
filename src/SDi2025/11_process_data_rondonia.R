@@ -6,12 +6,18 @@
 # description: This script processes soil data from the Socioeconomic-Ecological
 # State Zoning of Rondônia. It downloads and merges event and layer data from
 # datasets ctb0033 and ctb0034 in the FEBR repository. It also uses dataset
-# ctb0032 to obtain soil classification information. The script standardizes
-# column names and measurement units and manually corrects the coordinates of
-# two mislocated events. It handles duplicated layers (extra samples for
-# fertility assessment) by creating new event identifiers and jittering their
-# coordinates. Finally, it removes existing data from Rondônia in the main
-# dataset and merges the newly processed data, saving the result.
+# ctb0032 to obtain soil classification information and morphological
+# descriptions of pedogenetic horizons. The script standardizes column names
+# and measurement units and manually corrects the coordinates of two mislocated
+# events. It handles duplicated layers (extra samples for fertility assessment)
+# by creating new event identifiers and jittering their coordinates. The
+# analytical layers are then joined to the ctb0032 horizons by depth overlap
+# within each event: horizon names are assigned to the analytical layers,
+# layers matching the same horizon get non-overlapping depth limits, horizons
+# without analytical data are retained as morphology-only layers, and remaining
+# overlaps between layers are resolved by averaging the shared boundary.
+# Finally, it removes existing data from Rondônia in the main dataset and
+# merges the newly processed data, saving the result.
 rm(list = ls())
 
 # Source helper functions
