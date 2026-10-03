@@ -253,6 +253,16 @@ soildata[
 ]
 # ctb0686-RL-37-EXTRA. Drop layers where amostra_id == 30186 and 30187.
 soildata <- soildata[!(id == "ctb0686-RL-37" & amostra_id %in% c(30186, 30187))]
+# ctb0686-RL-9. When amostra_id == 30090 and 30091, set observacao_id ==
+# "9-extra" and id == "ctb0686-RL-9-extra". This has also been corrected in the
+# source spreadsheet.
+soildata[
+  id == "ctb0686-RL-9" & amostra_id %in% c(30090, 30091), `:=`(
+    observacao_id = "9-extra",
+    id = "ctb0686-RL-9-extra"
+  )
+]
+
 
 
 
