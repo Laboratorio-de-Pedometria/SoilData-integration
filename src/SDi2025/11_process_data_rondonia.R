@@ -946,6 +946,21 @@ soildata[
   dataset_id == "ctb0032" & observacao_id == "RO3059" & camada_nome == "Bi",
   profund_inf := ifelse(profund_inf == 15, 30, profund_inf)
 ]
+# RO1005
+# The source document reports A: 0-15, B: 10-20, and C: 70-80 cm. The horizons
+# are A: 0-15, Bw1: 15-80, and Bw2: 80-90 cm. It is difficult to expect that the
+# authors would describe a Bw horizon of only 10 cm thick and not sample it. So,
+# we changed the depth intervals of layer B to 20-30 cm. And we will change
+# the lowermost depth of horizon Bw1 and the uppermost depth of horizon Bw2
+# to 70 cm.
+soildata[
+  dataset_id == "ctb0032" & observacao_id == "RO1005" & camada_nome == "Bw1",
+  profund_inf := ifelse(profund_inf == 80, 70, profund_inf)
+]
+soildata[
+  dataset_id == "ctb0032" & observacao_id == "RO1005" & camada_nome == "Bw2",
+  profund_sup := ifelse(profund_sup == 80, 70, profund_sup)
+]
 
 # From observacao_id == "RO1687", drop layer with camada_nome == "Bw3"
 # After checking the documentation, we decided that this is a possible duplicate
@@ -1286,15 +1301,18 @@ data.table::setkey(unmatched_horizons, observacao_id, profund_sup, profund_inf)
 tmp <- data.table::foverlaps(
   x = unmatched_horizons,
   y = tmp,
-  type = "within", mult = "all"
+  type = "any", mult = "all"
 )
-# A single analytical interval may contain multiple morphological horizons. In
-# that case, use the thickest contained horizon (ties: the shallowest one).
+# An analytical interval may contain or partially overlap several horizons. Use
+# the horizon with the largest overlap (ties: the shallowest one). Horizons that
+# only touch the interval boundary are ignored.
 # After the join, i.profund_sup and i.profund_inf are the horizon limits.
 matched_horizons <- tmp[!is.na(rondonia_row_id)]
-matched_horizons[, thickness := i.profund_inf - i.profund_sup]
+matched_horizons[, overlap_length :=
+  pmin(profund_inf, i.profund_inf) - pmax(profund_sup, i.profund_sup)]
+matched_horizons <- matched_horizons[overlap_length > 0]
 data.table::setorder(
-  matched_horizons, rondonia_row_id, -thickness, i.profund_sup
+  matched_horizons, rondonia_row_id, -overlap_length, i.profund_sup
 )
 matched_horizons <- matched_horizons[
   , .(camada_nome = morphological_name[1L]), by = rondonia_row_id
@@ -1333,13 +1351,6 @@ rondonia_overlap <- data.table::rbindlist(
   fill = TRUE
 )
 rm(n_overlapping, morphology_only)
-# Set order by observacao_id, profund_sup, and profund_inf
-data.table::setorder(rondonia_overlap, observacao_id, profund_sup, profund_inf)
-# Print the events that had any unmatched morphological horizons
-View(rondonia_overlap[observacao_id %in% unmatched_ctb0032$observacao_id, .(
-  observacao_id, camada_nome, profund_sup, profund_inf, carbono
-)])
-
 # RO1034. Layer C spans two morphological horizons (Bw1 and Bw2). Set 50-80 as
 # Bw1.
 rondonia_overlap[
@@ -1350,8 +1361,15 @@ rondonia_overlap[
 rondonia_overlap[
   observacao_id == "RO1078" & camada_nome == "25-35",
   camada_nome := "Bc2"
-] 
-# There are more cases, but we will not correct them for now. 
+]
+# Set order by observacao_id, profund_sup, and profund_inf
+data.table::setorder(rondonia_overlap, observacao_id, profund_sup, profund_inf)
+# Print the events that had any unmatched morphological horizons
+View(rondonia_overlap[observacao_id %in% unmatched_ctb0032$observacao_id, .(
+  observacao_id, camada_nome, profund_sup, profund_inf, carbono
+)])
+# There are more cases, but we will not correct them for now.
+ 
 
 
 
