@@ -701,6 +701,16 @@ soildata[
     profund_inf = 0
   )
 ]
+# ctb0657-111. This soils profile has two organic layers. When amostra_id =
+# 25290 and 25291, set camada_nome O1 and O2 and profund_sup = -5 and -3 and
+# profund_inf = -3 and 0, respectively. This was already corrected in the source
+# spreadsheet.
+soildata[dataset_id == "ctb0657" & id == "ctb0657-111" &
+  amostra_id %in% c(25290, 25291), `:=`(
+  camada_nome = c("O1", "O2"),
+  profund_sup = c(-5, -3),
+  profund_inf = c(-3, 0)
+)]
 
 # profund_sup == profund_inf ###################################################
 
@@ -1106,6 +1116,11 @@ if (FALSE) {
   ][order(id_original, profile_lane, profund_sup, profund_inf)])
 }
 soildata[, profile_lane := NULL]
+
+
+
+
+
 
 
 
