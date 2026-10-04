@@ -1086,21 +1086,6 @@ soildata[
 ]
 soildata[, max_profund_inf := NULL]
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # Overlapping layers ###########################################################
 
 
