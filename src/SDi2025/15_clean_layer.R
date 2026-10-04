@@ -932,14 +932,9 @@ summary_soildata(soildata)
 # 9: ctb0717-38          Bh         190         210
 # We identify these cases and create a new id for the second profile. These 
 # layers need to be checked in the source data in the future.
-# Start by identifying events (id) with two layers where profund_sup == 0.
-soildata[, n_surface_layers := sum(profund_sup == 0), by = id]
-if (FALSE) {
-  View(soildata[
-    n_surface_layers >= 2,
-    .(id, camada_nome, profund_sup, profund_inf)
-  ])
-}
+
+# But first we need to make some corrections so that the proceedure will work
+# smoothly:
 # ctb0819-E-184. Drop row with camada_nome == B.
 soildata <- soildata[!(id == "ctb0819-E-184" & camada_nome == "B")]
 # ctb0819-E-190. Drop row with camada_nome == B.
@@ -951,10 +946,27 @@ soildata[
     profund_inf = 60
   )
 ]
-
-
-
-
+# ctb0637-Perfil-79. When amostra_id = 20305, set profund_sup = 42
+soildata[dataset_id == "ctb0637-Perfil-79" & amostra_id == 20305, profund_sup := 42]
+# ctb0759-50. When amostra_id = 36719, set profund_sup = 12.
+soildata[dataset_id == "ctb0759-50" & amostra_id == 36719, profund_sup := 12]
+# ctb0759-8. When amostra_id = 36687, set profund_sup = 42.
+soildata[dataset_id == "ctb0759-8" & amostra_id == 36687, profund_sup := 42]
+# ctb0760-2. Drop the row with camada_nome, profund_inf, and profund_sup == NA.
+soildata <- soildata[!(id == "ctb0760-2" &
+  is.na(camada_nome) & is.na(profund_inf) & is.na(profund_sup))]
+# ctb0771-40. Drop the row with camada_nome, profund_inf, and profund_sup == NA.
+soildata <- soildata[!(id == "ctb0771-40" &
+  is.na(camada_nome) & is.na(profund_inf) & is.na(profund_sup))]
+# ctb0821-P22. The source spreadsheet has five incomplete layers, but the source
+# document contains only one layer. We drop the four layers that are not present
+# in the source document: 45477 45478 45479 45480.
+soildata <- soildata[!(id == "ctb0821-P22" & amostra_id %in% c(45477, 45478, 45479, 45480))]
+# When amostra_id == 45476, set profund_sup = 60.
+soildata[id == "ctb0821-P22" & amostra_id == 45476, profund_sup := 60]
+# ctb0826-P29. When amostra_id = 45937, set profund_inf = 52. We do not have
+# access to the source document.
+soildata[id == "ctb0826-P29" & amostra_id == 45937, profund_inf := 52]
 
 
 
@@ -981,47 +993,49 @@ soildata[,
   profile_lane := assign_profile_lane(profund_sup, profund_inf),
   by = id
 ]
-soildata[, has_multiple_profiles := any(profile_lane > 1L), by = id]
-if (FALSE) {
-  View(soildata[
-    has_multiple_profiles == TRUE,
-    .(id, camada_nome, profund_sup, profund_inf, profile_lane)
-  ])
-}
-
 profile_candidates <- soildata[
-  profund_sup == 0 & has_multiple_profiles == TRUE,
+  profund_sup == 0,
   .(n_surface_layers = .N),
   by = id
 ][n_surface_layers >= 2L]
-profile_stats <- soildata[profile_lane > 0L, .(
-  n_layers = .N
-), by = .(id, profile_lane)]
-profile_candidates <- profile_stats[
-  id %in% profile_candidates$id,
-  .(n_profiles = .N),
-  by = id
-]
+profile_stats <- soildata[, .(
+  n_profiles = max(profile_lane),
+  n_unassigned = sum(profile_lane == 0L)
+), by = id]
+profile_candidates <- profile_candidates[
+  profile_stats,
+  on = "id"
+][n_profiles > 1L]
+splittable_profiles <- profile_candidates[n_unassigned == 0L]
+unresolved_profiles <- profile_candidates[n_unassigned > 0L]
 
-# Keep id as the source event identifier and assign a separate profile_id.
+View(soildata[id %in% unresolved_profiles$id, .(id, camada_nome, profund_sup, profund_inf, profile_lane)])
+
+# 
+profile_assignments <- unique(soildata[
+  id %in% splittable_profiles$id & profile_lane > 1L,
+  .(id, profile_lane, new_id = paste0(id, "-profile-", profile_lane))
+])
+if (any(profile_assignments$new_id %in% soildata$id)) {
+  stop("A generated profile id already exists in the input data.")
+}
 soildata[, profile_id := id]
-profile_assignments <- profile_stats[
-  id %in% profile_candidates$id & profile_lane > 1L,
-  .(id, profile_lane, profile_id = paste0(id, "-profile-", profile_lane))
-]
 if (nrow(profile_assignments) > 0L) {
   soildata[
     profile_assignments,
     on = .(id, profile_lane),
-    profile_id := i.profile_id
+    profile_id := i.new_id
   ]
 }
-cat("Events split into multiple profiles:", nrow(profile_candidates), "\n")
-print(profile_candidates[, .(id, n_profiles)])
+
+cat("Events split into multiple profiles:", uniqueN(profile_assignments$id), "\n")
+if (nrow(unresolved_profiles) > 0L) {
+  cat("Candidate events not split because some layers have invalid or missing depths:\n")
+  print(unresolved_profiles[, .(id, n_surface_layers, n_profiles, n_unassigned)])
+}
 soildata[, profile_lane := NULL]
 
-# Recheck zero-thickness bottom layers after separating profiles. The earlier
-# event-level pass cannot identify the bottom of a shallower second profile.
+# Recheck zero-thickness bottom layers after splitting, grouped by profile.
 soildata[, max_profund_inf := if (all(is.na(profund_inf))) {
   NA_real_
 } else {
@@ -1304,6 +1318,11 @@ soildata[dsi > 2.5, dsi := NA_real_]
 
 # Correct inconsistent soil bulk density values
 soildata[id == "ctb0058-RN_20", dsi := ifelse(dsi == 2.11, 1.11, dsi)]
+
+# Apply profile-specific ids after all corrections keyed by the original id.
+soildata[, id_original := id]
+soildata[, id := profile_id]
+soildata[, profile_id := NULL]
 
 # Write data to disk ###############################################################################
 summary_soildata(soildata)
