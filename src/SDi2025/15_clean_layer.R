@@ -988,12 +988,16 @@ soildata[id == "ctb0566-Perfil-17" & amostra_id == 13745, `:=`(
 )]
 # When amosra_id = 13744, set profund_sup = 74 
 soildata[id == "ctb0566-Perfil-17" & amostra_id == 13744, profund_sup := 74]
+# ctb0635-PERFIL-DF-40. When amostra_id = 20363, set profund_inf = 75. This was
+# already corrected in the source spreadsheet.
+soildata[id == "ctb0635-PERFIL-DF-40" & amostra_id == 20363, profund_inf := 75]
 
 # Partition valid depth intervals into the minimum number of non-overlapping
 # profile sequences. Layers with missing or invalid depths remain in lane 0.
 assign_profile_lane <- function(profund_sup, profund_inf) {
   lane <- integer(length(profund_sup))
-  valid <- which(is.finite(profund_sup) & is.finite(profund_inf) & profund_sup < profund_inf)
+  valid <- which(is.finite(profund_sup) & is.finite(profund_inf) &
+    profund_sup < profund_inf)
   if (length(valid) == 0L) return(lane)
 
   ordered <- valid[order(profund_sup[valid], profund_inf[valid], valid)]
@@ -1010,6 +1014,29 @@ assign_profile_lane <- function(profund_sup, profund_inf) {
 # remain in lane 0.
 soildata[,
   profile_lane := assign_profile_lane(profund_sup, profund_inf),
+  by = id
+]
+# ctb0635. Layers of a second profile were stored as a separate run of
+# amostra_id, far (> 100) from the first profile's run, with lower values. We
+# split each event at its largest amostra_id gap; the lower group becomes the
+# next lane after the first profile.
+soildata[
+  dataset_id == "ctb0635",
+  profile_lane := {
+    sid <- as.numeric(amostra_id)
+    u <- sort(unique(sid))
+    gaps <- diff(u)
+    if (length(gaps) > 0L && max(gaps) > 100) {
+      cutoff <- u[which.max(gaps)]
+      old <- sid <= cutoff
+      lane <- integer(.N)
+      lane[!old] <- assign_profile_lane(profund_sup[!old], profund_inf[!old])
+      lane[old] <- max(lane) + 1L
+      lane
+    } else {
+      profile_lane
+    }
+  },
   by = id
 ]
 # Candidate detection uses only the count of layers starting at depth zero. We
