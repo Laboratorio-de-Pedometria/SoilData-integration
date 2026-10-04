@@ -624,6 +624,14 @@ soildata[
     profund_inf = 50
   )
 ]
+# ctb0832-75. We do not have access to the source document. The source
+# spreadsheet contains three layers, but the C layer is misplaced (between and A
+# and a Bt layer). We drop the C layer (amostra_id == 47511).
+soildata <- soildata[!(id == "ctb0832-75" & amostra_id == 47511)]
+# ctb0832-E-Rio-24. The source spreadsheet contains two layers, the second being
+# a partial copy of the first. We drop the second layer (amostra_id == 47605).
+soildata <- soildata[!(id == "ctb0832-E-Rio-24" & amostra_id == 47605)]
+
 
 
 
