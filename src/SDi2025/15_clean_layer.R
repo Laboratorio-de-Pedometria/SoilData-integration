@@ -1184,14 +1184,14 @@ soildata[
 n_overlaps <- soildata[has_overlap == TRUE, .N]
 print(n_overlaps)
 # Overlaps larger than the threshold, not corrected
-# 79 overlaps
+# 72 overlaps
 soildata[
   is.finite(profund_inf) & is.finite(profund_sup_next) &
     profund_inf - profund_sup_next > overlap_threshold,
   .N
 ]
 # Number of layers with overlapping depth limits in this dataset
-# 93
+# 90
 soildata[, large_overlap := is.finite(profund_inf) &
   is.finite(profund_sup_next) &
   profund_inf - profund_sup_next > overlap_threshold]
@@ -1200,17 +1200,87 @@ if (FALSE) {
   View(soildata[
     any_large_overlap == TRUE,
     .(
-      id_original, id, camada_nome, profund_sup, profund_inf,
+      id_original, id, coord_x, coord_y, data_ano,
+      camada_nome, profund_sup, profund_inf,
       overlap_cm = profund_inf - profund_sup_next, large_overlap,
       carbono, argila
     )
   ])
 }
+
+# ctb0567-Perfil-MBCT5. When camada_nome == Cg3, set profund_sup = 120. This was
+# already corrected in the source spreadsheet.
+soildata[
+  id == "ctb0567-Perfil-MBCT5" & camada_nome == "Cg3",
+  profund_sup := 120
+]
+# ctb0585-Perfil-10. When amostra_id == 15077, set profund_sup = 111 and
+# profund_inf = 150. This was already corrected in the source spreadsheet.
+soildata[
+  id == "ctb0585-Perfil-10" & amostra_id == 15077, `:=`(
+    profund_sup = 111,
+    profund_inf = 150
+  )
+]
+# ctb0586-Canoinhas-16. When amostra_id == 15612, set profund_sup == 50 and 
+# profund_inf == 71. This was already corrected in the source spreadsheet.
+soildata[
+  id == "ctb0586-Canoinhas-16" & amostra_id == 15612, `:=`(
+    profund_sup = 50,
+    profund_inf = 71
+  )
+]
+# ctb0589-12-(13). When amostra_id == 15313, set profund_sup = 140 and
+# profund_inf = 170. This was already corrected in the source spreadsheet.
+soildata[
+  id == "ctb0589-12-(13)" & amostra_id == 15313, `:=`(
+    profund_sup = 140,
+    profund_inf = 170
+  )
+]
+# ctb0599-AC-05. When amostra_id == 15851, set profund_sup = 40 and
+# profund_inf = 60. This was already corrected in the source spreadsheet.
+soildata[
+  id == "ctb0599-AC-05" & amostra_id == 15851, `:=`(
+    profund_sup = 40,
+    profund_inf = 60
+  )
+]
+# ctb0605-P-21. When amostra_id == 16692, set profund_sup = 52. This was already
+# corrected in the source spreadsheet.
+soildata[
+  id == "ctb0605-P-21" & amostra_id == 16692, profund_sup := 52
+]
+# ctb0607-PERFIL-99. When amostra_id == 18431, set camada_nome == 3C’g, 
+# profund_sup == 120 and profund_inf == 170. This was already corrected in the 
+# source spreadsheet.
+soildata[
+  id == "ctb0607-PERFIL-99" & amostra_id == 18431, `:=`(
+    camada_nome = "3C’g",
+    profund_sup = 120,
+    profund_inf = 170
+  )
+]
+# ctb0616-Içara-10. When amostra_id == 17963, set profund_sup = 70. This was 
+# already corrected in the source spreadsheet, although we do not have access to
+# the source document.
+soildata[id == "ctb0616-Içara-10" & amostra_id == 17963, profund_sup := 70]
+# ctb0626-Pomerode-07. When amostra_id == 18538, set profund_inf ==	45. This was
+# already corrected in the source spreadsheet, although we do not have access to
+# the source document.
+soildata[id == "ctb0626-Pomerode-07" & amostra_id == 18538, profund_inf := 45]
+
+
+
+
+
+
 soildata[, any_overlap := any(has_overlap == TRUE), by = id]
 if (FALSE) {
   View(soildata[
     any_overlap == TRUE,
-    .(id_original, id, camada_nome, profund_sup, profund_inf, carbono, argila, has_overlap)
+    .(id_original, id, coord_x, coord_y, data_ano,
+    camada_nome, profund_sup, profund_inf, carbono, argila, has_overlap)
   ])
 }
 # Average the overlapping boundary between layer i (profund_inf) and the next
