@@ -1117,14 +1117,6 @@ if (FALSE) {
 }
 soildata[, profile_lane := NULL]
 
-
-
-
-
-
-
-
-
 # Recheck zero-thickness bottom layers after splitting, grouped by profile.
 soildata[, max_profund_inf := if (all(is.na(profund_inf))) {
   NA_real_
@@ -1136,6 +1128,13 @@ soildata[
   profund_inf := profund_inf + plus_depth
 ]
 soildata[, max_profund_inf := NULL]
+# Check data
+summary_soildata(soildata)
+# Layers: 62435
+# Events: 20304
+# Georeference: 16724 (yes) / 3580 (no)
+# Date: 20145 (yes) / 159 (no)
+# Datasets: 271
 
 # Overlapping layers ###########################################################
 # Overlap occurs when profund_inf[i] > profund_sup[i+1], meaning layer i extends
