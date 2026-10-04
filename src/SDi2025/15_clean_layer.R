@@ -72,8 +72,6 @@ soildata[
     duplicated(profund_inf) & duplicated(carbono) & duplicated(argila), 
   by = id
 ]
-soildata[, any_repeated := any(repeated == TRUE) &
-  !any(repeated_camada == TRUE), by = id]
 nrow(soildata[repeated == TRUE, ])
 # 570 layers
 soildata[, any_repeated := any(repeated == TRUE), by = id]
@@ -947,11 +945,11 @@ soildata[
   )
 ]
 # ctb0637-Perfil-79. When amostra_id = 20305, set profund_sup = 42
-soildata[dataset_id == "ctb0637-Perfil-79" & amostra_id == 20305, profund_sup := 42]
+soildata[id == "ctb0637-Perfil-79" & amostra_id == 20305, profund_sup := 42]
 # ctb0759-50. When amostra_id = 36719, set profund_sup = 12.
-soildata[dataset_id == "ctb0759-50" & amostra_id == 36719, profund_sup := 12]
+soildata[id == "ctb0759-50" & amostra_id == 36719, profund_sup := 12]
 # ctb0759-8. When amostra_id = 36687, set profund_sup = 42.
-soildata[dataset_id == "ctb0759-8" & amostra_id == 36687, profund_sup := 42]
+soildata[id == "ctb0759-8" & amostra_id == 36687, profund_sup := 42]
 # ctb0760-2. Drop the row with camada_nome, profund_inf, and profund_sup == NA.
 soildata <- soildata[!(id == "ctb0760-2" &
   is.na(camada_nome) & is.na(profund_inf) & is.na(profund_sup))]
@@ -964,9 +962,33 @@ soildata <- soildata[!(id == "ctb0771-40" &
 soildata <- soildata[!(id == "ctb0821-P22" & amostra_id %in% c(45477, 45478, 45479, 45480))]
 # When amostra_id == 45476, set profund_sup = 60.
 soildata[id == "ctb0821-P22" & amostra_id == 45476, profund_sup := 60]
-# ctb0826-P29. When amostra_id = 45937, set profund_inf = 52. We do not have
-# access to the source document.
-soildata[id == "ctb0826-P29" & amostra_id == 45937, profund_inf := 52]
+# ctb0826-P29. When amostra_id = 45937, set profund_sup = 32 and
+# profund_inf = 52. We do not have access to the source document.
+soildata[id == "ctb0826-P29" & amostra_id == 45937, `:=`(
+  profund_sup = 32,
+  profund_inf = 52
+)]
+# ctb0014-Perfil_5. When camada_nome = Bw3, set profund_sup = 144.
+soildata[id == "ctb0014-Perfil_5" & camada_nome == "Bw3", profund_sup := 144]
+# ctb0562-Perfil-8. When amostra_id = 13454, set profund_sup = 27.
+soildata[id == "ctb0562-Perfil-8" & amostra_id == 13454, profund_sup := 27]
+# ctb0562-E44. When amostra_id = 27163, set profund_inf = 20.
+soildata[id == "ctb0562-E44" & amostra_id == 27163, profund_inf := 20]
+# ctb0566-Perfil-07. When amostra_id = 13670, set profund_inf = 35.
+soildata[id == "ctb0566-Perfil-07" & amostra_id == 13670, profund_inf := 35]
+# ctb0566-Perfil-11. When amostra_id = 13702, set profund_inf = 109.
+soildata[id == "ctb0566-Perfil-11" & amostra_id == 13702, profund_inf := 109]
+# When amostra_id = 13700, drop the row.
+soildata <- soildata[!(id == "ctb0566-Perfil-11" & amostra_id == 13700)]
+# ctb0566-Perfil-17. When amostra_id = 13745, set depts = 43-74
+soildata[id == "ctb0566-Perfil-17" & amostra_id == 13745, `:=`(
+  profund_sup = 43,
+  profund_inf = 74
+)]
+# When amosra_id = 13744, set profund_sup = 74 
+soildata[id == "ctb0566-Perfil-17" & amostra_id == 13744, profund_sup := 74]
+
+
 
 
 
@@ -1007,11 +1029,12 @@ profile_candidates <- profile_candidates[
   on = "id"
 ][n_profiles > 1L]
 splittable_profiles <- profile_candidates[n_unassigned == 0L]
+nrow(splittable_profiles)
+# 199
 unresolved_profiles <- profile_candidates[n_unassigned > 0L]
-
-View(soildata[id %in% unresolved_profiles$id, .(id, camada_nome, profund_sup, profund_inf, profile_lane)])
-
-# 
+nrow(unresolved_profiles)
+# 0 unresolved profiles
+# We create new profile ids for the second and subsequent profiles of each event.
 profile_assignments <- unique(soildata[
   id %in% splittable_profiles$id & profile_lane > 1L,
   .(id, profile_lane, new_id = paste0(id, "-profile-", profile_lane))
@@ -1028,11 +1051,26 @@ if (nrow(profile_assignments) > 0L) {
   ]
 }
 
-cat("Events split into multiple profiles:", uniqueN(profile_assignments$id), "\n")
+cat(
+  "Events split into multiple profiles:",
+  uniqueN(profile_assignments$id), "\n"
+)
 if (nrow(unresolved_profiles) > 0L) {
   cat("Candidate events not split because some layers have invalid or missing depths:\n")
   print(unresolved_profiles[, .(id, n_surface_layers, n_profiles, n_unassigned)])
 }
+View(soildata[
+  id %in% profile_candidates$id,
+  .(
+    id_original = id,
+    id_new = profile_id,
+    profile_lane,
+    camada_nome,
+    profund_sup,
+    profund_inf
+  )
+][order(id_original, profile_lane, profund_sup, profund_inf)])
+
 soildata[, profile_lane := NULL]
 
 # Recheck zero-thickness bottom layers after splitting, grouped by profile.
@@ -1046,6 +1084,7 @@ soildata[
   profund_inf := profund_inf + plus_depth
 ]
 soildata[, max_profund_inf := NULL]
+# Check result
 
 
 
