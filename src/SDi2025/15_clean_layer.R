@@ -1071,7 +1071,7 @@ splittable_profiles <- profile_candidates[
   n_profiles > 1L & n_unassigned == 0L
 ]
 nrow(splittable_profiles)
-# 48 candidate profiles
+# 47 candidate profiles
 unresolved_profiles <- profile_candidates[
   n_profiles <= 1L | n_unassigned > 0L
 ]
