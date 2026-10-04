@@ -711,6 +711,31 @@ soildata[dataset_id == "ctb0657" & id == "ctb0657-111" &
   profund_sup = c(-5, -3),
   profund_inf = c(-3, 0)
 )]
+# ctb0635-PERFIL-DF-23. When amostra_id == 19674, set profund_sup == -2 and
+# profund_inf == 0.
+soildata[
+  id == "ctb0635-PERFIL-DF-23" & amostra_id == 19674, `:=`(
+    profund_sup = -2,
+    profund_inf = 0
+  )
+]
+# ctb0635-PERFIL-DF-24. When amostra_id == 19376, set profund_sup == -3,
+# profund_inf == 0 and camada_nome == O2.
+soildata[
+  id == "ctb0635-PERFIL-DF-24" & amostra_id == 19376, `:=`(
+    profund_sup = -3,
+    profund_inf = 0,
+    camada_nome = "O2"
+  )
+]
+# ctb0635-PERFIL-DF-8. When amostra_id == 19874, set profund_sup == -4 and 
+# profund_inf == 0.
+soildata[
+  id == "ctb0635-PERFIL-DF-8" & amostra_id == 19874, `:=`(
+    profund_sup = -4,
+    profund_inf = 0
+  )
+]
 
 # profund_sup == profund_inf ###################################################
 
@@ -1159,13 +1184,14 @@ soildata[
 n_overlaps <- soildata[has_overlap == TRUE, .N]
 print(n_overlaps)
 # Overlaps larger than the threshold, not corrected
+# 79 overlaps
 soildata[
   is.finite(profund_inf) & is.finite(profund_sup_next) &
     profund_inf - profund_sup_next > overlap_threshold,
   .N
 ]
 # Number of layers with overlapping depth limits in this dataset
-# 172
+# 93
 soildata[, any_overlap := any(has_overlap == TRUE), by = id]
 if (FALSE) {
   View(soildata[
