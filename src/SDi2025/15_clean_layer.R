@@ -1146,15 +1146,26 @@ summary_soildata(soildata)
 # difference. The source of the overlap is unknown, but it could be due to
 # errors in the source data and should be corrected in the source data.
 soildata <- soildata[order(id, profund_sup, profund_inf)]
+# Only overlaps up to overlap_threshold (cm) are corrected; larger ones are left
+# untouched for inspection.
+overlap_threshold <- 10
 soildata[, profund_sup_next := shift(profund_sup, type = "lead"), by = id]
 soildata[
   ,
   has_overlap := is.finite(profund_inf) & is.finite(profund_sup_next) &
-    profund_inf > profund_sup_next
+    profund_inf > profund_sup_next &
+    profund_inf - profund_sup_next <= overlap_threshold
 ]
 n_overlaps <- soildata[has_overlap == TRUE, .N]
 print(n_overlaps)
+# Overlaps larger than the threshold, not corrected
+soildata[
+  is.finite(profund_inf) & is.finite(profund_sup_next) &
+    profund_inf - profund_sup_next > overlap_threshold,
+  .N
+]
 # Number of layers with overlapping depth limits in this dataset
+# 172
 soildata[, any_overlap := any(has_overlap == TRUE), by = id]
 if (FALSE) {
   View(soildata[
@@ -1177,8 +1188,11 @@ soildata[, overlap_avg_prev := shift(overlap_avg, type = "lag"), by = id]
 soildata[has_overlap == TRUE, profund_inf := overlap_avg]
 soildata[!is.na(overlap_avg_prev), profund_sup := overlap_avg_prev]
 soildata[, check_sup_next := shift(profund_sup, type = "lead"), by = id]
-nrow(soildata[profund_inf > check_sup_next, ])
-# 0 layers with overlapping depth limits after the correction
+nrow(soildata[
+  profund_inf > check_sup_next &
+    profund_inf - check_sup_next <= overlap_threshold,
+])
+# 0 layers with correctable overlapping depth limits after the correction
 # Guard against the averaging producing degenerate (zero/negative-thickness)
 # layers, which would happen for near-containment overlaps.
 nrow(soildata[profund_sup > profund_inf, ])
