@@ -452,9 +452,10 @@ soildata <- soildata[
 soildata <- soildata[
   !(id == "ctb0815-E64" & amostra_id == 45570)
 ]
-
-
-
+# ctb0815-E63. Drop amostra_id 45566.
+soildata <- soildata[
+  !(id == "ctb0815-E63" & amostra_id == 45566)
+]
 
 
 
