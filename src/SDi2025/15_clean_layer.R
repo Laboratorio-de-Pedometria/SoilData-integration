@@ -525,6 +525,18 @@ soildata <- soildata[
 soildata <- soildata[
   !(id == "ctb0815-7" & amostra_id == 44665)
 ]
+# ctb0820-E-16. When amostra_id == 44991, set depths 18-40. We do not have
+# access to the source document, but we suspect that the depth limits were
+# entered incorrectly in the source spreadsheet. This was already corrected in 
+# the source spreadsheet.
+soildata[
+  id == "ctb0820-E-16" & amostra_id == 44991, `:=`(
+    profund_sup = 18,
+    profund_inf = 40
+  )
+]
+
+
 
 
 
