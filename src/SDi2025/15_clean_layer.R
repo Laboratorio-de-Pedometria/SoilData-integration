@@ -988,10 +988,6 @@ soildata[id == "ctb0566-Perfil-17" & amostra_id == 13745, `:=`(
 # When amosra_id = 13744, set profund_sup = 74 
 soildata[id == "ctb0566-Perfil-17" & amostra_id == 13744, profund_sup := 74]
 
-
-
-
-
 # Partition valid depth intervals into the minimum number of non-overlapping
 # profile sequences. Layers with missing or invalid depths remain in lane 0.
 assign_profile_lane <- function(profund_sup, profund_inf) {
@@ -1015,6 +1011,7 @@ soildata[,
   profile_lane := assign_profile_lane(profund_sup, profund_inf),
   by = id
 ]
+# Candidate detection uses only the count of layers starting at depth zero.
 profile_candidates <- soildata[
   profund_sup == 0,
   .(n_surface_layers = .N),
@@ -1024,16 +1021,21 @@ profile_stats <- soildata[, .(
   n_profiles = max(profile_lane),
   n_unassigned = sum(profile_lane == 0L)
 ), by = id]
-profile_candidates <- profile_candidates[
-  profile_stats,
-  on = "id"
-][n_profiles > 1L]
-splittable_profiles <- profile_candidates[n_unassigned == 0L]
+profile_candidates <- profile_stats[
+  profile_candidates,
+  on = "id",
+  nomatch = 0L
+]
+splittable_profiles <- profile_candidates[
+  n_profiles > 1L & n_unassigned == 0L
+]
 nrow(splittable_profiles)
-# 199
-unresolved_profiles <- profile_candidates[n_unassigned > 0L]
+# 48 profiles
+unresolved_profiles <- profile_candidates[
+  n_profiles <= 1L | n_unassigned > 0L
+]
 nrow(unresolved_profiles)
-# 0 unresolved profiles
+# 0 profiles
 # We create new profile ids for the second and subsequent profiles of each event.
 profile_assignments <- unique(soildata[
   id %in% splittable_profiles$id & profile_lane > 1L,
@@ -1070,7 +1072,6 @@ View(soildata[
     profund_inf
   )
 ][order(id_original, profile_lane, profund_sup, profund_inf)])
-
 soildata[, profile_lane := NULL]
 
 # Recheck zero-thickness bottom layers after splitting, grouped by profile.
@@ -1084,7 +1085,7 @@ soildata[
   profund_inf := profund_inf + plus_depth
 ]
 soildata[, max_profund_inf := NULL]
-# Check result
+
 
 
 
