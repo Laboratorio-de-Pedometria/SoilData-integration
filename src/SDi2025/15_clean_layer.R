@@ -711,29 +711,29 @@ soildata[dataset_id == "ctb0657" & id == "ctb0657-111" &
   profund_sup = c(-5, -3),
   profund_inf = c(-3, 0)
 )]
-# ctb0635-PERFIL-DF-23. When amostra_id == 19674, set profund_sup == -2 and
-# profund_inf == 0.
+# ctb0635-PERFIL-DF-23. Subtract -2 from profund_sup and profund_inf == 0.
 soildata[
-  id == "ctb0635-PERFIL-DF-23" & amostra_id == 19674, `:=`(
-    profund_sup = -2,
-    profund_inf = 0
+  id == "ctb0635-PERFIL-DF-23", `:=`(
+    profund_sup = profund_sup + (-2),
+    profund_inf = profund_inf + (-2)
   )
 ]
-# ctb0635-PERFIL-DF-24. When amostra_id == 19376, set profund_sup == -3,
-# profund_inf == 0 and camada_nome == O2.
+# ctb0635-PERFIL-DF-24. When amostra_id == 19376, set O2. Then subtract -3 from
+# all depth limits (profund_sup and profund_inf) of all layers of this profile.
 soildata[
   id == "ctb0635-PERFIL-DF-24" & amostra_id == 19376, `:=`(
-    profund_sup = -3,
-    profund_inf = 0,
     camada_nome = "O2"
   )
 ]
-# ctb0635-PERFIL-DF-8. When amostra_id == 19874, set profund_sup == -4 and 
-# profund_inf == 0.
+soildata[id == "ctb0635-PERFIL-DF-24", `:=`(
+  profund_sup = profund_sup + (-3),
+  profund_inf = profund_inf + (-3)
+)]
+# ctb0635-PERFIL-DF-24. Subtract -4 from profund_sup and profund_inf.
 soildata[
-  id == "ctb0635-PERFIL-DF-8" & amostra_id == 19874, `:=`(
-    profund_sup = -4,
-    profund_inf = 0
+  id == "ctb0635-PERFIL-DF-8", `:=`(
+    profund_sup = profund_sup + (-4),
+    profund_inf = profund_inf + (-4)
   )
 ]
 
@@ -1192,6 +1192,20 @@ soildata[
 ]
 # Number of layers with overlapping depth limits in this dataset
 # 93
+soildata[, large_overlap := is.finite(profund_inf) &
+  is.finite(profund_sup_next) &
+  profund_inf - profund_sup_next > overlap_threshold]
+soildata[, any_large_overlap := any(large_overlap), by = id]
+if (FALSE) {
+  View(soildata[
+    any_large_overlap == TRUE,
+    .(
+      id_original, id, camada_nome, profund_sup, profund_inf,
+      overlap_cm = profund_inf - profund_sup_next, large_overlap,
+      carbono, argila
+    )
+  ])
+}
 soildata[, any_overlap := any(has_overlap == TRUE), by = id]
 if (FALSE) {
   View(soildata[
@@ -1231,7 +1245,8 @@ if (FALSE) {
 }
 soildata[, `:=`(
   profund_sup_next = NULL, has_overlap = NULL, any_overlap = NULL,
-  overlap_avg = NULL, overlap_avg_prev = NULL, check_sup_next = NULL
+  overlap_avg = NULL, overlap_avg_prev = NULL, check_sup_next = NULL,
+  large_overlap = NULL, any_large_overlap = NULL
 )]
 
 
