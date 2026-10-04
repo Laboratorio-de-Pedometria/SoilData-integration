@@ -584,6 +584,13 @@ soildata <- soildata[
 soildata <- soildata[
   !(id == "ctb0821-P30" & amostra_id %in% c(45482, 45483, 45485))
 ]
+# ctb0821-P31. The source spreadsheet contains five incomplete layers, but the
+# source document contains only one layer. We drop the four layers that are not 
+# present in the source document: 45320 45321 45323 45324.
+soildata <- soildata[
+  !(id == "ctb0821-P31" & amostra_id %in% c(45320, 45321, 45323, 45324))
+]
+
 
 
 
