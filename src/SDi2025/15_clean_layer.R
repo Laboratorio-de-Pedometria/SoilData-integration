@@ -419,6 +419,14 @@ soildata <- soildata[
 soildata <- soildata[
   !(id == "ctb0815-E46" & amostra_id == 45509)
 ]
+# ctb0815-E70. This observation has five layers in the source spreadsheet, but 
+# the source document reports only two. Because the source document is 
+# incomplete, we will drop the three layers that are not present in the source
+# document: amostra_id == 45522, 45524, 45525.
+soildata <- soildata[
+  !(id == "ctb0815-E70" & amostra_id %in% c(45522, 45524, 45525))
+]
+
 
 
 
