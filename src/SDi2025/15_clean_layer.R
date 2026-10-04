@@ -252,7 +252,7 @@ soildata[
   )
 ]
 # ctb0686-RL-37-EXTRA. Drop layers where amostra_id == 30186 and 30187.
-soildata <- soildata[!(id == "ctb0686-RL-37" & amostra_id %in% c(30186, 30187))]
+soildata <- soildata[!(id == "ctb0686-RL-37-EXTRA" & amostra_id %in% c(30186, 30187))]
 # ctb0686-RL-9. When amostra_id == 30090 and 30091, set observacao_id ==
 # "9-extra" and id == "ctb0686-RL-9-extra". This has also been corrected in the
 # source spreadsheet.
@@ -631,61 +631,13 @@ soildata <- soildata[!(id == "ctb0832-75" & amostra_id == 47511)]
 # ctb0832-E-Rio-24. The source spreadsheet contains two layers, the second being
 # a partial copy of the first. We drop the second layer (amostra_id == 47605).
 soildata <- soildata[!(id == "ctb0832-E-Rio-24" & amostra_id == 47605)]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# Check data
+summary_soildata(soildata)
+# Layers: 62446
+# Events: 20257
+# Georeference: 16716 (yes) / 3541 (no)
+# Date: 20100 (yes) / 157 (no)
+# Datasets: 271
 
 # profund_sup > profund_inf ####################################################
 
@@ -953,10 +905,10 @@ soildata[, max_profund_inf := NULL]
 nrow(soildata[profund_sup == profund_inf])
 # 0 layers
 summary_soildata(soildata)
-# Layers: 62574
-# Events: 20251
-# Georeference: 16710 (yes) / 3541 (no)
-# Date: 20094 (yes) / 157 (no)
+# Layers: 62446
+# Events: 20257
+# Georeference: 16716 (yes) / 3541 (no)
+# Date: 20100 (yes) / 157 (no)
 # Datasets: 271
 
 # Layers from two different profiles ###########################################
@@ -980,6 +932,8 @@ summary_soildata(soildata)
 # Start by identifying events (id) with two layers where profund_sup == 0.
 soildata[, n_surface_layers := sum(profund_sup == 0), by = id]
 View(soildata[n_surface_layers >= 2, .(id, camada_nome, profund_sup, profund_inf)])
+
+
 
 
 # Partition valid depth intervals into the minimum number of non-overlapping
