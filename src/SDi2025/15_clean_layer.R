@@ -56,7 +56,9 @@ soildata <- soildata[
 # Duplicated layers ############################################################
 
 # Some layers are repeated in the same event (id). These layers have equal
-# values for camada_nome, profund_sup, profund_inf, carbono, and argila.
+# values for camada_nome, profund_sup, profund_inf, carbono, argila, and ph.
+# Some of them have different camada_nome, but the same profund_sup,
+# profund_inf, carbono, argila, and ph.
 
 # Sort each event (id) by layer depth (profund_sup and profund_inf)
 # Update the columns camada_id
@@ -68,16 +70,16 @@ soildata[, camada_id := 1:.N, by = id]
 # repeated layers.
 soildata[
   ,
-  repeated := duplicated(camada_nome) & duplicated(profund_sup) & duplicated(profund_inf) & duplicated(carbono) & duplicated(argila),
+  repeated := duplicated(profund_sup) & duplicated(profund_inf) & duplicated(carbono) & duplicated(argila) & duplicated(ph),
   by = id
 ]
 nrow(soildata[repeated == TRUE, ])
-# 570 layers
+# 587 layers
 soildata[, any_repeated := any(repeated == TRUE), by = id]
 if (FALSE) {
   View(soildata[
     any_repeated == TRUE,
-    .(id, camada_nome, profund_sup, profund_inf, carbono, argila, repeated)
+    .(id, camada_nome, profund_sup, profund_inf, carbono, argila, ph, repeated)
   ])
 }
 # Filter out layers with repeated == TRUE. These layers need to be checked in 
