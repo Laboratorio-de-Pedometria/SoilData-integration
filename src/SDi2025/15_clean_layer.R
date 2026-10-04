@@ -959,7 +959,8 @@ soildata <- soildata[!(id == "ctb0771-40" &
 # ctb0821-P22. The source spreadsheet has five incomplete layers, but the source
 # document contains only one layer. We drop the four layers that are not present
 # in the source document: 45477 45478 45479 45480.
-soildata <- soildata[!(id == "ctb0821-P22" & amostra_id %in% c(45477, 45478, 45479, 45480))]
+soildata <- soildata[!(id == "ctb0821-P22" &
+  amostra_id %in% c(45477, 45478, 45479, 45480))]
 # When amostra_id == 45476, set profund_sup = 60.
 soildata[id == "ctb0821-P22" & amostra_id == 45476, profund_sup := 60]
 # ctb0826-P29. When amostra_id = 45937, set profund_sup = 32 and
@@ -1011,7 +1012,10 @@ soildata[,
   profile_lane := assign_profile_lane(profund_sup, profund_inf),
   by = id
 ]
-# Candidate detection uses only the count of layers starting at depth zero.
+# Candidate detection uses only the count of layers starting at depth zero. We
+# count the number of layers with profund_sup == 0 for each profile. If there
+# are two or more layers starting at depth zero, we consider the profile a
+# candidate for splitting into multiple profiles.
 profile_candidates <- soildata[
   profund_sup == 0,
   .(n_surface_layers = .N),
@@ -1030,13 +1034,16 @@ splittable_profiles <- profile_candidates[
   n_profiles > 1L & n_unassigned == 0L
 ]
 nrow(splittable_profiles)
-# 48 profiles
+# 48 candidate profiles
 unresolved_profiles <- profile_candidates[
   n_profiles <= 1L | n_unassigned > 0L
 ]
 nrow(unresolved_profiles)
 # 0 profiles
-# We create new profile ids for the second and subsequent profiles of each event.
+# We create new profile ids for the second and subsequent profiles of each 
+# event. For example, if the original profile id is "ctb0717-38" and it has two
+# profiles, the second profile will be assigned the new id 
+# "ctb0717-38-profile-2".
 profile_assignments <- unique(soildata[
   id %in% splittable_profiles$id & profile_lane > 1L,
   .(id, profile_lane, new_id = paste0(id, "-profile-", profile_lane))
@@ -1044,14 +1051,12 @@ profile_assignments <- unique(soildata[
 if (any(profile_assignments$new_id %in% soildata$id)) {
   stop("A generated profile id already exists in the input data.")
 }
-soildata[, profile_id := id]
-if (nrow(profile_assignments) > 0L) {
-  soildata[
-    profile_assignments,
-    on = .(id, profile_lane),
-    profile_id := i.new_id
-  ]
-}
+soildata[, id_original := id]
+# Ids are built from id_original, avoiding a join that updates its own key.
+soildata[
+  id_original %in% splittable_profiles$id & profile_lane > 1L,
+  id := paste0(id_original, "-profile-", profile_lane)
+]
 
 cat(
   "Events split into multiple profiles:",
@@ -1061,25 +1066,29 @@ if (nrow(unresolved_profiles) > 0L) {
   cat("Candidate events not split because some layers have invalid or missing depths:\n")
   print(unresolved_profiles[, .(id, n_surface_layers, n_profiles, n_unassigned)])
 }
-View(soildata[
-  id %in% profile_candidates$id,
-  .(
-    id_original = id,
-    id_new = profile_id,
-    profile_lane,
-    camada_nome,
-    profund_sup,
-    profund_inf
-  )
-][order(id_original, profile_lane, profund_sup, profund_inf)])
+# View results
+if (FALSE) {
+  View(soildata[
+    id_original %in% profile_candidates$id,
+    .(
+      id_original,
+      id_new = id,
+      profile_lane,
+      camada_nome, profund_sup, profund_inf, carbono, argila, taxon_sibcs
+    )
+  ][order(id_original, profile_lane, profund_sup, profund_inf)])
+}
 soildata[, profile_lane := NULL]
+
+
+
 
 # Recheck zero-thickness bottom layers after splitting, grouped by profile.
 soildata[, max_profund_inf := if (all(is.na(profund_inf))) {
   NA_real_
 } else {
   max(profund_inf, na.rm = TRUE)
-}, by = profile_id]
+}, by = id]
 soildata[
   profund_sup == profund_inf & profund_inf == max_profund_inf,
   profund_inf := profund_inf + plus_depth
@@ -1087,7 +1096,62 @@ soildata[
 soildata[, max_profund_inf := NULL]
 
 # Overlapping layers ###########################################################
-
+# Overlap occurs when profund_inf[i] > profund_sup[i+1], meaning layer i extends
+# into layer i+1. Strategy: compute the average between profund_inf[i] and
+# profund_sup[i+1], then adjust both:
+#   - Set profund_inf[i] to the average
+#   - Set profund_sup[i+1] to the average
+# This approach assumes uncertainty in both measurements and splits the
+# difference. The source of the overlap is unknown, but it could be due to
+# errors in the source data and should be corrected in the source data.
+soildata <- soildata[order(id, profund_sup, profund_inf)]
+soildata[, profund_sup_next := shift(profund_sup, type = "lead"), by = id]
+soildata[
+  ,
+  has_overlap := is.finite(profund_inf) & is.finite(profund_sup_next) &
+    profund_inf > profund_sup_next
+]
+n_overlaps <- soildata[has_overlap == TRUE, .N]
+print(n_overlaps)
+# Number of layers with overlapping depth limits in this dataset
+soildata[, any_overlap := any(has_overlap == TRUE), by = id]
+if (FALSE) {
+  View(soildata[
+    any_overlap == TRUE,
+    .(id_original, id, camada_nome, profund_sup, profund_inf, carbono, argila, has_overlap)
+  ])
+}
+# Average the overlapping boundary between layer i (profund_inf) and the next
+# layer i+1 (profund_sup), then assign the average back to both layers.
+# profund_sup/profund_inf are integer; convert to double first so the averaged
+# (fractional) boundary isn't truncated.
+soildata[, `:=`(
+  profund_sup = as.double(profund_sup),
+  profund_inf = as.double(profund_inf)
+)]
+soildata[, overlap_avg := ifelse(
+  has_overlap, (profund_inf + profund_sup_next) / 2, NA_real_
+)]
+soildata[, overlap_avg_prev := shift(overlap_avg, type = "lag"), by = id]
+soildata[has_overlap == TRUE, profund_inf := overlap_avg]
+soildata[!is.na(overlap_avg_prev), profund_sup := overlap_avg_prev]
+soildata[, check_sup_next := shift(profund_sup, type = "lead"), by = id]
+nrow(soildata[profund_inf > check_sup_next, ])
+# 0 layers with overlapping depth limits after the correction
+# Guard against the averaging producing degenerate (zero/negative-thickness)
+# layers, which would happen for near-containment overlaps.
+nrow(soildata[profund_sup > profund_inf, ])
+# 0 layers with invalid depth limits after the correction
+if (FALSE) {
+  View(soildata[
+    any_overlap == TRUE,
+    .(id_original, id, camada_nome, profund_sup, profund_inf, carbono, argila)
+  ])
+}
+soildata[, `:=`(
+  profund_sup_next = NULL, has_overlap = NULL, any_overlap = NULL,
+  overlap_avg = NULL, overlap_avg_prev = NULL, check_sup_next = NULL
+)]
 
 
 
@@ -1118,7 +1182,7 @@ soildata[, esqueleto := 1000 - terrafina]
 print(soildata[esqueleto > 800, .N])
 # 133 sample with esqueleto > 800
 # Correct soil skeleton and fine earth content
-soildata[id == "ctb0565-Perfil-08" & camada_nome == "BC1", `:=`(
+soildata[id_original == "ctb0565-Perfil-08" & camada_nome == "BC1", `:=`(
   esqueleto = 0,
   terrafina = 1000
 )]
@@ -1204,35 +1268,35 @@ soildata[, psd := argila + silte + areia]
 # inspection of the source documents. These corrections need to be implemented in the source data
 # in the future.
 soildata[
-  id == "ctb0591-P-13-Sao-Mateus-do-Sul" & camada_nome == "BW1" & argila == 597, `:=` (
+  id_original == "ctb0591-P-13-Sao-Mateus-do-Sul" & camada_nome == "BW1" & argila == 597, `:=` (
     argila = 1000 - 160 - 90,
     silte = 160,
     areia = 90
   )
 ]
 soildata[
-  id == "ctb0591-P-13-Sao-Mateus-do-Sul" & camada_nome == "BW2" & argila == 0, `:=` (
+  id_original == "ctb0591-P-13-Sao-Mateus-do-Sul" & camada_nome == "BW2" & argila == 0, `:=` (
     argila = 1000 - 140 - 100,
     silte = 140,
     areia = 100
   )
 ]
 soildata[
-  id == "ctb0591-P-13-Sao-Mateus-do-Sul" & camada_nome == "BW3" & argila == 148, `:=`(
+  id_original == "ctb0591-P-13-Sao-Mateus-do-Sul" & camada_nome == "BW3" & argila == 148, `:=`(
     argila = 1000 - 130 - 100,
     silte = 130,
     areia = 100
   )
 ]
 soildata[
-  id == "ctb0620-Á-de-Chapecó-3" & camada_nome == "Ap" & argila == 0, `:=`(
+  id_original == "ctb0620-Á-de-Chapecó-3" & camada_nome == "Ap" & argila == 0, `:=`(
     argila = 1000 - 360 - 20,
     silte = 360,
     areia = 20
   )
 ]
 soildata[
-  id == "ctb0646-PERFIL-20" & camada_nome == "C2" & argila == 0, `:=`(
+  id_original == "ctb0646-PERFIL-20" & camada_nome == "C2" & argila == 0, `:=`(
     argila = NA_real_,
     silte = NA_real_,
     areia = NA_real_
@@ -1268,8 +1332,8 @@ psd_lims <- 900:1100
 soildata[!is.na(psd) & !(psd %in% psd_lims), .N]
 # 2 layers, both from ctb0025-Perfil-38. We drop these layers. They need to be checked in the
 # source data in the future.
-soildata <- soildata[!(id == "ctb0025-Perfil-38" & camada_nome == "Bt2")]
-soildata <- soildata[!(id == "ctb0025-Perfil-38" & camada_nome == "BC")]
+soildata <- soildata[!(id_original == "ctb0025-Perfil-38" & camada_nome == "Bt2")]
+soildata <- soildata[!(id_original == "ctb0025-Perfil-38" & camada_nome == "BC")]
 cols <- c("id", "camada_nome", "argila", "silte", "areia", "psd")
 soildata[!is.na(psd) & !(psd %in% psd_lims), ..cols]
 # If the sum of the three fractions is different from 1000 g/kg, adjust their values, adding the
@@ -1285,23 +1349,23 @@ soildata[, psd := NULL]
 # Some layers have incorrect bulk density values. We correct these layers based on inspection of 
 # the source documents. These corrections need to be implemented in the source data
 # in the future.
-soildata[id == "ctb0562-Perfil-13" & camada_id == 2, dsi := ifelse(dsi == 2.6, 0.86, dsi)]
-soildata[id == "ctb0562-Perfil-14" & camada_id == 1, dsi := ifelse(dsi == 2.53, 1.09, dsi)]
-soildata[id == "ctb0562-Perfil-14" & camada_id == 2, dsi := ifelse(dsi == 2.6, 0.9, dsi)]
-soildata[id == "ctb0608-15-V-RCC" & camada_id == 3, dsi := ifelse(dsi == 0.42, 1.94, dsi)]
-soildata[id == "ctb0631-Perfil-17" & camada_id == 3, dsi := ifelse(dsi == 0.14, 1.1, dsi)]
-soildata[id == "ctb0700-15" & camada_id == 1, dsi := ifelse(dsi == 2.53, 1.6, dsi)]
-soildata[id == "ctb0700-15" & camada_id == 2, dsi := ifelse(dsi == 2.56, 1.49, dsi)]
-soildata[id == "ctb0771-26" & camada_id == 1, dsi := ifelse(dsi == 2.59, 1.32, dsi)]
-soildata[id == "ctb0771-26" & camada_id == 2, dsi := ifelse(dsi == 2.56, 1.37, dsi)]
-soildata[id == "ctb0777-1" & camada_id == 1, dsi := ifelse(dsi == 2.65, 1.35, dsi)]
-soildata[id == "ctb0787-1" & camada_id == 2, dsi := ifelse(dsi == 2.58, 1.35, dsi)]
-soildata[id == "ctb0787-4" & camada_id == 1, dsi := ifelse(dsi == 2.35, 1.35, dsi)]
-soildata[id == "ctb0787-4" & camada_id == 2, dsi := ifelse(dsi == 1.3, 1.27, dsi)]
-soildata[id == "ctb0811-2" & camada_id == 3, dsi := ifelse(dsi == 0.34, 1.64, dsi)]
-soildata[id == "ctb0702-P-46" & camada_id == 1, dsi := ifelse(dsi == 2.08, 1.08, dsi)] # check document
-soildata[id == "ctb0572-Perfil-063" & camada_id == 2, dsi := ifelse(dsi == 0.34, 1.84, dsi)]
-soildata[id == "ctb0605-P-06" & camada_id == 2, dsi := ifelse(dsi == 0.31, 1.32, dsi)]
+soildata[id_original == "ctb0562-Perfil-13" & camada_id == 2, dsi := ifelse(dsi == 2.6, 0.86, dsi)]
+soildata[id_original == "ctb0562-Perfil-14" & camada_id == 1, dsi := ifelse(dsi == 2.53, 1.09, dsi)]
+soildata[id_original == "ctb0562-Perfil-14" & camada_id == 2, dsi := ifelse(dsi == 2.6, 0.9, dsi)]
+soildata[id_original == "ctb0608-15-V-RCC" & camada_id == 3, dsi := ifelse(dsi == 0.42, 1.94, dsi)]
+soildata[id_original == "ctb0631-Perfil-17" & camada_id == 3, dsi := ifelse(dsi == 0.14, 1.1, dsi)]
+soildata[id_original == "ctb0700-15" & camada_id == 1, dsi := ifelse(dsi == 2.53, 1.6, dsi)]
+soildata[id_original == "ctb0700-15" & camada_id == 2, dsi := ifelse(dsi == 2.56, 1.49, dsi)]
+soildata[id_original == "ctb0771-26" & camada_id == 1, dsi := ifelse(dsi == 2.59, 1.32, dsi)]
+soildata[id_original == "ctb0771-26" & camada_id == 2, dsi := ifelse(dsi == 2.56, 1.37, dsi)]
+soildata[id_original == "ctb0777-1" & camada_id == 1, dsi := ifelse(dsi == 2.65, 1.35, dsi)]
+soildata[id_original == "ctb0787-1" & camada_id == 2, dsi := ifelse(dsi == 2.58, 1.35, dsi)]
+soildata[id_original == "ctb0787-4" & camada_id == 1, dsi := ifelse(dsi == 2.35, 1.35, dsi)]
+soildata[id_original == "ctb0787-4" & camada_id == 2, dsi := ifelse(dsi == 1.3, 1.27, dsi)]
+soildata[id_original == "ctb0811-2" & camada_id == 3, dsi := ifelse(dsi == 0.34, 1.64, dsi)]
+soildata[id_original == "ctb0702-P-46" & camada_id == 1, dsi := ifelse(dsi == 2.08, 1.08, dsi)] # check document
+soildata[id_original == "ctb0572-Perfil-063" & camada_id == 2, dsi := ifelse(dsi == 0.34, 1.84, dsi)]
+soildata[id_original == "ctb0605-P-06" & camada_id == 2, dsi := ifelse(dsi == 0.31, 1.32, dsi)]
 summary_soildata(soildata)
 # Layers: 57324
 # Events: 16868
@@ -1342,12 +1406,7 @@ dev.off()
 soildata[dsi > 2.5, dsi := NA_real_]
 
 # Correct inconsistent soil bulk density values
-soildata[id == "ctb0058-RN_20", dsi := ifelse(dsi == 2.11, 1.11, dsi)]
-
-# Apply profile-specific ids after all corrections keyed by the original id.
-soildata[, id_original := id]
-soildata[, id := profile_id]
-soildata[, profile_id := NULL]
+soildata[id_original == "ctb0058-RN_20", dsi := ifelse(dsi == 2.11, 1.11, dsi)]
 
 # Write data to disk ###############################################################################
 summary_soildata(soildata)
