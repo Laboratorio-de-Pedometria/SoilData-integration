@@ -1064,10 +1064,10 @@ soildata[id == "ctb0832-126" & amostra_id == 47303, `:=`(
 )]
 # Check data
 summary_soildata(soildata)
-# Layers: 62444
-# Events: 20256
-# Georeference: 16715 (yes) / 3541 (no)
-# Date: 20099 (yes) / 157 (no)
+# Layers: 62414
+# Events: 20257
+# Georeference: 16716 (yes) / 3541 (no)
+# Date: 20100 (yes) / 157 (no)
 # Datasets: 271
 
 # profund_sup > profund_inf ####################################################
@@ -1175,7 +1175,7 @@ soildata[
 # It can also occurr due to errros in the 
 # source data. We will check these cases and correct them manually.
 nrow(soildata[profund_sup == profund_inf])
-# 200 layers
+# 199 layers
 soildata[, equal_depth := any(profund_sup == profund_inf), by = id]
 if (FALSE) {
   View(soildata[
@@ -1371,7 +1371,7 @@ soildata[, max_profund_inf := NULL]
 nrow(soildata[profund_sup == profund_inf])
 # 0 layers
 summary_soildata(soildata)
-# Layers: 62444
+# Layers: 62414
 # Events: 20257
 # Georeference: 16716 (yes) / 3541 (no)
 # Date: 20100 (yes) / 157 (no)
@@ -1526,7 +1526,7 @@ splittable_profiles <- profile_candidates[
   n_profiles > 1L & n_unassigned == 0L
 ]
 nrow(splittable_profiles)
-# 47 candidate profiles
+# 50 candidate profiles
 unresolved_profiles <- profile_candidates[
   n_profiles <= 1L | n_unassigned > 0L
 ]
@@ -1585,10 +1585,10 @@ soildata[
 soildata[, max_profund_inf := NULL]
 # Check data
 summary_soildata(soildata)
-# Layers: 62435
-# Events: 20304
-# Georeference: 16724 (yes) / 3580 (no)
-# Date: 20145 (yes) / 159 (no)
+# Layers: 62405
+# Events: 20307
+# Georeference: 16724 (yes) / 3583 (no)
+# Date: 20148 (yes) / 159 (no)
 # Datasets: 271
 
 # Overlapping layers ###########################################################
@@ -1614,18 +1614,19 @@ soildata[
 n_overlaps <- soildata[has_overlap == TRUE, .N]
 print(n_overlaps)
 # Overlaps larger than the threshold, not corrected
-# 72 overlaps
+# 66 overlaps
 soildata[
   is.finite(profund_inf) & is.finite(profund_sup_next) &
     profund_inf - profund_sup_next > overlap_threshold,
   .N
 ]
 # Number of layers with overlapping depth limits in this dataset
-# 90
+# 7 
 soildata[, large_overlap := is.finite(profund_inf) &
   is.finite(profund_sup_next) &
   profund_inf - profund_sup_next > overlap_threshold]
 soildata[, any_large_overlap := any(large_overlap), by = id]
+# There still are some issues but we will leave them for now
 if (FALSE) {
   View(soildata[
     any_large_overlap == TRUE,
@@ -1637,106 +1638,6 @@ if (FALSE) {
     )
   ])
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 soildata[, any_overlap := any(has_overlap == TRUE), by = id]
 if (FALSE) {
   View(soildata[
@@ -1780,10 +1681,6 @@ soildata[, `:=`(
   overlap_avg = NULL, overlap_avg_prev = NULL, check_sup_next = NULL,
   large_overlap = NULL, any_large_overlap = NULL
 )]
-
-
-
-
 
 
 
