@@ -632,6 +632,436 @@ soildata <- soildata[!(id == "ctb0832-75" & amostra_id == 47511)]
 # ctb0832-E-Rio-24. The source spreadsheet contains two layers, the second being
 # a partial copy of the first. We drop the second layer (amostra_id == 47605).
 soildata <- soildata[!(id == "ctb0832-E-Rio-24" & amostra_id == 47605)]
+# ctb0567-Perfil-MBCT5. When camada_nome == Cg3, set profund_sup = 120. This was
+# already corrected in the source spreadsheet.
+soildata[
+  id == "ctb0567-Perfil-MBCT5" & camada_nome == "Cg3",
+  profund_sup := 120
+]
+# ctb0585-Perfil-10. When amostra_id == 15077, set profund_sup = 111 and
+# profund_inf = 150. This was already corrected in the source spreadsheet.
+soildata[
+  id == "ctb0585-Perfil-10" & amostra_id == 15077, `:=`(
+    profund_sup = 111,
+    profund_inf = 150
+  )
+]
+# ctb0586-Canoinhas-16. When amostra_id == 15612, set profund_sup == 50 and 
+# profund_inf == 71. This was already corrected in the source spreadsheet.
+soildata[
+  id == "ctb0586-Canoinhas-16" & amostra_id == 15612, `:=`(
+    profund_sup = 50,
+    profund_inf = 71
+  )
+]
+# ctb0589-12-(13). When amostra_id == 15313, set profund_sup = 140 and
+# profund_inf = 170. This was already corrected in the source spreadsheet.
+soildata[
+  id == "ctb0589-12-(13)" & amostra_id == 15313, `:=`(
+    profund_sup = 140,
+    profund_inf = 170
+  )
+]
+# ctb0599-AC-05. When amostra_id == 15851, set profund_sup = 40 and
+# profund_inf = 60. This was already corrected in the source spreadsheet.
+soildata[
+  id == "ctb0599-AC-05" & amostra_id == 15851, `:=`(
+    profund_sup = 40,
+    profund_inf = 60
+  )
+]
+# ctb0605-P-21. When amostra_id == 16692, set profund_sup = 52. This was already
+# corrected in the source spreadsheet.
+soildata[
+  id == "ctb0605-P-21" & amostra_id == 16692, profund_sup := 52
+]
+# ctb0607-PERFIL-99. When amostra_id == 18431, set camada_nome == 3C’g, 
+# profund_sup == 120 and profund_inf == 170. This was already corrected in the 
+# source spreadsheet.
+soildata[
+  id == "ctb0607-PERFIL-99" & amostra_id == 18431, `:=`(
+    camada_nome = "3C’g",
+    profund_sup = 120,
+    profund_inf = 170
+  )
+]
+# ctb0616-Içara-10. When amostra_id == 17963, set profund_sup = 70. This was 
+# already corrected in the source spreadsheet, although we do not have access to
+# the source document.
+soildata[id == "ctb0616-Içara-10" & amostra_id == 17963, profund_sup := 70]
+# ctb0626-Pomerode-07. When amostra_id == 18538, set profund_inf ==	45. This was
+# already corrected in the source spreadsheet, although we do not have access to
+# the source document.
+soildata[id == "ctb0626-Pomerode-07" & amostra_id == 18538, profund_inf := 45]
+# ctb0631-Perfil-15. When amostra_id == 18877, set profund_sup == 60 and
+# profund_inf == 105. This was already corrected in the source spreadsheet.
+soildata[id == "ctb0631-Perfil-15" & amostra_id == 18877, `:=`(
+    profund_sup = 60,
+    profund_inf = 105
+  )
+]
+# ctb0631-Perfil-75. When amostra_id == 19591, set profund_sup == 80 and
+# profund_inf == 96. This was already corrected in the source spreadsheet.
+soildata[id == "ctb0631-Perfil-75" & amostra_id == 19591, `:=`(
+    profund_sup = 80,
+    profund_inf = 96
+  )
+]
+# ctb0635-PERFIL-DF-25. There is an empty layer replicating the B22cn horizon.
+# We drop it: amostra_id == 19744. This was already corrected in the source
+# spreadsheet.
+soildata <- soildata[!(id == "ctb0635-PERFIL-DF-25" & amostra_id == 19744)] 
+# ctb0636-Perfil-08. This profile has an organic layer of 5 cm. Subtract 5 cm 
+# from the depth limits of all layers. This was already corrected in the source
+# spreadsheet.
+soildata[id == "ctb0636-Perfil-08", `:=` (
+  profund_sup = profund_sup - 5,
+  profund_inf = profund_inf - 5
+)]
+# ctb0636-Perfil-102. When camada_nome == AB, set profund_inf == 30. This was
+# already corrected in the source spreadsheet.
+soildata[id == "ctb0636-Perfil-102" & camada_nome == "AB", profund_inf := 30]
+# ctb0636-Perfil-47. When camada_nome == Bw3, set profund_sup == 190. This was
+# already corrected in the source spreadsheet.
+soildata[id == "ctb0636-Perfil-47" & camada_nome == "Bw3", profund_sup := 190]
+# ctb0643-Perfil-01. This profile has horizons with broken transitions. To
+# facilitate, we will drop one of them: amostra_id == 21201.
+soildata <- soildata[!(id == "ctb0643-Perfil-01" & amostra_id == 21201)]
+# ctb0643-Perfil-10. This profile has horizons with broken transitions. When
+# amostra_id == 21299, set profund_sup == 198.
+soildata[id == "ctb0643-Perfil-10" & amostra_id == 21299, profund_sup := 198]
+# ctb0659-PC-9. When amostra_id == 28208, set profund_sup == 190. This was 
+# already corrected in the source spreadsheet.
+soildata[id == "ctb0659-PC-9" & amostra_id == 28208, profund_sup := 190]
+# ctb0661-P55. When amostra_id == 24057, set profund_sup == 55 and
+# profund_inf == 95. This was already corrected in the source spreadsheet.
+soildata[id == "ctb0661-P55" & amostra_id == 24057, `:=`(
+  profund_sup = 55,
+  profund_inf = 95
+)]
+# ctb0661-P92. When amostra_id == 25203, set profund_sup == 95 and
+# profund_inf == 135. This was already corrected in the source spreadsheet.
+soildata[id == "ctb0661-P92" & amostra_id == 25203, `:=`(
+  profund_sup = 95,
+  profund_inf = 135
+)]
+# ctb0662-P1. When amostra_id == 26399, set profund_sup == 210. This was already
+# corrected in the source spreadsheet.
+soildata[id == "ctb0662-P1" & amostra_id == 26399, `:=`(
+  profund_sup = 210
+)]
+# ctb0662-P53. When amostra_id == 26933, set profund_sup == 215. This was already
+# corrected in the source spreadsheet.
+soildata[id == "ctb0662-P53" & amostra_id == 26933, `:=`(
+  profund_sup = 215
+)]
+# ctb0662-P65. When amostra_id == 26310, set profund_sup == 35 and 
+# profund_inf == 62. This was already corrected in the source spreadsheet.
+soildata[id == "ctb0662-P65" & amostra_id == 26310, `:=`(
+  profund_sup = 35,
+  profund_inf = 62
+)]
+# ctb0663-PERFIL-EX-12. There is a duplicated row with empty data: amostra_id ==
+# 23596. We drop it. This was already corrected in the source spreadsheet.
+soildata <- soildata[!(id == "ctb0663-PERFIL-EX-12" & amostra_id == 23596)]
+# ctb0663-PERFIL-PF-3. This profile has an organic layer of 3 cm. Subtract 3 cm
+# from the depth limits of all layers. This was already corrected in the source
+# spreadsheet.
+soildata[id == "ctb0663-PERFIL-PF-3", `:=`(
+  profund_sup = profund_sup - 3,
+  profund_inf = profund_inf - 3
+)]
+# ctb0664-PERFIL-01. When amostra_id == 23946, set profund_sup == 20 and
+# profund_inf == 50. This was already corrected in the source spreadsheet.
+soildata[id == "ctb0664-PERFIL-01" & amostra_id == 23946, `:=`(
+  profund_sup = 20,
+  profund_inf = 50
+)]
+# ctb0666-Perfil-10-(44). This profile has horizons with broken transitions.
+# To facilitate, we will drop one of them: amostra_id == 24876.
+soildata <- soildata[!(id == "ctb0666-Perfil-10-(44)" & amostra_id == 24876)]
+# ctb0667-A-E-18. When amostra_id == 25055, set profund_sup == 0 and
+# profund_inf == 20. This was already corrected in the source spreadsheet.
+soildata[id == "ctb0667-A-E-18" & amostra_id == 25055, `:=`(
+  profund_sup = 0,
+  profund_inf = 20
+)]
+# ctb0668-PERFIL-4. This profile has a duplicated, empty layer: amostra_id == 
+# 25573. We drop it. This was already corrected in the source spreadsheet.
+soildata <- soildata[!(id == "ctb0668-PERFIL-4" & amostra_id == 25573)]
+# ctb0669-Perfil-9. When amostra_id == 25997, set profund_sup == 45 and
+# profund_inf == 95. This was already corrected in the source spreadsheet.
+soildata[id == "ctb0669-Perfil-9" & amostra_id == 25997, `:=`(
+  profund_sup = 45,
+  profund_inf = 95
+)]
+# ctb0673-4. When amostra_id == 27173, set profund_sup == 116 and
+# profund_inf == 165. This was already corrected in the source spreadsheet.
+soildata[id == "ctb0673-4" & amostra_id == 27173, `:=`(
+  profund_sup = 116,
+  profund_inf = 165
+)]
+# ctb0677-37. This profile has a duplicated, empty layer: amostra_id == 28242.
+# We drop it. This was already corrected in the source spreadsheet.
+soildata <- soildata[!(id == "ctb0677-37" & amostra_id == 28242)]
+# ctb0679-Perfil-323. When amostra_id == 32137, set profund_sup == 20 and
+# profund_inf == 55. This was already corrected in the source spreadsheet.
+soildata[id == "ctb0679-Perfil-323" & amostra_id == 32137, `:=`(
+  profund_sup = 20,
+  profund_inf = 55
+)]
+# ctb0682-245. When amostra_id == 29301, set profund_sup == 265. This was
+# already corrected in the source spreadsheet.
+soildata[id == "ctb0682-245" & amostra_id == 29301, `:=`(
+  profund_sup = 265
+)]
+# ctb0683-21. When amostra_id == 29304, set profund_sup == 85. This was already 
+# corrected in the source spreadsheet.
+soildata[id == "ctb0683-21" & amostra_id == 29304, `:=`(
+  profund_sup = 85
+)]
+# ctb0687-3. When amostra_id == 30108, set profund_sup == 48 and
+# profund_inf == 84. This was already corrected in the source spreadsheet.
+soildata[id == "ctb0687-3" & amostra_id == 30108, `:=`(
+  profund_sup = 48,
+  profund_inf = 84
+)]
+# ctb0688-4. When amostra_id == 30233, set profund_sup == 30 and
+# profund_inf == 50. This was already corrected in the source spreadsheet.
+soildata[id == "ctb0688-4" & amostra_id == 30233, `:=`(
+  profund_sup = 30,
+  profund_inf = 50
+)]
+# ctb0695-PERFIL-18. This profile has two IIB3. We drop the second one:
+# amostra_id == 30964.
+soildata <- soildata[!(id == "ctb0695-PERFIL-18" & amostra_id == 30964)]
+# ctb0704-28. When amostra_id == 32748, set profund_inf == 8. This was already
+# corrected in the source spreadsheet.
+soildata[id == "ctb0704-28" & amostra_id == 32748, profund_inf := 8]
+# ctb0705-1. When amostra_id == 32325, set profund_sup == 50. This was already
+# corrected in the source spreadsheet.
+soildata[id == "ctb0705-1" & amostra_id == 32325, `:=`(
+  profund_sup = 50
+)]
+# ctb0709-11. When amostra_id == 33194, set profund_sup == 90. This was already
+# corrected in the source spreadsheet.
+soildata[id == "ctb0709-11" & amostra_id == 33194, profund_sup := 90]
+# ctb0717-64. When amostra_id == 34073, set profund_sup == 60 and
+# profund_inf == 90. This was already corrected in the source spreadsheet.
+soildata[id == "ctb0717-64" & amostra_id == 34073, `:=`(
+  profund_sup = 60,
+  profund_inf = 90
+)]
+# ctb0751-184. When amostra_id == 34486, set profund_sup == 100 and
+# profund_inf == 150. This was already corrected in the source spreadsheet.
+soildata[id == "ctb0751-184" & amostra_id == 34486, `:=`(
+  profund_sup = 100,
+  profund_inf = 150
+)]
+# ctb0758-175. When amostra_id == 36276, set profund_inf == 5. This was already
+# corrected in the source spreadsheet.
+soildata[id == "ctb0758-175" & amostra_id == 36276, profund_inf := 5]
+# ctb0758-31. When amostra_id == 36252, set profund_sup == 40 and
+# profund_inf == 60. This was already corrected in the source spreadsheet.
+soildata[id == "ctb0758-31" & amostra_id == 36252, `:=`(
+  profund_sup = 40,
+  profund_inf = 60
+)]
+# ctb0760-2. When amostra_id == 36755, set profund_sup == 170. This was already
+# corrected in the source spreadsheet.
+soildata[id == "ctb0760-2" & amostra_id == 36755, profund_sup := 170]
+# ctb0763-74. When amostra_id == 37257, set profund_sup == 34 and
+# profund_inf == 61. This was already corrected in the source spreadsheet.
+soildata[id == "ctb0763-74" & amostra_id == 37257, `:=`(
+  profund_sup = 34,
+  profund_inf = 61
+)]
+# ctb0767-80. When amostra_id == 37632, set profund_inf == 60. This was already
+# corrected in the source spreadsheet.
+soildata[id == "ctb0767-80" & amostra_id == 37632, profund_inf := 60]
+# ctb0769-86. This profile contains an organic layer of 10 cm. We subtract 10 cm
+# from the depth limits of all layers.
+soildata[id == "ctb0769-86", `:=`(
+  profund_sup = profund_sup - 10,
+  profund_inf = profund_inf - 10
+)]
+# When amostra_id == 39100, set profund_inf == 115.
+soildata[id == "ctb0769-86" & amostra_id == 39100, profund_inf := 115]
+# ctb0770-16. This profile has four rows for the C horizon. We drop three of
+# them: amostra_id == 38063, 38064, and 38065.
+soildata <- soildata[!(id == "ctb0770-16" & amostra_id %in% c(38063, 38064, 38065))]
+# ctb0771-38. This profile has duplicated layers. We drop the second one:
+# amostra_id == 38813, 38814, 38815, 38816, and 38817.
+soildata <- soildata[!(id == "ctb0771-38" &
+  amostra_id %in% c(38813, 38814, 38815, 38816, 38817))]
+# ctb0773-13. When amostra_id == 38948, set profund_sup == 26 and
+# profund_inf == 41. When amostra_id == 38950, set profund_sup == 77 and
+# profund_inf == 127.
+soildata[id == "ctb0773-13" & amostra_id == 38948, `:=`(
+  profund_sup = 26,
+  profund_inf = 41
+)]
+soildata[id == "ctb0773-13" & amostra_id == 38950, `:=`(
+  profund_sup = 77,
+  profund_inf = 127
+)]
+# ctb0774-10. When amostra_id == 39070, set profund_inf == 15. Although we do
+# not have access to the source document, this was already corrected in the
+# source spreadsheet.
+soildata[id == "ctb0774-10" & amostra_id == 39070, profund_inf := 15]
+# When amostra_id == 39072, set profund_sup == 25 and profund_inf == 37.
+# Although we do not have access to the source document, this was already
+# corrected in the source spreadsheet.
+soildata[id == "ctb0774-10" & amostra_id == 39072, `:=`(
+  profund_sup = 25,
+  profund_inf = 37
+)]
+# ctb0774-11. When amostra_id == 39081, set profund_sup == 32 and
+# profund_inf == 43. Although we do not have access to the source document, this
+# was already corrected in the source spreadsheet.
+soildata[id == "ctb0774-11" & amostra_id == 39081, `:=`(
+  profund_sup = 32,
+  profund_inf = 43
+)]
+# ctb0775-30. When amostra_id == 39498, set profund_sup == 65 and
+# profund_inf == 120. This was already corrected in the source spreadsheet.
+soildata[id == "ctb0775-30" & amostra_id == 39498, `:=`(
+  profund_sup = 65,
+  profund_inf = 120
+)]
+# ctb0775-60. This profile has an organic layer of 2 cm. We subtract 2 cm from
+# the depth limits of all layers.
+soildata[id == "ctb0775-60", `:=`(
+  profund_sup = profund_sup - 2,
+  profund_inf = profund_inf - 2
+)]
+# When amostra_id == 39996, set profund_sup == 75. This was already corrected in
+# the source spreadsheet.
+soildata[id == "ctb0775-60" & amostra_id == 39996, profund_sup := 75]
+# ctb0778-P15. When amostra_id == 39782, set profund_sup == 71 and 
+# profund_inf == 91. This was already corrected in the source spreadsheet.
+soildata[id == "ctb0778-P15" & amostra_id == 39782, `:=`(
+  profund_sup = 71,
+  profund_inf = 91
+)]
+# ctb0778-P16. When amostra_id == 39788, set profund_sup == 83 and 
+# profund_inf == 103. This was already corrected in the source spreadsheet.
+soildata[id == "ctb0778-P16" & amostra_id == 39788, `:=`(
+  profund_sup = 83,
+  profund_inf = 103
+)]
+# ctb0778-P8. This profile has some horizons with broken transitions. To 
+# facilitate, we will drop one of them: 39669
+soildata <- soildata[!(id == "ctb0778-P8" & amostra_id == 39669)]
+# ctb0781-Perfil-4. This profile has na organic layer of 7 cm. We subtract 7 cm
+# from the depth limits of all layers.
+soildata[id == "ctb0781-Perfil-4", `:=`(
+  profund_sup = profund_sup - 7,
+  profund_inf = profund_inf - 7
+)]
+# When amostra_id == 40252, set profund_sup == 182.
+soildata[id == "ctb0781-Perfil-4" & amostra_id == 40252, profund_sup := 182]
+# ctb0783-IPEAN-9194/97. This profile appears to have some suplicated layers. We
+# drop them: amostra_id == 40792, 40794, 40795, 40797.
+soildata <- soildata[!(id == "ctb0783-IPEAN-9194/97" &
+  amostra_id %in% c(40792, 40794, 40795, 40797))]
+# ctb0785-12. When amostra_id == 40529, set profund_sup == 0. Although we do not
+# have access to the source document, this was already corrected in the source
+# spreadsheet.
+soildata[id == "ctb0785-12" & amostra_id == 40529, profund_sup := 0]
+# ctb0787-49. This profile has something new. For a fiven horizon, two samples
+# were collected for lab analysis. Here we organize the data. This has already
+# been corrected in the source spreadsheet.
+# When amostra_id == 41177, set profund_inf == 135.
+soildata[id == "ctb0787-49" & amostra_id == 41177, profund_inf := 135]
+# When amostra_id == 41178, set camada_nome == B21, profund_sup == 135 and
+# profund_inf == 200.
+soildata[id == "ctb0787-49" & amostra_id == 41178, `:=`(
+  camada_nome = "B21",
+  profund_sup = 135,
+  profund_inf = 200
+)]
+# When amostra_id == 41181, set camada_nome == B22.
+soildata[id == "ctb0787-49" & amostra_id == 41181, `:=`(
+  camada_nome = "B22"
+)]
+# ctb0788-33. When amostra_id == 40864, set profund_sup == 35.
+soildata[id == "ctb0788-33" & amostra_id == 40864, profund_sup := 35]
+# ctb0796-62. When amostra_id == 42283, set profund_sup == 0 and
+# profund_inf == 27. Although we do not have access to the source document, this
+# was already corrected in the source spreadsheet.
+soildata[id == "ctb0796-62" & amostra_id == 42283, `:=`(
+  profund_sup = 0,
+  profund_inf = 27
+)]
+# This profile also contains two layers without any data, and with
+# camada_nome == mudar (change). We drop them: amostra_id == 42287 and 42288.
+soildata <- soildata[!(id == "ctb0796-62" & amostra_id %in% c(42287, 42288))]
+# ctb0799-11. When amostra_id == 42461, set profund_sup == 55. Although we do
+# not have access to the source document, this was already corrected in the
+# source spreadsheet.
+soildata[id == "ctb0799-11" & amostra_id == 42461, profund_sup := 55]
+# ctb0799-23. When amostra_id == 42526, set profund_sup = 15 and 
+# profund_inf = 45. Although we do not have access to the source document, this
+# was already corrected in the source spreadsheet.
+soildata[id == "ctb0799-23" & amostra_id == 42526, `:=`(
+  profund_sup = 15,
+  profund_inf = 45
+)]
+# ctb0809-Exame-38. The source spreadsheet lists seven layers, but the source
+# document has only two. We drop the five extra layers: amostra_id == 43715,
+# 43728, 43729, 43730, 43732.
+soildata <- soildata[!(id == "ctb0809-Exame-38" &
+  amostra_id %in% c(43715, 43728, 43729, 43730, 43732))]
+# ctb0809-Exame-40. The source spreadsheet lists four layers, but the source
+# document has only two. We drop the two extra layers: amostra_id == 43737 and
+# 43739.
+soildata <- soildata[!(id == "ctb0809-Exame-40" &
+  amostra_id %in% c(43737, 43739))]
+# ctb0810-EXAME-25. This profile has a layer for which lab analysis was repeated
+# under humid conditions. We drop it here: amostra_id == 45718.
+soildata <- soildata[!(id == "ctb0810-EXAME-25" & amostra_id == 45718)]
+# ctb0810-EXAME-34. This profile has a layer for which lab analysis was repeated
+# under humid conditions. We drop it here: amostra_id == 45737.
+soildata <- soildata[!(id == "ctb0810-EXAME-34" & amostra_id == 45737)]
+# ctb0811-100. When amostra_id == 43903, set profund_inf == 30. Although we do
+# not have access to the source document, this was already corrected in the
+# source spreadsheet.
+soildata[id == "ctb0811-100" & amostra_id == 43903, profund_inf := 30]
+# ctb0815-8. This profile apears to have a duplicated layer. We drop it:
+# camada_nome == C2 and  carbono == NA.
+soildata <- soildata[!(id == "ctb0815-8" & camada_nome == "C2" & is.na(carbono))]
+# ctb0817-Perfil-C. When amostra_id == 44810, set profund_sup == 130 and 
+# profund_inf == 150. Although we do not have access to the source document, 
+# this was already corrected in the source spreadsheet.
+soildata[id == "ctb0817-Perfil-C" & amostra_id == 44810, `:=`(
+  profund_sup = 130,
+  profund_inf = 150
+)]
+# ctb0819-P81. When amostra_id == 44931, set profund_sup == 105 and 
+# profund_inf == 125. Although we do not have access to the source document, 
+# this was already corrected in the source spreadsheet.
+soildata[id == "ctb0819-P81" & amostra_id == 44931, `:=`(
+  profund_sup = 105,
+  profund_inf = 125
+)]
+# ctb0820-E-51. When amostra_id == 45122, set profund_sup == 20. Although we do 
+# not have access to the source document, this was already corrected in the 
+# source spreadsheet.
+soildata[id == "ctb0820-E-51" & amostra_id == 45122, profund_sup := 20]
+# ctb0821-P72. When amostra_id == 45428, set profund_sup == 90 and
+# profund_inf == 110. This was already corrected in the source spreadsheet.
+soildata[id == "ctb0821-P72" & amostra_id == 45428, `:=`(
+  profund_sup = 90,
+  profund_inf = 110
+)]
+# ctb0832-126. When amostra_id == 47303, set profund_sup == 15 and
+# profund_inf == 20. Although we do not have access to the source document, this
+# was already corrected in the source spreadsheet.
+soildata[id == "ctb0832-126" & amostra_id == 47303, `:=`(
+  profund_sup = 15,
+  profund_inf = 20
+)]
 # Check data
 summary_soildata(soildata)
 # Layers: 62444
@@ -1208,241 +1638,56 @@ if (FALSE) {
   ])
 }
 
-# ctb0567-Perfil-MBCT5. When camada_nome == Cg3, set profund_sup = 120. This was
-# already corrected in the source spreadsheet.
-soildata[
-  id == "ctb0567-Perfil-MBCT5" & camada_nome == "Cg3",
-  profund_sup := 120
-]
-# ctb0585-Perfil-10. When amostra_id == 15077, set profund_sup = 111 and
-# profund_inf = 150. This was already corrected in the source spreadsheet.
-soildata[
-  id == "ctb0585-Perfil-10" & amostra_id == 15077, `:=`(
-    profund_sup = 111,
-    profund_inf = 150
-  )
-]
-# ctb0586-Canoinhas-16. When amostra_id == 15612, set profund_sup == 50 and 
-# profund_inf == 71. This was already corrected in the source spreadsheet.
-soildata[
-  id == "ctb0586-Canoinhas-16" & amostra_id == 15612, `:=`(
-    profund_sup = 50,
-    profund_inf = 71
-  )
-]
-# ctb0589-12-(13). When amostra_id == 15313, set profund_sup = 140 and
-# profund_inf = 170. This was already corrected in the source spreadsheet.
-soildata[
-  id == "ctb0589-12-(13)" & amostra_id == 15313, `:=`(
-    profund_sup = 140,
-    profund_inf = 170
-  )
-]
-# ctb0599-AC-05. When amostra_id == 15851, set profund_sup = 40 and
-# profund_inf = 60. This was already corrected in the source spreadsheet.
-soildata[
-  id == "ctb0599-AC-05" & amostra_id == 15851, `:=`(
-    profund_sup = 40,
-    profund_inf = 60
-  )
-]
-# ctb0605-P-21. When amostra_id == 16692, set profund_sup = 52. This was already
-# corrected in the source spreadsheet.
-soildata[
-  id == "ctb0605-P-21" & amostra_id == 16692, profund_sup := 52
-]
-# ctb0607-PERFIL-99. When amostra_id == 18431, set camada_nome == 3C’g, 
-# profund_sup == 120 and profund_inf == 170. This was already corrected in the 
-# source spreadsheet.
-soildata[
-  id == "ctb0607-PERFIL-99" & amostra_id == 18431, `:=`(
-    camada_nome = "3C’g",
-    profund_sup = 120,
-    profund_inf = 170
-  )
-]
-# ctb0616-Içara-10. When amostra_id == 17963, set profund_sup = 70. This was 
-# already corrected in the source spreadsheet, although we do not have access to
-# the source document.
-soildata[id == "ctb0616-Içara-10" & amostra_id == 17963, profund_sup := 70]
-# ctb0626-Pomerode-07. When amostra_id == 18538, set profund_inf ==	45. This was
-# already corrected in the source spreadsheet, although we do not have access to
-# the source document.
-soildata[id == "ctb0626-Pomerode-07" & amostra_id == 18538, profund_inf := 45]
-# ctb0631-Perfil-15. When amostra_id == 18877, set profund_sup == 60 and
-# profund_inf == 105. This was already corrected in the source spreadsheet.
-soildata[id == "ctb0631-Perfil-15" & amostra_id == 18877, `:=`(
-    profund_sup = 60,
-    profund_inf = 105
-  )
-]
-# ctb0631-Perfil-75. When amostra_id == 19591, set profund_sup == 80 and
-# profund_inf == 96. This was already corrected in the source spreadsheet.
-soildata[id == "ctb0631-Perfil-75" & amostra_id == 19591, `:=`(
-    profund_sup = 80,
-    profund_inf = 96
-  )
-]
-# ctb0635-PERFIL-DF-25. There is an empty layer replicating the B22cn horizon.
-# We drop it: amostra_id == 19744. This was already corrected in the source
-# spreadsheet.
-soildata <- soildata[!(id == "ctb0635-PERFIL-DF-25" & amostra_id == 19744)] 
-# ctb0636-Perfil-08. This profile has an organic layer of 5 cm. Subtract 5 cm 
-# from the depth limits of all layers. This was already corrected in the source
-# spreadsheet.
-soildata[id == "ctb0636-Perfil-08", `:=` (
-  profund_sup = profund_sup - 5,
-  profund_inf = profund_inf - 5
-)]
-# ctb0636-Perfil-102. When camada_nome == AB, set profund_inf == 30. This was
-# already corrected in the source spreadsheet.
-soildata[id == "ctb0636-Perfil-102" & camada_nome == "AB", profund_inf := 30]
-# ctb0636-Perfil-47. When camada_nome == Bw3, set profund_sup == 190. This was
-# already corrected in the source spreadsheet.
-soildata[id == "ctb0636-Perfil-47" & camada_nome == "Bw3", profund_sup := 190]
-# ctb0643-Perfil-01. This profile has horizons with broken transitions. To
-# facilitate, we will drop one of them: amostra_id == 21201.
-soildata <- soildata[!(id == "ctb0643-Perfil-01" & amostra_id == 21201)]
-# ctb0643-Perfil-10. This profile has horizons with broken transitions. When
-# amostra_id == 21299, set profund_sup == 198.
-soildata[id == "ctb0643-Perfil-10" & amostra_id == 21299, profund_sup := 198]
-# ctb0659-PC-9. When amostra_id == 28208, set profund_sup == 190. This was 
-# already corrected in the source spreadsheet.
-soildata[id == "ctb0659-PC-9" & amostra_id == 28208, profund_sup := 190]
-# ctb0661-P55. When amostra_id == 24057, set profund_sup == 55 and
-# profund_inf == 95. This was already corrected in the source spreadsheet.
-soildata[id == "ctb0661-P55" & amostra_id == 24057, `:=`(
-  profund_sup = 55,
-  profund_inf = 95
-)]
-# ctb0661-P92. When amostra_id == 25203, set profund_sup == 95 and
-# profund_inf == 135. This was already corrected in the source spreadsheet.
-soildata[id == "ctb0661-P92" & amostra_id == 25203, `:=`(
-  profund_sup = 95,
-  profund_inf = 135
-)]
-# ctb0662-P1. When amostra_id == 26399, set profund_sup == 210. This was already
-# corrected in the source spreadsheet.
-soildata[id == "ctb0662-P1" & amostra_id == 26399, `:=`(
-  profund_sup = 210
-)]
-# ctb0662-P53. When amostra_id == 26933, set profund_sup == 215. This was already
-# corrected in the source spreadsheet.
-soildata[id == "ctb0662-P53" & amostra_id == 26933, `:=`(
-  profund_sup = 215
-)]
-# ctb0662-P65. When amostra_id == 26310, set profund_sup == 35 and 
-# profund_inf == 62. This was already corrected in the source spreadsheet.
-soildata[id == "ctb0662-P65" & amostra_id == 26310, `:=`(
-  profund_sup = 35,
-  profund_inf = 62
-)]
-# ctb0663-PERFIL-EX-12. There is a duplicated row with empty data: amostra_id ==
-# 23596. We drop it. This was already corrected in the source spreadsheet.
-soildata <- soildata[!(id == "ctb0663-PERFIL-EX-12" & amostra_id == 23596)]
-# ctb0663-PERFIL-PF-3. This profile has an organic layer of 3 cm. Subtract 3 cm
-# from the depth limits of all layers. This was already corrected in the source
-# spreadsheet.
-soildata[id == "ctb0663-PERFIL-PF-3", `:=`(
-  profund_sup = profund_sup - 3,
-  profund_inf = profund_inf - 3
-)]
-# ctb0664-PERFIL-01. When amostra_id == 23946, set profund_sup == 20 and
-# profund_inf == 50. This was already corrected in the source spreadsheet.
-soildata[id == "ctb0664-PERFIL-01" & amostra_id == 23946, `:=`(
-  profund_sup = 20,
-  profund_inf = 50
-)]
-# ctb0666-Perfil-10-(44). This profile has horizons with broken transitions.
-# To facilitate, we will drop one of them: amostra_id == 24876.
-soildata <- soildata[!(id == "ctb0666-Perfil-10-(44)" & amostra_id == 24876)]
-# ctb0667-A-E-18. When amostra_id == 25055, set profund_sup == 0 and
-# profund_inf == 20. This was already corrected in the source spreadsheet.
-soildata[id == "ctb0667-A-E-18" & amostra_id == 25055, `:=`(
-  profund_sup = 0,
-  profund_inf = 20
-)]
-# ctb0668-PERFIL-4. This profile has a duplicated, empty layer: amostra_id == 
-# 25573. We drop it. This was already corrected in the source spreadsheet.
-soildata <- soildata[!(id == "ctb0668-PERFIL-4" & amostra_id == 25573)]
-# ctb0669-Perfil-9. When amostra_id == 25997, set profund_sup == 45 and
-# profund_inf == 95. This was already corrected in the source spreadsheet.
-soildata[id == "ctb0669-Perfil-9" & amostra_id == 25997, `:=`(
-  profund_sup = 45,
-  profund_inf = 95
-)]
-# ctb0673-4. When amostra_id == 27173, set profund_sup == 116 and
-# profund_inf == 165. This was already corrected in the source spreadsheet.
-soildata[id == "ctb0673-4" & amostra_id == 27173, `:=`(
-  profund_sup = 116,
-  profund_inf = 165
-)]
-# ctb0677-37. This profile has a duplicated, empty layer: amostra_id == 28242.
-# We drop it. This was already corrected in the source spreadsheet.
-soildata <- soildata[!(id == "ctb0677-37" & amostra_id == 28242)]
-# ctb0679-Perfil-323. When amostra_id == 32137, set profund_sup == 20 and
-# profund_inf == 55. This was already corrected in the source spreadsheet.
-soildata[id == "ctb0679-Perfil-323" & amostra_id == 32137, `:=`(
-  profund_sup = 20,
-  profund_inf = 55
-)]
-# ctb0682-245. When amostra_id == 29301, set profund_sup == 265. This was
-# already corrected in the source spreadsheet.
-soildata[id == "ctb0682-245" & amostra_id == 29301, `:=`(
-  profund_sup = 265
-)]
-# ctb0683-21. When amostra_id == 29304, set profund_sup == 85. This was already 
-# corrected in the source spreadsheet.
-soildata[id == "ctb0683-21" & amostra_id == 29304, `:=`(
-  profund_sup = 85
-)]
-# ctb0687-3. When amostra_id == 30108, set profund_sup == 48 and
-# profund_inf == 84. This was already corrected in the source spreadsheet.
-soildata[id == "ctb0687-3" & amostra_id == 30108, `:=`(
-  profund_sup = 48,
-  profund_inf = 84
-)]
-# ctb0688-4. When amostra_id == 30233, set profund_sup == 30 and
-# profund_inf == 50. This was already corrected in the source spreadsheet.
-soildata[id == "ctb0688-4" & amostra_id == 30233, `:=`(
-  profund_sup = 30,
-  profund_inf = 50
-)]
-# ctb0695-PERFIL-18. This profile has two IIB3. We drop the second one:
-# amostra_id == 30964.
-soildata <- soildata[!(id == "ctb0695-PERFIL-18" & amostra_id == 30964)]
-# ctb0704-28. When amostra_id == 32748, set profund_inf == 8. This was already
-# corrected in the source spreadsheet.
-soildata[id == "ctb0704-28" & amostra_id == 32748, profund_inf := 8]
-# ctb0705-1. When amostra_id == 32325, set profund_sup == 50. This was already
-# corrected in the source spreadsheet.
-soildata[id == "ctb0705-1" & amostra_id == 32325, `:=`(
-  profund_sup = 50
-)]
-# ctb0709-11. When amostra_id == 33194, set profund_sup == 90. This was already
-# corrected in the source spreadsheet.
-soildata[id == "ctb0709-11" & amostra_id == 33194, profund_sup := 90]
-# ctb0717-64. When amostra_id == 34073, set profund_sup == 60 and
-# profund_inf == 90. This was already corrected in the source spreadsheet.
-soildata[id == "ctb0717-64" & amostra_id == 34073, `:=`(
-  profund_sup = 60,
-  profund_inf = 90
-)]
-# ctb0751-184. When amostra_id == 34486, set profund_sup == 100 and
-# profund_inf == 150. This was already corrected in the source spreadsheet.
-soildata[id == "ctb0751-184" & amostra_id == 34486, `:=`(
-  profund_sup = 100,
-  profund_inf = 150
-)]
-# ctb0758-175. When amostra_id == 36276, set profund_inf == 5. This was already
-# corrected in the source spreadsheet.
-soildata[id == "ctb0758-175" & amostra_id == 36276, profund_inf := 5]
-# ctb0758-31. When amostra_id == 36252, set profund_sup == 40 and
-# profund_inf == 60. This was already corrected in the source spreadsheet.
-soildata[id == "ctb0758-31" & amostra_id == 36252, `:=`(
-  profund_sup = 40,
-  profund_inf = 60
-)]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
