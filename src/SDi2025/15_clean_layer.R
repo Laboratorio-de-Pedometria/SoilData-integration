@@ -1685,51 +1685,12 @@ soildata[, `:=`(
 )]
 
 
-# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
 
-# Fine earth
-# R layers are consolidated rock layers. These layers should have terrafina == NA_real.
-# Correct samples with terrafina == 0 g/kg
-# When terrafina == 0, we set the fine earth content to 1000 g/kg.
-soildata[terrafina == 0, .N]
-# 23 samples with terrafina == 0
-cols <- c("id", "camada_nome", "profund_sup", "profund_inf", "terrafina", "argila", "taxon_sibcs")
-print(soildata[terrafina == 0, ..cols])
-# If camada_nome != "R", set terrafina to 1000 g/kg
-soildata[camada_nome == "R", terrafina := NA_real_]
-soildata[camada_nome == "2R", terrafina := NA_real_]
-soildata[camada_nome == "IIR", terrafina := NA_real_]
-soildata[terrafina == 0, terrafina := 1000]
 
-# Fine earth content
-soildata[, esqueleto := 1000 - terrafina]
-# Check samples with esqueleto > 800
-print(soildata[esqueleto > 800, .N])
-# 133 sample with esqueleto > 800
-# Correct soil skeleton and fine earth content
-soildata[id_original == "ctb0565-Perfil-08" & camada_nome == "BC1", `:=`(
-  esqueleto = 0,
-  terrafina = 1000
-)]
-# These datasets have been checked
-ctb_ok <- c(
-  "ctb0006", "ctb0011", "ctb0017", "ctb0025", "ctb0033", "ctb0038", "ctb0044", "ctb0562",
-  "ctb0600", "ctb0605", "ctb0606"
-)
-cols <- c("id", "camada_nome", "profund_sup", "profund_inf", "esqueleto", "terrafina")
-# View(soildata[!(dataset_id %in% ctb_ok) & esqueleto > 800, ..cols])
-# Filter out samples with skeleton > 1000.
-# Some layers have esqueleto > 1000. This is not possible.
-# We filter out these layers. These layers need to be checked in the source data in the
-# future.
-soildata <- soildata[is.na(esqueleto) | esqueleto < 1000]
-summary_soildata(soildata)
-# Layers: 57326
-# Events: 16868
-# Georeferenced events: 14387
-# Datasets: 255
+
+
 
 # Clean camada_nome
 soildata[, camada_nome := as.character(camada_nome)]
@@ -1783,6 +1744,50 @@ soildata[, camada_nome := gsub("C2G", "C2g", camada_nome, ignore.case = FALSE)]
 soildata[, camada_nome := gsub("^g$", "G", camada_nome, ignore.case = FALSE)]
 # Print unique layer names
 sort(unique(soildata[, camada_nome]))
+
+
+# Fine earth
+# R layers are consolidated rock layers. These layers should have terrafina == NA_real.
+# Correct samples with terrafina == 0 g/kg
+# When terrafina == 0, we set the fine earth content to 1000 g/kg.
+soildata[terrafina == 0, .N]
+# 23 samples with terrafina == 0
+cols <- c("id", "camada_nome", "profund_sup", "profund_inf", "terrafina", "argila", "taxon_sibcs")
+print(soildata[terrafina == 0, ..cols])
+# If camada_nome != "R", set terrafina to 1000 g/kg
+soildata[camada_nome == "R", terrafina := NA_real_]
+soildata[camada_nome == "2R", terrafina := NA_real_]
+soildata[camada_nome == "IIR", terrafina := NA_real_]
+soildata[terrafina == 0, terrafina := 1000]
+
+# Fine earth content
+soildata[, esqueleto := 1000 - terrafina]
+# Check samples with esqueleto > 800
+print(soildata[esqueleto > 800, .N])
+# 133 sample with esqueleto > 800
+# Correct soil skeleton and fine earth content
+soildata[id_original == "ctb0565-Perfil-08" & camada_nome == "BC1", `:=`(
+  esqueleto = 0,
+  terrafina = 1000
+)]
+# These datasets have been checked
+ctb_ok <- c(
+  "ctb0006", "ctb0011", "ctb0017", "ctb0025", "ctb0033", "ctb0038", "ctb0044", "ctb0562",
+  "ctb0600", "ctb0605", "ctb0606"
+)
+cols <- c("id", "camada_nome", "profund_sup", "profund_inf", "esqueleto", "terrafina")
+# View(soildata[!(dataset_id %in% ctb_ok) & esqueleto > 800, ..cols])
+# Filter out samples with skeleton > 1000.
+# Some layers have esqueleto > 1000. This is not possible.
+# We filter out these layers. These layers need to be checked in the source data in the
+# future.
+soildata <- soildata[is.na(esqueleto) | esqueleto < 1000]
+summary_soildata(soildata)
+# Layers: 57326
+# Events: 16868
+# Georeferenced events: 14387
+# Datasets: 255
+
 
 # Particle size distribution
 # Check if the sum of the three fractions is 1000 g/kg
