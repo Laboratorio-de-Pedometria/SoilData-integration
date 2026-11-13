@@ -1098,7 +1098,7 @@ nrow(soildata[profund_sup > profund_inf])
 #   profund_inf = 120
 # )]
 
-# Negative depth ##############################################################
+# Negative depth ###############################################################
 
 # WE WILL KEEEP NEGATIVE DEPTHS TO IDENTIFY LITTER LAYERS
 # # Correct negative (profund_sup < 0) depth limit of topsoil layers
@@ -1166,6 +1166,98 @@ soildata[
   id == "ctb0635-PERFIL-DF-8", `:=`(
     profund_sup = profund_sup + (-4),
     profund_inf = profund_inf + (-4)
+  )
+]
+# Some old profiles use A00 and A0 for organic layers. We will keep them, but
+# need to make sure that the depth limits are negative. It may happen, however,
+# that the depth limits already are negative. We will check the occurences and
+# correct them manually.
+soildata[
+  camada_nome %in% c("A00", "A0"),
+  .(id, camada_nome, profund_sup, profund_inf)
+]
+# ctb0647-Perfil-12: subtract -3 from profund_sup and profund_inf.
+soildata[
+  id == "ctb0647-Perfil-12", `:=`(
+    profund_sup = profund_sup + (-3),
+    profund_inf = profund_inf + (-3)
+  )
+] 
+# ctb0647-Perfil-6: subtract -3 from profund_sup and profund_inf.
+soildata[
+  id == "ctb0647-Perfil-6", `:=`(
+    profund_sup = profund_sup + (-3),
+    profund_inf = profund_inf + (-3)
+  )
+]
+# ctb0693-PERFIL-10: subtract -3 from profund_sup and profund_inf.
+soildata[
+  id == "ctb0693-PERFIL-10", `:=`(
+    profund_sup = profund_sup + (-3),
+    profund_inf = profund_inf + (-3)
+  )
+]
+# ctb0693-PERFIL-3: subtract -6 from profund_sup and profund_inf.
+soildata[
+  id == "ctb0693-PERFIL-3", `:=`(
+    profund_sup = profund_sup + (-6),
+    profund_inf = profund_inf + (-6)
+  )
+]
+# ctb0693-PERFIL-4: subtract -6 from profund_sup and profund_inf.
+soildata[
+  id == "ctb0693-PERFIL-4", `:=`(
+    profund_sup = profund_sup + (-6),
+    profund_inf = profund_inf + (-6)
+  )
+]
+# ctb0693-PERFIL-6: subtract -3 from profund_sup and profund_inf.
+soildata[
+  id == "ctb0693-PERFIL-6", `:=`(
+    profund_sup = profund_sup + (-3),
+    profund_inf = profund_inf + (-3)
+  )
+]
+# ctb0693-PERFIL-7: subtract -7 from profund_sup and profund_inf.
+soildata[
+  id == "ctb0693-PERFIL-7", `:=`(
+    profund_sup = profund_sup + (-7),
+    profund_inf = profund_inf + (-7)
+  )
+]
+# ctb0693-PERFIL-8: subtract -5 from profund_sup and profund_inf.
+soildata[
+  id == "ctb0693-PERFIL-8", `:=`(
+    profund_sup = profund_sup + (-5),
+    profund_inf = profund_inf + (-5)
+  )
+]
+# ctb0693-PERFIL-9: subtract -1 from profund_sup and profund_inf.
+soildata[
+  id == "ctb0693-PERFIL-9", `:=`(
+    profund_sup = profund_sup + (-1),
+    profund_inf = profund_inf + (-1)
+  )
+]
+# ctb0695-PERFIL-2: subtract -2 from profund_sup and profund_inf.
+soildata[
+  id == "ctb0695-PERFIL-2", `:=`(
+    profund_sup = profund_sup + (-2),
+    profund_inf = profund_inf + (-2)
+  )
+]
+# ctb0707-25: subtract -10 from profund_sup and profund_inf.
+soildata[
+  id == "ctb0707-25", `:=`(
+    profund_sup = profund_sup + (-10),
+    profund_inf = profund_inf + (-10)
+  )
+]
+# ctb0787-59: subtract -2 from profund_sup and profund_inf.
+soildata[
+  id == "ctb0787-59", `:=`(
+    profund_sup = profund_sup + (-2),
+    profund_inf = profund_inf + (-2)
   )
 ]
 
