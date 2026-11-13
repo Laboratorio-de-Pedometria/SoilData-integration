@@ -38,6 +38,7 @@ soildata <- soildata[order(id, profund_sup, profund_inf)]
 # The spreadsheet values from Perfil-36 A2 through Perfil-64 BC were entered
 # one layer too high. Restore the first value, then move each existing value
 # down one layer; the current Perfil-64 BC value is replaced by the Bt2 value.
+# This has already been corrected in the source spreadsheet.
 if (nrow(soildata[
   id == "ctb0025-Perfil-36" & camada_nome == "A2" &
     !is.na(carbono) & carbono == 7.4
