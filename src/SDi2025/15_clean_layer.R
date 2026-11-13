@@ -1811,10 +1811,22 @@ soildata[, camada_nome := sub("^3O-2O", "30-20", camada_nome)]
 soildata[, camada_nome := sub("^20-40 cm", "20-40", camada_nome)]
 # B21CN -> B21cn
 soildata[, camada_nome := sub("^B21CN", "B21cn", camada_nome)]
+# B22CN -> B22cn
+soildata[, camada_nome := sub("^B22CN", "B22cn", camada_nome)]
+# B23CN -> B23cn
+soildata[, camada_nome := sub("^B23CN", "B23cn", camada_nome)]
+# B24CN -> B24cn
+soildata[, camada_nome := sub("^B24CN", "B24cn", camada_nome)]
+# B21PL -> B21pl
+soildata[, camada_nome := sub("^B21PL", "B21pl", camada_nome)]
 # Bcn21 -> B21cn
 soildata[, camada_nome := sub("^Bcn21", "B21cn", camada_nome)]
 # B2TPL -> B2tpl
 soildata[, camada_nome := sub("^B2TPL", "B2tpl", camada_nome)]
+# B22PL -> B22pl
+soildata[, camada_nome := sub("^B22PL", "B22pl", camada_nome)]
+# B21PL -> B21pl
+soildata[, camada_nome := sub("^B21PL", "B21pl", camada_nome)]
 # B31PL -> B31pl
 soildata[, camada_nome := sub("^B31PL", "B31pl", camada_nome)]
 # B3PL -> B3pl
@@ -1843,6 +1855,10 @@ soildata[, camada_nome := gsub("C2G", "C2g", camada_nome, ignore.case = FALSE)]
 soildata[, camada_nome := gsub("^g$", "G", camada_nome, ignore.case = FALSE)]
 # (b) -> (B)
 soildata[, camada_nome := gsub("\\(b\\)", "(B)", camada_nome, ignore.case = FALSE)]
+# AG -> Ag
+soildata[, camada_nome := gsub("^AG$", "Ag", camada_nome, ignore.case = FALSE)]
+# bE -> BE
+soildata[, camada_nome := gsub("^bE$", "BE", camada_nome, ignore.case = FALSE)]
 # Closing parenthesis followed by one space: remove space
 soildata[, camada_nome := gsub("\\) ", ")", camada_nome, ignore.case = FALSE)]
 # 1acamada -> 1a camada
@@ -1856,7 +1872,7 @@ soildata[, camada_nome := gsub("1ªCAMADA", "1a camada", camada_nome, ignore.cas
 # 1ªCAM Ap -> 1a camada Ap
 soildata[, camada_nome := gsub("1ªCAM Ap", "1a camada Ap", camada_nome, ignore.case = FALSE)]
 # 1ªCAM at -> 1a camada aterro
-soildata[, camada_nome := gsub("1ªCAM at", "1a camada aterro", camada_nome, ignore.case = FALSE)]
+soildata[, camada_nome := gsub("^1ªCAM at$", "1a camada aterro", camada_nome, ignore.case = FALSE)]
 # 1ªCAM -> 1a camada
 soildata[, camada_nome := gsub("1ªCAM", "1a camada", camada_nome, ignore.case = FALSE)]
 # 2a -> 2a camada (this has been corrected in the source spreadsheet after checking the source document)
@@ -1872,9 +1888,9 @@ soildata[, camada_nome := gsub("2ªCamada", "2a camada", camada_nome, ignore.cas
 # 2ªCAMADA -> 2a camada
 soildata[, camada_nome := gsub("2ªCAMADA", "2a camada", camada_nome, ignore.case = FALSE)]
 # 2ªCAM ap -> 2a camada aterro
-soildata[, camada_nome := gsub("2ªCAM ap", "2a camada aterro", camada_nome, ignore.case = FALSE)]
+soildata[, camada_nome := gsub("^2ªCAM ap$", "2a camada aterro", camada_nome, ignore.case = FALSE)]
 # 2ªCAM at -> 2a camada aterro
-soildata[, camada_nome := gsub("2ªCAM at", "2a camada aterro", camada_nome, ignore.case = FALSE)]
+soildata[, camada_nome := gsub("^2ªCAM at$", "2a camada aterro", camada_nome, ignore.case = FALSE)]
 # 2ªCAM -> 2a camada
 soildata[, camada_nome := gsub("2ªCAM", "2a camada", camada_nome, ignore.case = FALSE)]
 # 3a -> 3a camada (this has been corrected in the source spreadsheet after checking the source document)
@@ -1892,7 +1908,7 @@ soildata[, camada_nome := gsub("3ªCAMADA", "3a camada", camada_nome, ignore.cas
 # 3ªCAMatg -> 3a camada aterro g
 soildata[, camada_nome := gsub("3ªCAMatg", "3a camada aterro g", camada_nome, ignore.case = FALSE)]
 # 3ªCAM at -> 3a camada aterro
-soildata[, camada_nome := gsub("3ªCAM at", "3a camada aterro", camada_nome, ignore.case = FALSE)]
+soildata[, camada_nome := gsub("^3ªCAM at$", "3a camada aterro", camada_nome, ignore.case = FALSE)]
 # 3ªCAM -> 3a camada
 soildata[, camada_nome := gsub("3ªCAM", "3a camada", camada_nome, ignore.case = FALSE)]
 # 4a -> 4a camada (this has been corrected in the source spreadsheet after checking the source document)
@@ -1910,13 +1926,13 @@ soildata[, camada_nome := gsub("4ªCAMADA", "4a camada", camada_nome, ignore.cas
 # 4ªCAMatg -> 4a camada aterro g
 soildata[, camada_nome := gsub("4ªCAMatg", "4a camada aterro g", camada_nome, ignore.case = FALSE)]
 # 4ªCAM at -> 4a camada aterro
-soildata[, camada_nome := gsub("4ªCAM at", "4a camada aterro", camada_nome, ignore.case = FALSE)]
+soildata[, camada_nome := gsub("^4ªCAM at$", "4a camada aterro", camada_nome, ignore.case = FALSE)]
 # 4ªCAM -> 4a camada
 soildata[, camada_nome := gsub("4ªCAM", "4a camada", camada_nome, ignore.case = FALSE)]
 # 5 camada -> 5a camada
 soildata[, camada_nome := gsub("5 camada", "5a camada", camada_nome, ignore.case = FALSE)]
 # 5ªCAM at -> 5a camada aterro
-soildata[, camada_nome := gsub("5ªCAM at", "5a camada aterro", camada_nome, ignore.case = FALSE)]
+soildata[, camada_nome := gsub("^5ªCAM at$", "5a camada aterro", camada_nome, ignore.case = FALSE)]
 # 5ªCamada -> 5a camada
 soildata[, camada_nome := gsub("5ªCamada", "5a camada", camada_nome, ignore.case = FALSE)]
 # 5ªCAMADA -> 5a camada
@@ -1926,51 +1942,65 @@ soildata[, camada_nome := gsub("5ªCAM", "5a camada", camada_nome, ignore.case =
 # 6 camada -> 6a camada
 soildata[, camada_nome := gsub("6 camada", "6a camada", camada_nome, ignore.case = FALSE)]
 # 6ªCAM at -> 6a camada aterro
-soildata[, camada_nome := gsub("6ªCAM at", "6a camada aterro", camada_nome, ignore.case = FALSE)]
+soildata[, camada_nome := gsub("^6ªCAM at$", "6a camada aterro", camada_nome, ignore.case = FALSE)]
 # 6ªCAMatg -> 6a camada aterro g
 soildata[, camada_nome := gsub("6ªCAMatg", "6a camada aterro g", camada_nome, ignore.case = FALSE)]
 # 7 camada -> 7a camada
 soildata[, camada_nome := gsub("7 camada", "7a camada", camada_nome, ignore.case = FALSE)]
 # B3 at -> B3 aterro
-soildata[, camada_nome := gsub("B3 at", "B3 aterro", camada_nome, ignore.case = FALSE)]
+soildata[, camada_nome := gsub("^B3 at$", "B3 aterro", camada_nome, ignore.case = FALSE)]
 # BC at -> BC aterro
-soildata[, camada_nome := gsub("BC at", "BC aterro", camada_nome, ignore.case = FALSE)]
+soildata[, camada_nome := gsub("^BC at$", "BC aterro", camada_nome, ignore.case = FALSE)]
 # BCg at -> BCg aterro
-soildata[, camada_nome := gsub("BCg at", "BCg aterro", camada_nome, ignore.case = FALSE)]
+soildata[, camada_nome := gsub("^BCg at$", "BCg aterro", camada_nome, ignore.case = FALSE)]
 # G at -> G aterro
-soildata[, camada_nome := gsub("G at", "G aterro", camada_nome, ignore.case = FALSE)]
+soildata[, camada_nome := gsub("^G at$", "G aterro", camada_nome, ignore.case = FALSE)]
 # Cg at -> Cg aterro
-soildata[, camada_nome := gsub("Cg at", "Cg aterro", camada_nome, ignore.case = FALSE)]
+soildata[, camada_nome := gsub("^Cg at$", "Cg aterro", camada_nome, ignore.case = FALSE)]
 # Ap at -> Ap aterro
-soildata[, camada_nome := gsub("Ap at", "Ap aterro", camada_nome, ignore.case = FALSE)]
+soildata[, camada_nome := gsub("^Ap at$", "Ap aterro", camada_nome, ignore.case = FALSE)]
 # Apl at -> Apl aterro
-soildata[, camada_nome := gsub("Apl at", "Apl aterro", camada_nome, ignore.case = FALSE)]
+soildata[, camada_nome := gsub("^Apl at$", "Apl aterro", camada_nome, ignore.case = FALSE)]
 # Ap2 at -> Ap2 aterro
-soildata[, camada_nome := gsub("Ap2 at", "Ap2 aterro", camada_nome, ignore.case = FALSE)]
+soildata[, camada_nome := gsub("^Ap2 at$", "Ap2 aterro", camada_nome, ignore.case = FALSE)]
 # Bt at -> Bt aterro
-soildata[, camada_nome := gsub("Bt at", "Bt aterro", camada_nome, ignore.case = FALSE)]
+soildata[, camada_nome := gsub("^Bt at$", "Bt aterro", camada_nome, ignore.case = FALSE)]
 # Bt3 at -> Bt3 aterro
-soildata[, camada_nome := gsub("Bt3 at", "Bt3 aterro", camada_nome, ignore.case = FALSE)]
-# A   E -> AE
-soildata[, camada_nome := gsub("A   E", "AE", camada_nome, ignore.case = FALSE)]
-# A B -> AB
-soildata[, camada_nome := gsub("A B", "AB", camada_nome, ignore.case = FALSE)]
-# A Bh -> ABh
-soildata[, camada_nome := gsub("A Bh", "ABh", camada_nome, ignore.case = FALSE)]
-# A E -> AE
-soildata[, camada_nome := gsub("A E", "AE", camada_nome, ignore.case = FALSE)]
-
-
+soildata[, camada_nome := gsub("^Bt3 at$", "Bt3 aterro", camada_nome, ignore.case = FALSE)]
+# mudar -> NA_character_
+soildata[, camada_nome := gsub("^mudar$", NA_character_, camada_nome, ignore.case = FALSE)]
+# mudar tm -> NA_character_
+soildata[, camada_nome := gsub("^mudar tm$", NA_character_, camada_nome, ignore.case = FALSE)]
+# R+ -> R
+soildata[, camada_nome := gsub("^R+$", "R", camada_nome, ignore.case = FALSE)]
+# tragdag -> NA_character_
+soildata[, camada_nome := gsub("^tragdag$", NA_character_, camada_nome, ignore.case = FALSE)]
+# tRADAG -> NA_character_
+soildata[, camada_nome := gsub("^tRADAG$", NA_character_, camada_nome, ignore.case = TRUE)]
+# trada1 -> NA_character_
+soildata[, camada_nome := gsub("^trada1$", NA_character_, camada_nome, ignore.case = TRUE)]
+# trad1 -> NA_character_
+soildata[, camada_nome := gsub("^trad1$", NA_character_, camada_nome, ignore.case = TRUE)]
+# trada2 -> NA_character_
+soildata[, camada_nome := gsub("^trada2$", NA_character_, camada_nome, ignore.case = TRUE)]
+# trad2 -> NA_character_
+soildata[, camada_nome := gsub("^trad2$", NA_character_, camada_nome, ignore.case = TRUE)]
+# trad3 -> NA_character_
+soildata[, camada_nome := gsub("^trad3$", NA_character_, camada_nome, ignore.case = TRUE)]
+# tRAD4 -> NA_character_
+soildata[, camada_nome := gsub("^tRAD4$", NA_character_, camada_nome, ignore.case = TRUE)]
+# trad5 -> NA_character_
+soildata[, camada_nome := gsub("^trad5$", NA_character_, camada_nome, ignore.case = TRUE)]
+# trad -> NA_character_
+soildata[, camada_nome := gsub("^trad$", NA_character_, camada_nome, ignore.case = TRUE)]
+# tradagem -> NA_character_
+soildata[, camada_nome := gsub("^tradagem$", NA_character_, camada_nome, ignore.case = TRUE)]
+# View unique layer names
 if (FALSE) {
   View(sort(unique(soildata[, camada_nome])))
 }
 
-# Print unique layer names
-sort(unique(soildata[, camada_nome]))
 
-soildata[, tmp := any(camada_nome == "A00"), by = id]
-# soildata[, tmp := any(grepl(" at", camada_nome)), by = id]
-soildata[tmp == TRUE, .(id, camada_nome, profund_sup, profund_inf, areia)]
 
 # Fine earth
 # R layers are consolidated rock layers. These layers should have terrafina == NA_real.
