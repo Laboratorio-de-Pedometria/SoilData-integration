@@ -33,6 +33,61 @@ summary_soildata(soildata)
 # Order layers by event (id) and layer depth (profund_sup and profund_inf)
 soildata <- soildata[order(id, profund_sup, profund_inf)]
 
+# ctb0025 ######################################################################
+# Correct the one-row carbon shift in ctb0025.
+# The spreadsheet values from Perfil-36 A2 through Perfil-64 BC were entered
+# one layer too high. Restore the first value, then move each existing value
+# down one layer; the current Perfil-64 BC value is replaced by the Bt2 value.
+if (nrow(soildata[
+  id == "ctb0025-Perfil-36" & camada_nome == "A2" &
+    !is.na(carbono) & carbono == 7.4
+]) == 1L) {
+  ctb0025_row_indices <- which(
+    soildata$dataset_id == "ctb0025" &
+      soildata$id %chin% paste0("ctb0025-Perfil-", 36:64)
+  )
+  ctb0025_carbon_rows <- soildata[
+    ctb0025_row_indices,
+    .(
+      row = ctb0025_row_indices,
+      profile = as.integer(sub("^ctb0025-Perfil-", "", id)),
+      camada_nome,
+      profund_sup,
+      profund_inf
+    )
+  ]
+  setorder(ctb0025_carbon_rows, profile, profund_sup, profund_inf, row)
+  carbon_start <- which(
+    ctb0025_carbon_rows$profile == 36L &
+      ctb0025_carbon_rows$camada_nome == "A2"
+  )
+  carbon_end <- which(
+    ctb0025_carbon_rows$profile == 64L &
+      ctb0025_carbon_rows$camada_nome == "BC"
+  )
+  if (
+    length(carbon_start) != 1L ||
+      length(carbon_end) != 1L ||
+      carbon_start >= carbon_end ||
+      !all(36:64 %in% ctb0025_carbon_rows$profile)
+  ) {
+    stop("Could not identify the complete ctb0025 carbon correction range.")
+  }
+  ctb0025_carbon_rows <-
+    ctb0025_carbon_rows[seq.int(carbon_start, carbon_end)]
+  previous_carbon <- soildata$carbono[ctb0025_carbon_rows$row]
+  soildata[
+    ctb0025_carbon_rows$row,
+    carbono := c(7.6, previous_carbon[-length(previous_carbon)])
+  ]
+  rm(ctb0025_carbon_rows, ctb0025_row_indices, carbon_start, carbon_end, previous_carbon)
+}
+View(soildata[
+  dataset_id == "ctb0025" & id %chin% paste0("ctb0025-Perfil-", 36:64),
+  .(id, camada_nome, profund_sup, profund_inf, carbono)
+])
+
+
 # Correct a few layer names
 # Here we only correct a few known cases. These corrections need to be done in 
 # the source data in the future. Further corrections are performed below.
@@ -2033,8 +2088,29 @@ soildata[
   terrafina == 0 & !grepl("R", camada_nome, ignore.case = TRUE),
   terrafina := 1000
 ]
+soildata[, tmp := NULL]
 
+# Fine earth == NA_real_ #######################################################
+soildata[is.na(terrafina), .N]
+# 8981 layers
+# Flag for inspection events with any layer having terrafina == NA_real_ but
+# valid values for carbono or argila or ph or ctc.
+soildata[
+  ,
+  tmp := any(is.na(terrafina) &
+    (!is.na(carbono) | !is.na(argila) | !is.na(ph) | !is.na(ctc))), 
+  by = id
+]
+if (FALSE) {
+  View(soildata[
+    tmp == TRUE & grepl("R", camada_nome, ignore.case = TRUE),
+    .(id, camada_nome, profund_sup, profund_inf, terrafina, argila, carbono, ph, ctc)
+  ])
+}
 
+View(soildata[dataset_id == "ctb0025", .(id, camada_nome, profund_sup, profund_inf, carbono)])
+
+soildata
 
 # Fine earth
 # R layers are consolidated rock layers. These layers should have terrafina == NA_real.
