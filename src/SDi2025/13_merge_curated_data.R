@@ -107,7 +107,7 @@ summary_soildata(curated_data)
 # 2026 ---
 # Layers: 13446
 # Events: 5914
-# Georeference: 5472 (yes) / 442 (no)
+# Georeference: 5471 (yes) / 443 (no)
 # Date: 5911 (yes) / 3 (no)
 # Datasets: 40
 # 2025 ---
@@ -177,7 +177,7 @@ summary_soildata(soildata)
 # 2026 ---
 # Layers: 63859
 # Events: 20394
-# Georeference: 16852 (yes) / 3542 (no)
+# Georeference: 16851 (yes) / 3543 (no)
 # Date: 20237 (yes) / 157 (no)
 # Datasets: 274
 # 2025 ---
@@ -250,7 +250,7 @@ summary_soildata(soildata)
 # 2026 ---
 # Layers: 63859
 # Events: 20394
-# Georeference: 16852 (yes) / 3542 (no)
+# Georeference: 16851 (yes) / 3543 (no)
 # Date: 20237 (yes) / 157 (no)
 # Datasets: 274
 # 2025 ---
