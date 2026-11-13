@@ -26,7 +26,7 @@ summary_soildata(soildata)
 # 2026 ---
 # Layers: 63859
 # Events: 20394
-# Georeference: 16852 (yes) / 3542 (no)
+# Georeference: 16851 (yes) / 3543 (no)
 # Date: 20237 (yes) / 157 (no)
 # Datasets: 274
 # 2025 ---
@@ -67,7 +67,7 @@ soildata <- soildata[!(dataset_id == "ctb0002" & observacao_id %in% duplicates_i
 summary_soildata(soildata)
 # Layers: 63844
 # Events: 20379
-# Georeference: 16837 (yes) / 3542 (no)
+# Georeference: 16836 (yes) / 3543 (no)
 # Date: 20222 (yes) / 157 (no)
 # Datasets: 274
 
@@ -94,7 +94,7 @@ soildata <- soildata[!(
 summary_soildata(soildata)
 # Layers: 63840
 # Events: 20375
-# Georeference: 16833 (yes) / 3542 (no)
+# Georeference: 16832 (yes) / 3543 (no)
 # Date: 20218 (yes) / 157 (no)
 # Datasets: 274
 
@@ -120,7 +120,7 @@ soildata <- soildata[dataset_id != "ctb0800", ]
 summary_soildata(soildata)
 # Layers: 63487
 # Events: 20311
-# Georeference: 16770 (yes) / 3541 (no)
+# Georeference: 16769 (yes) / 3542 (no)
 # Date: 20154 (yes) / 157 (no)
 # Datasets: 272
 
@@ -132,7 +132,7 @@ soildata <- soildata[dataset_id != "ctb0808", ]
 summary_soildata(soildata)
 # Layers: 63146
 # Events: 20251
-# Georeference: 16710 (yes) / 3541 (no)
+# Georeference: 16709 (yes) / 3542 (no)
 # Date: 20094 (yes) / 157 (no)
 # Datasets: 271
 
@@ -155,7 +155,7 @@ summary_soildata(soildata)
 # 2026 ---
 # Layers: 63146
 # Events: 20251
-# Georeference: 16710 (yes) / 3541 (no)
+# Georeference: 16709 (yes) / 3542 (no)
 # Date: 20094 (yes) / 157 (no)
 # Datasets: 271
 data.table::fwrite(soildata, "data/14_soildata.txt", sep = "\t")
