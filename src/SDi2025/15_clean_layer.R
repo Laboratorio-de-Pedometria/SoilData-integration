@@ -2006,6 +2006,35 @@ soildata[
   camada_nome := paste0(profund_sup, "-", profund_inf)
 ]
 
+# Fine earth == 0 g/kg #########################################################
+soildata[terrafina == 0, .N]
+# 19 layers with terrafina == 0 g/kg
+soildata[, tmp := any(terrafina == 0), by = id]
+if (FALSE) {
+  View(soildata[
+    tmp == TRUE,
+    .(id, camada_nome, profund_sup, profund_inf, terrafina)
+  ])
+}
+# When id == ctb0697-GSS-(20A), set the following values for terrafina of the
+# consecutive layers (this was decided after checking the source document):
+# 1000 - 10
+# 1000 - 15
+# 1000 - 23
+# 1000 - 48
+soildata[
+  id == "ctb0697-GSS-(20A)",
+  terrafina := c(1000 - 10, 1000 - 15, 1000 - 23, 1000 - 48)
+]
+# For all remaining layers with terrafina == 0, set terrafina to 1000 g/kg if
+# camada_nome does not contain "R" (case-insensitive). A better approach would 
+# be to check the source documents, but this is not feasible now.
+soildata[
+  terrafina == 0 & !grepl("R", camada_nome, ignore.case = TRUE),
+  terrafina := 1000
+]
+
+
 
 # Fine earth
 # R layers are consolidated rock layers. These layers should have terrafina == NA_real.
