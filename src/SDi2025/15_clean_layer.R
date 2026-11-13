@@ -1999,7 +1999,12 @@ soildata[, camada_nome := gsub("^tradagem$", NA_character_, camada_nome, ignore.
 if (FALSE) {
   View(sort(unique(soildata[, camada_nome])))
 }
-
+# If camada_nome is NA and profund_sup and profund_inf are not NA, set
+# camada_nome to profund_sup-profund_inf
+soildata[
+  is.na(camada_nome) & !is.na(profund_sup) & !is.na(profund_inf),
+  camada_nome := paste0(profund_sup, "-", profund_inf)
+]
 
 
 # Fine earth
