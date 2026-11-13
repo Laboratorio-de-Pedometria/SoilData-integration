@@ -26,7 +26,7 @@ soildata <- data.table::fread("data/14_soildata.txt", sep = "\t")
 summary_soildata(soildata)
 # Layers: 63146
 # Events: 20251
-# Georeference: 16710 (yes) / 3541 (no)
+# Georeference: 16709 (yes) / 3542 (no)
 # Date: 20094 (yes) / 157 (no)
 # Datasets: 271
 
@@ -89,7 +89,7 @@ soildata[, any_repeated := NULL]
 summary_soildata(soildata)
 # Layers: 62574
 # Events: 20251
-# Georeference: 16710 (yes) / 3541 (no)
+# Georeference: 16709 (yes) / 3542 (no)
 # Date: 20094 (yes) / 157 (no)
 # Datasets: 271
 
@@ -551,7 +551,8 @@ soildata <- soildata[
   !(id == "ctb0821-P21" & amostra_id %in% c(45281, 45280, 45282, 45283, 45284))
 ]
 # ctb0821-P24. The source spreadsheet contains five incomplete layers, but the 
-# source document contains only two layers. We drop the three layers that are not present in the source document: 45290 45292 45293.
+# source document contains only two layers. We drop the three layers that are 
+# not present in the source document: 45290 45292 45293.
 soildata <- soildata[
   !(id == "ctb0821-P24" & amostra_id %in% c(45290, 45292, 45293))
 ]
@@ -606,7 +607,8 @@ soildata <- soildata[
   !(id == "ctb0821-P34" & amostra_id %in% c(45335, 45336, 45337, 45338, 45339))
 ]
 # ctb0821-P35. The source spreadsheet contains seven incomplete layers, but the 
-# source document contains only two layers. We drop the five layers that are not present in the source document: 45342 45343 45344 45346 45345.
+# source document contains only two layers. We drop the five layers that are not
+# present in the source document: 45342 45343 45344 45346 45345.
 soildata <- soildata[
   !(id == "ctb0821-P35" & amostra_id %in% c(45342, 45343, 45344, 45346, 45345))
 ]
@@ -1066,7 +1068,7 @@ soildata[id == "ctb0832-126" & amostra_id == 47303, `:=`(
 summary_soildata(soildata)
 # Layers: 62414
 # Events: 20257
-# Georeference: 16716 (yes) / 3541 (no)
+# Georeference: 16715 (yes) / 3542 (no)
 # Date: 20100 (yes) / 157 (no)
 # Datasets: 271
 
@@ -1373,7 +1375,7 @@ nrow(soildata[profund_sup == profund_inf])
 summary_soildata(soildata)
 # Layers: 62414
 # Events: 20257
-# Georeference: 16716 (yes) / 3541 (no)
+# Georeference: 16715 (yes) / 3542 (no)
 # Date: 20100 (yes) / 157 (no)
 # Datasets: 271
 
@@ -1587,7 +1589,7 @@ soildata[, max_profund_inf := NULL]
 summary_soildata(soildata)
 # Layers: 62405
 # Events: 20307
-# Georeference: 16724 (yes) / 3583 (no)
+# Georeference: 16723 (yes) / 3584 (no)
 # Date: 20148 (yes) / 159 (no)
 # Datasets: 271
 
