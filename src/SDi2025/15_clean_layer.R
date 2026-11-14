@@ -83,11 +83,6 @@ if (nrow(soildata[
   ]
   rm(ctb0025_carbon_rows, ctb0025_row_indices, carbon_start, carbon_end, previous_carbon)
 }
-View(soildata[
-  dataset_id == "ctb0025" & id %chin% paste0("ctb0025-Perfil-", 36:64),
-  .(id, camada_nome, profund_sup, profund_inf, carbono)
-])
-
 
 # Correct a few layer names
 # Here we only correct a few known cases. These corrections need to be done in 
@@ -2091,6 +2086,317 @@ soildata[
 ]
 soildata[, tmp := NULL]
 
+# camada_nome == R and terrafina > 0 ###########################################
+soildata[camada_nome == "R" & !is.na(terrafina), .N]
+# 260 layers with camada_nome containing "R" and terrafina != NA_real_
+View(soildata[
+  camada_nome == "R" & !is.na(terrafina),
+  .(id, camada_nome, profund_sup, profund_inf, terrafina, argila, carbono, ph, ctc)
+])
+# When id ctb0025-Perfil-10 and camada_nome == "R", set camada_nome to "Cr".
+# This was decided after checking the source document, but was not corrected in
+# the source spreadsheet.
+soildata[id == "ctb0025-Perfil-10" & camada_nome == "R", camada_nome := "Cr"]
+# When id ctb0025-Perfil-19 and camada_nome == "R", set camada_nome to "Cr".
+# This was decided after checking the source document, but was not corrected in
+# the source spreadsheet.
+soildata[id == "ctb0025-Perfil-19" & camada_nome == "R", camada_nome := "Cr"] 
+# ctb0025-Perfil-3. The R layer is a layer of consolidated rock with a few
+# cracks. So it is OK.
+# ctb0025-Ponto-56. This is a soil auger sample that received data from
+# ctb0025-Perfil-19. So we set camada_nome to "Cr".
+soildata[id == "ctb0025-Ponto-56" & camada_nome == "R", camada_nome := "Cr"]
+# ctb0025-Ponto-59. This is a soil auger sample that received data from
+# ctb0025-Perfil-10. So we set camada_nome to "Cr".
+soildata[id == "ctb0025-Ponto-59" & camada_nome == "R", camada_nome := "Cr"]
+# ctb0025-Ponto-61. This is a soil auger sample that received data from
+# ctb0025-Perfil-10. So we set camada_nome to "Cr".
+soildata[id == "ctb0025-Ponto-61" & camada_nome == "R", camada_nome := "Cr"]
+# ctb0025-Ponto-66. This is a soil auger sample that received data from
+# ctb0025-Perfil-19. So we set camada_nome to "Cr".
+soildata[id == "ctb0025-Ponto-66" & camada_nome == "R", camada_nome := "Cr"]
+# ctb0025-Ponto-67. This is a soil auger sample that received data from
+# ctb0025-Perfil-19. So we set camada_nome to "Cr".
+soildata[id == "ctb0025-Ponto-67" & camada_nome == "R", camada_nome := "Cr"]
+# ctb0025-Ponto-68. This is a soil auger sample that received data from
+# ctb0025-Perfil-19. So we set camada_nome to "Cr".
+soildata[id == "ctb0025-Ponto-68" & camada_nome == "R", camada_nome := "Cr"]
+# ctb0033-RO2817. The soil property (terrafina, argila, silte, areia, carbono, 
+# ctc, ph, dsi, ce) values attributed to the R layer actually should have been
+# attributed to the C layer above it. The R layer should have NA_real_ values 
+# for all soil properties. This was decided after checking the source document,
+# wherewe found inconsistencies in the layer depth limits (not corrected in the 
+# source spreadsheet).
+# Set the values of the C layer to the values of the R layer:
+soildata[id == "ctb0033-RO2817" & camada_nome == "C", `:=`(
+  terrafina = soildata[id == "ctb0033-RO2817" & camada_nome == "R", terrafina],
+  argila = soildata[id == "ctb0033-RO2817" & camada_nome == "R", argila],
+  silte = soildata[id == "ctb0033-RO2817" & camada_nome == "R", silte],
+  areia = soildata[id == "ctb0033-RO2817" & camada_nome == "R", areia],
+  carbono = soildata[id == "ctb0033-RO2817" & camada_nome == "R", carbono],
+  ctc = soildata[id == "ctb0033-RO2817" & camada_nome == "R", ctc],
+  ph = soildata[id == "ctb0033-RO2817" & camada_nome == "R", ph],
+  dsi = soildata[id == "ctb0033-RO2817" & camada_nome == "R", dsi],
+  ce = soildata[id == "ctb0033-RO2817" & camada_nome == "R", ce]
+)]
+# Set the values of the R layer to NA_real_:
+soildata[id == "ctb0033-RO2817" & camada_nome == "R", `:=`(
+  terrafina = NA_real_,
+  argila = NA_real_,
+  silte = NA_real_,
+  areia = NA_real_,
+  carbono = NA_real_,
+  ctc = NA_real_,
+  ph = NA_real_,
+  dsi = NA_real_,
+  ce = NA_real_
+)]
+# ctb0572-Perfil-059. After checking the source document, we decided that this
+# R layer should have been named Cr. The source spreadsheet was not corrected.
+soildata[id == "ctb0572-Perfil-059" & camada_nome == "R", camada_nome := "Cr"]
+# Set the values of soil properties of Cr layers to:
+soildata[camada_nome == "Cr", `:=`(
+  terrafina = NA_real_,
+  argila = 200,
+  silte = 340,
+  areia = 210 + 250,
+  carbono = 0.4,
+  ctc = 38.5,
+  ph = 5.1,
+  dsi = NA_real_,
+  ce = NA_real_
+)]
+# ctb0589-10-(22). Set depth limits of the R layer to 130-150 cm. This was
+# decided after checking the source document and was corrected in the source
+# spreadsheet.
+soildata[id == "ctb0589-10-(22)" & camada_nome == "R", `:=`(
+  profund_sup = 130,
+  profund_inf = 150
+)]
+# ctb0589-15-(10). Set depth limits of the R layer to 230-250 cm. This was
+# decided after checking the source document and was corrected in the source
+# spreadsheet.
+soildata[id == "ctb0589-15-(10)" & camada_nome == "R", `:=`(
+  profund_sup = 230,
+  profund_inf = 250
+)]
+# ctb0589-26-(19). Set depth limits of the R layer to 20-40 cm. This was decided
+# after checking the source document and was corrected in the source spreadsheet.
+soildata[id == "ctb0589-26-(19)" & camada_nome == "R", `:=`(
+  profund_sup = 20,
+  profund_inf = 40
+)]
+# ctb0589-5-(26). Set depth limits of the R layer to 74-94 cm. This was decided 
+# after checking the source document and was corrected in the source spreadsheet.
+soildata[id == "ctb0589-5-(26)" & camada_nome == "R", `:=`(
+  profund_sup = 74,
+  profund_inf = 94
+)]
+# ctb0589-8-(23). Set depth limits of the R layer to 75-95 cm. This was decided 
+# after checking the source document and was corrected in the source spreadsheet.
+soildata[id == "ctb0589-8-(23)" & camada_nome == "R", `:=`(
+  profund_sup = 75,
+  profund_inf = 95
+)]
+# ctb0605-P-06. This is a layer named R in the morphological description and CR
+# in the analytical data. After checking the source document, we decided that
+# this layer should be named Cr. The source spreadsheet was already corrected.
+soildata[id == "ctb0605-P-06" & camada_nome == "R", camada_nome := "Cr"]
+# Set depth limits of the Cr layer to 330-350 cm. This was decided after
+# checking the source document and was corrected in the source spreadsheet.
+soildata[id == "ctb0605-P-06" & camada_nome == "Cr", `:=`(
+  profund_sup = 330,
+  profund_inf = 350
+)]
+# ctb0608-05-V-RCC. Set depth limits of the R layer to 70-90 cm. This was
+# decided after checking the source document and was corrected in the source
+# spreadsheet.
+soildata[id == "ctb0608-05-V-RCC" & camada_nome == "R", `:=`(
+  profund_sup = 70,
+  profund_inf = 90
+)]
+# ctb0608-06-V-RCC. Set depth limits of the R layer to 120-140 cm. This was
+# decided after checking the source document and was corrected in the source
+# spreadsheet.
+soildata[id == "ctb0608-06-V-RCC" & camada_nome == "R", `:=`(
+  profund_sup = 120,
+  profund_inf = 140
+)]
+# ctb0608-07-V-RCC. Set depth limits of the R layer to 150-170 cm. This was
+# decided after checking the source document and was corrected in the source
+# spreadsheet.
+soildata[id == "ctb0608-07-V-RCC" & camada_nome == "R", `:=`(
+  profund_sup = 150,
+  profund_inf = 170
+)]
+# ctb0608-12-V-RCC. Set depth limits of the R layer to 80-100 cm. This was 
+# decided after checking the source document and was corrected in the source 
+# spreadsheet.
+soildata[id == "ctb0608-12-V-RCC" & camada_nome == "R", `:=`(
+  profund_sup = 80,
+  profund_inf = 100
+)]
+# ctb0610-Perfil-26. Set depth limits of the R layer to 50-70 cm. This was decided after checking the source document and was corrected in the source spreadsheet.
+soildata[id == "ctb0610-Perfil-26" & camada_nome == "R", `:=`(
+  profund_sup = 50,
+  profund_inf = 70
+)]
+# ctb0610-Perfil-40. Set depth limits of the R layer to 30-50 cm. This was decided after checking the source document and was corrected in the source spreadsheet.
+soildata[id == "ctb0610-Perfil-40" & camada_nome == "R", `:=`(
+  profund_sup = 30,
+  profund_inf = 50
+)]
+# ctb0610-Perfil-41. Set depth limits of the R layer to 40-60 cm. This was decided after checking the source document and was corrected in the source spreadsheet.
+soildata[id == "ctb0610-Perfil-41" & camada_nome == "R", `:=`(
+  profund_sup = 40,
+  profund_inf = 60
+)]
+# ctb0610-Perfil-42. Set depth limits of the R layer to 20-40 cm. This was decided after checking the source document and was corrected in the source spreadsheet.
+soildata[id == "ctb0610-Perfil-42" & camada_nome == "R", `:=`(
+  profund_sup = 20,
+  profund_inf = 40
+)]
+# ctb0610-Perfil-43. Set depth limits of the R layer to 25-45 cm. This was decided after checking the source document and was corrected in the source spreadsheet.
+soildata[id == "ctb0610-Perfil-43" & camada_nome == "R", `:=`(
+  profund_sup = 25,
+  profund_inf = 45
+)]
+# ctb0610-Perfil-44. Set depth limits of the R layer to 25-45 cm. This was decided after checking the source document and was corrected in the source spreadsheet.
+soildata[id == "ctb0610-Perfil-44" & camada_nome == "R", `:=`(
+  profund_sup = 25,
+  profund_inf = 45
+)]
+# ctb0610-Perfil-45. Set depth limits of the R layer to 30-50 cm. This was decided after checking the source document and was corrected in the source spreadsheet.
+soildata[id == "ctb0610-Perfil-45" & camada_nome == "R", `:=`(
+  profund_sup = 30,
+  profund_inf = 50
+)]
+# ctb0617-Perfil-42. Set depth limits of the R layer to 124-144 cm. This was decided after checking the source document and was corrected in the source spreadsheet.
+soildata[id == "ctb0617-Perfil-42" & camada_nome == "R", `:=`(
+  profund_sup = 124,
+  profund_inf = 144
+)]
+# ctb0617-Perfil-55. Set depth limits of the R layer to 15-35 cm. This was decided after checking the source document and was corrected in the source spreadsheet.
+soildata[id == "ctb0617-Perfil-55" & camada_nome == "R", `:=`(
+  profund_sup = 15,
+  profund_inf = 35
+)]
+# ctb0617-Perfil-56. Set depth limits of the R layer to 20-40 cm. This was decided after checking the source document and was corrected in the source spreadsheet.
+soildata[id == "ctb0617-Perfil-56" & camada_nome == "R", `:=`(
+  profund_sup = 20,
+  profund_inf = 40
+)]
+# ctb0617-Perfil-57. Set depth limits of the R layer to 15-35 cm. This was decided after checking the source document and was corrected in the source spreadsheet.
+soildata[id == "ctb0617-Perfil-57" & camada_nome == "R", `:=`(
+  profund_sup = 15,
+  profund_inf = 35
+)]
+# ctb0617-Perfil-58. Set depth limits of the R layer to 30-50 cm. This was decided after checking the source document and was corrected in the source spreadsheet.
+soildata[id == "ctb0617-Perfil-58" & camada_nome == "R", `:=`(
+  profund_sup = 30,
+  profund_inf = 50
+)]
+# ctb0617-Perfil-59. Set depth limits of the R layer to 15-35 cm. This was decided after checking the source document and was corrected in the source spreadsheet.
+soildata[id == "ctb0617-Perfil-59" & camada_nome == "R", `:=`(
+  profund_sup = 15,
+  profund_inf = 35
+)]
+# ctb0617-Perfil-60. Set depth limits of the R layer to 39-59 cm. This was decided after checking the source document and was corrected in the source spreadsheet.
+soildata[id == "ctb0617-Perfil-60" & camada_nome == "R", `:=`(
+  profund_sup = 39,
+  profund_inf = 59
+)]
+# ctb0631-Perfil-73. Set depth limits of the R layer to 120-140 cm. This was decided after checking the source document and was corrected in the source spreadsheet.
+soildata[id == "ctb0631-Perfil-73" & camada_nome == "R", `:=`(
+  profund_sup = 120,
+  profund_inf = 140
+)]
+# ctb0637-Perfil-116. Set depth limits of the R layer to 25-45 cm. This was decided after checking the source document and was corrected in the source spreadsheet.
+soildata[id == "ctb0637-Perfil-116" & camada_nome == "R", `:=`(
+  profund_sup = 25,
+  profund_inf = 45
+)]
+# ctb0637-Perfil-118. Set depth limits of the R layer to 25-45 cm. This was decided after checking the source document and was corrected in the source spreadsheet.
+soildata[id == "ctb0637-Perfil-118" & camada_nome == "R", `:=`(
+  profund_sup = 25,
+  profund_inf = 45
+)]
+# ctb0637-Perfil-119. Set depth limits of the R layer to 20-40 cm. This was decided after checking the source document and was corrected in the source spreadsheet.
+soildata[id == "ctb0637-Perfil-119" & camada_nome == "R", `:=`(
+  profund_sup = 20,
+  profund_inf = 40
+)]
+# ctb0637-Perfil-120. Set depth limits of the R layer to 10-30 cm. This was decided after checking the source document and was corrected in the source spreadsheet.
+soildata[id == "ctb0637-Perfil-120" & camada_nome == "R", `:=`(
+  profund_sup = 10,
+  profund_inf = 30
+)]
+# ctb0637-Perfil-77. Set depth limits of the R layer to 268-288 cm. This was decided after checking the source document and was corrected in the source spreadsheet.
+soildata[id == "ctb0637-Perfil-77" & camada_nome == "R", `:=`(
+  profund_sup = 268,
+  profund_inf = 288
+)]
+# ctb0637-Perfil-79. Set depth limits of the R layer to 138-158 cm. This was decided after checking the source document and was corrected in the source spreadsheet.
+soildata[id == "ctb0637-Perfil-79" & camada_nome == "R", `:=`(
+  profund_sup = 138,
+  profund_inf = 158
+)]
+# ctb0637-Perfil-95. Set depth limits of the R layer to 70-90 cm. This was decided after checking the source document and was corrected in the source spreadsheet.
+soildata[id == "ctb0637-Perfil-95" & camada_nome == "R", `:=`(
+  profund_sup = 70,
+  profund_inf = 90
+)]
+# ctb0638-Seara-10. Set depth limits of the R layer to 70-90 cm. This was decided after checking the source document and was corrected in the source spreadsheet.
+soildata[id == "ctb0638-Seara-10" & camada_nome == "R", `:=`(
+  profund_sup = 70,
+  profund_inf = 90
+)]
+# ctb0638-Seara-15. Set depth limits of the R layer to 30-50 cm. This was decided after checking the source document and was corrected in the source spreadsheet.
+soildata[id == "ctb0638-Seara-15" & camada_nome == "R", `:=`(
+  profund_sup = 30,
+  profund_inf = 50
+)]
+# ctb0639-AMOSTRA-EX-39
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Fine earth == NA_real_ #######################################################
 soildata[is.na(terrafina), .N]
 # 8981 layers
@@ -2109,7 +2415,12 @@ if (FALSE) {
   ])
 }
 
-View(soildata[dataset_id == "ctb0025", .(id, camada_nome, profund_sup, profund_inf, carbono)])
+
+
+View(soildata[
+    grepl("R", camada_nome, ignore.case = FALSE),
+    .(id, camada_nome, profund_sup, profund_inf, terrafina, argila, carbono, ph, ctc)
+  ])
 
 soildata
 
