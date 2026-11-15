@@ -2046,6 +2046,8 @@ soildata[, camada_nome := gsub("^trad5$", NA_character_, camada_nome, ignore.cas
 soildata[, camada_nome := gsub("^trad$", NA_character_, camada_nome, ignore.case = TRUE)]
 # tradagem -> NA_character_
 soildata[, camada_nome := gsub("^tradagem$", NA_character_, camada_nome, ignore.case = TRUE)]
+# R+ -> R
+soildata[, camada_nome := gsub("^R\\+$", "R", camada_nome, ignore.case = FALSE)]
 # View unique layer names
 if (FALSE) {
   View(sort(unique(soildata[, camada_nome])))
@@ -2090,7 +2092,7 @@ soildata[, tmp := NULL]
 soildata[camada_nome == "R" & !is.na(terrafina), .N]
 # 260 layers with camada_nome containing "R" and terrafina != NA_real_
 sort(unique(soildata[grepl("R", camada_nome, ignore.case = FALSE), camada_nome]))
-r_layers <- c("2R", "4R", "IIIR", "IIR", "R", "R+")
+r_layers <- c("2R", "4R", "IIIR", "IIR", "R")
 if (FALSE) {
   View(soildata[
     camada_nome %in% r_layers,
@@ -2506,15 +2508,12 @@ soildata[id == "ctb0826-E26" & camada_nome == "R", `:=`(
   profund_inf = 60
 )]
 # After reviewing many R layers, we decided the following: if an R layer has
-# terrafina == 1000 but no data on argila, carbono, ph, and ctc, we set
-# terrafina == 0. Otherwise, we keep as it is.
+# terrafina == 1000 or terrafina == NA and absolutelly no data on argila,
+# carbono, ph, and ctc, we set terrafina == 0.
 soildata[
-  camada_nome %in% .("R", "2R", "IIR") & 
-  terrafina == 1000 & 
-  is.na(argila) & 
-  is.na(carbono) & 
-  is.na(ph) & 
-  is.na(ctc), 
+  camada_nome %in% r_layers &
+    (terrafina == 1000 | is.na(terrafina)) &
+    is.na(argila) & is.na(carbono) & is.na(ph) & is.na(ctc),
   terrafina := 0
 ]
 
