@@ -2677,10 +2677,6 @@ soildata[, esqueleto := 1000 - terrafina]
 
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-
-
-# Fine earth content
-soildata[, esqueleto := 1000 - terrafina]
 # Check samples with esqueleto > 800
 print(soildata[esqueleto > 800, .N])
 # 133 sample with esqueleto > 800
