@@ -2100,8 +2100,18 @@ soildata[
   terrafina := c(1000 - 10, 1000 - 15, 1000 - 23, 1000 - 48)
 ]
 # For all remaining layers with terrafina == 0, set terrafina to 1000 g/kg if
-# camada_nome does not contain "R" (case-insensitive). A better approach would 
-# be to check the source documents, but this is not feasible now.
+# camada_nome does not contain "R" (case-insensitive). We assume that the value
+# of terrafina == 0 is an error either in the source data, in the data entry 
+# process , or in the data cleaning process implemented in previous years. For
+# instance, when the soil is composed entirely of fine earth material, many
+# researchers do not register the value of terrafina, which could be interpreted
+# as 0 g/kg by the data entry person. A sounder approach would be to check the 
+# source documents, but this is not feasible now. So we create a new column 
+# terrafina_fonte to indicate the source of the value of terrafina.
+soildata[
+  terrafina == 0 & !grepl("R", camada_nome, ignore.case = TRUE),
+  terrafina_fonte := "especialista"
+]
 soildata[
   terrafina == 0 & !grepl("R", camada_nome, ignore.case = TRUE),
   terrafina := 1000
@@ -2184,6 +2194,10 @@ soildata[id == "ctb0033-RO2817" & camada_nome == "R", `:=`(
 # was not corrected in the source spreadsheet.
 soildata[id == "ctb0050-PERFIL-149" & camada_nome == "R", camada_nome := "Cr"]
 soildata[id == "ctb0050-PERFIL-149" & camada_nome == "Cr", terrafina := 1000]
+soildata[
+  id == "ctb0050-PERFIL-149" & camada_nome == "Cr",
+  terrafina_fonte := "especialista"
+]
 # ctb0572-Perfil-059. After checking the source document, we decided that this
 # R layer should have been named Cr. The source spreadsheet was not corrected.
 soildata[id == "ctb0572-Perfil-059" & camada_nome == "R", camada_nome := "Cr"]
@@ -2529,7 +2543,20 @@ soildata[id == "ctb0826-E26" & camada_nome == "R", `:=`(
 )]
 # After reviewing many R layers, we decided the following: if an R layer has
 # terrafina == 1000 or terrafina == NA and absolutelly no data on argila,
-# carbono, ph, and ctc, we set terrafina == 0.
+# carbono, ph, and ctc, we set terrafina == 0. We assume that values of 
+# terrafina == 1000 resulted from processing errors in previous years. Note,
+# however, that we did not check all of the source documents to confirm this 
+# assumption. Regarding the R layers with terrafina == NA, we assume that the
+# absence of data on terrafina, argila, carbono, ph, and ctc is a strong
+# indication that the R layer is a consolidated rock layer with no soil data.
+# We create a column terrafina_fonte to indicate the source of the terrafina 
+# values.
+soildata[
+  camada_nome %in% r_layers &
+    (terrafina == 1000 | is.na(terrafina)) &
+    is.na(argila) & is.na(carbono) & is.na(ph) & is.na(ctc),
+  terrafina_fonte := "especialista"
+]
 soildata[
   camada_nome %in% r_layers &
     (terrafina == 1000 | is.na(terrafina)) &
@@ -2540,7 +2567,7 @@ rm(r_layers)
 
 # Fine earth == NA_real_ #######################################################
 soildata[is.na(terrafina), .N]
-# 8981 layers
+# 8807 layers with terrafina == NA_real_
 if (FALSE) {
   View(soildata[
     is.na(terrafina),
@@ -2548,6 +2575,77 @@ if (FALSE) {
      terrafina, argila, carbono, ph, ctc)
   ])
 }
+# After reviewing many layers with terrafina == NA, we decided to implement the
+# following rules to set terrafina to 1000 g/kg. Note that we did not check all
+# of the source documents to confirm these rules. We assume that any master or
+# transitional horizon designated as A, E, B, or C that is not accompanied by
+# letters c, R, r, u, f, F, or pl is a soil layer with fine earth content of
+# 1000 g/kg.
+# A horizons: if terrafina == NA and camada_nome is in a_layers,set terrafina to
+# 1000 g/kg.
+a_layers <- unique(soildata[
+  grepl("A", camada_nome, ignore.case = FALSE) &
+  !grepl("c|r|R|u|f|F|pl", camada_nome, ignore.case = FALSE),
+  camada_nome
+])
+soildata[
+  is.na(terrafina) & camada_nome %in% a_layers,
+  terrafina_fonte := "especialista"
+]
+soildata[is.na(terrafina) & camada_nome %in% a_layers, terrafina := 1000]
+# B horizons: if terrafina == NA and camada_nome is in b_layers, set terrafina
+# to 1000 g/kg.
+b_layers <- unique(soildata[
+  grepl("B", camada_nome, ignore.case = FALSE) &
+    !grepl("c|r|R|u|f|F|pl", camada_nome, ignore.case = FALSE),
+  camada_nome
+])
+soildata[
+  is.na(terrafina) & camada_nome %in% b_layers,
+  terrafina_fonte := "especialista"
+]
+soildata[is.na(terrafina) & camada_nome %in% b_layers, terrafina := 1000]
+# C horizons: if terrafina == NA and camada_nome is in c_layers, set terrafina
+# to 1000 g/kg.
+c_layers <- unique(soildata[
+  grepl("C", camada_nome, ignore.case = FALSE) &
+    !grepl("c|r|R|u|f|F|pl", camada_nome, ignore.case = FALSE),
+  camada_nome
+])
+soildata[
+  is.na(terrafina) & camada_nome %in% c_layers,
+  terrafina_fonte := "especialista"
+]
+soildata[is.na(terrafina) & camada_nome %in% c_layers, terrafina := 1000]
+# E horizons: if terrafina == NA and camada_nome is in e_layers, set terrafina
+# to 1000 g/kg.
+e_layers <- unique(soildata[
+  grepl("E", camada_nome, ignore.case = FALSE) &
+    !grepl("c|r|R|u|f|F|pl", camada_nome, ignore.case = FALSE),
+  camada_nome
+])
+soildata[
+  is.na(terrafina) & camada_nome %in% e_layers,
+  terrafina_fonte := "especialista"
+]
+soildata[is.na(terrafina) & camada_nome %in% e_layers, terrafina := 1000]
+rm(a_layers, b_layers, c_layers, e_layers)
+# Check how many layers have terrafina == NA after the corrections above.
+soildata[is.na(terrafina), .N]
+# 8156 layers with terrafina == NA_real_
+if (FALSE) {
+  View(soildata[
+    is.na(terrafina),
+    .(id, camada_nome, profund_sup, profund_inf,
+     terrafina, argila, carbono, ph, ctc)
+  ])
+}
+
+
+
+
+
+
 
 # terrafina > 1000 #############################################################
 # Check how many layers have terrafina > 1000 g/kg. This is not possible.
