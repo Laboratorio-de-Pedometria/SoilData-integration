@@ -2565,6 +2565,8 @@ soildata[
 ]
 rm(r_layers)
 
+soildata[!is.na(terrafina), .(terrafina, terrafina_fonte)]
+
 # Fine earth == NA_real_ #######################################################
 soildata[is.na(terrafina), .N]
 # 8807 layers with terrafina == NA_real_
@@ -2641,17 +2643,6 @@ if (FALSE) {
   ])
 }
 
-
-
-
-
-
-
-# terrafina > 1000 #############################################################
-# Check how many layers have terrafina > 1000 g/kg. This is not possible.
-soildata[terrafina > 1000, .N]
-# 0 layers
-
 # Further corrections ##########################################################
 # ctb0751-53 is classified as "LATOSSOLO VERMELHO ESCURO ÁLICO cascalhento A 
 # moderado textura muito argilosa". The document reports values of coarse 
@@ -2662,6 +2653,25 @@ soildata[terrafina > 1000, .N]
 # it to 910 g/kg.
 soildata[id == "ctb0751-53" & terrafina == 50, terrafina := 910]
 
+# terrafina > 1000 #############################################################
+# Check how many layers have terrafina > 1000 g/kg. This is not possible.
+soildata[terrafina > 1000, .N]
+# 0 layers
+
+# Source of terrafina values ###################################################
+# We set terrafina_fonte = "original" for all layers with terrafina != NA_real_
+# that were not set to "especialista" in the previous steps.
+soildata[
+  !is.na(terrafina) & is.na(terrafina_fonte), 
+  terrafina_fonte := "original"
+]
+soildata[, .N, by = terrafina_fonte]
+# 1:        original 53010
+# 2:            <NA>  8155
+# 3:    especialista  1240
+
+# Create "esqueleto" column ####################################################
+soildata[, esqueleto := 1000 - terrafina]
 
 
 
