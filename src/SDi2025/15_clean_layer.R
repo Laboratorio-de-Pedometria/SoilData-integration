@@ -2516,36 +2516,44 @@ soildata[
     is.na(argila) & is.na(carbono) & is.na(ph) & is.na(ctc),
   terrafina := 0
 ]
-
-
-
+rm(r_layers)
 
 # Fine earth == NA_real_ #######################################################
 soildata[is.na(terrafina), .N]
 # 8981 layers
-# Flag for inspection events with any layer having terrafina == NA_real_ but
-# valid values for carbono or argila or ph or ctc.
-soildata[
-  ,
-  tmp := any(is.na(terrafina) &
-    (!is.na(carbono) | !is.na(argila) | !is.na(ph) | !is.na(ctc))), 
-  by = id
-]
 if (FALSE) {
   View(soildata[
-    tmp == TRUE & grepl("R", camada_nome, ignore.case = TRUE),
-    .(id, camada_nome, profund_sup, profund_inf, terrafina, argila, carbono, ph, ctc)
+    is.na(terrafina),
+    .(id, camada_nome, profund_sup, profund_inf,
+     terrafina, argila, carbono, ph, ctc)
   ])
 }
+# If terrafina == NA and camada_nome contains and "Bw", set terrafina to 1000
+# g/kg.
+soildata[
+  is.na(terrafina) & grepl("Bw", camada_nome, ignore.case = TRUE),
+  terrafina := 1000
+]
+# If terrafina == NA and camada_nome %in% e_layers, set terrafina to 1000
+# g/kg.
+e_layers <- c(
+  "(E)", "2BE", "2E", "A   E", "A E", "A/E", "A1/(E)", "AE", "AE/B", "APE",
+  "APE1", "APE2", "B/E", "BE", "BhE1", "BhE2", "Btx/E", "E", "E/A", "E/B",
+  "E/Bh", "E1", "E2", "E3", "EA", "EB", "EBB", "Ebsh", "Ebsh1", "Eg", "Eg1",
+  "Eg2", "Eh", "Eh (Bh)", "En", "Ezn"
+)
+soildata[
+  is.na(terrafina) & camada_nome %in% e_layers,
+  terrafina := 1000
+]
+# If terrafina == NA and camada_nome contains and "Bt", set terrafina to 1000
+# g/kg.
+soildata[
+  is.na(terrafina) & grepl("Bt", camada_nome, ignore.case = TRUE),
+  terrafina := 1000
+]
 
-
-
-View(soildata[
-    grepl("R", camada_nome, ignore.case = FALSE),
-    .(id, camada_nome, profund_sup, profund_inf, terrafina, argila, carbono, ph, ctc)
-  ])
-
-soildata
+sort(unique(soildata[grepl("E", camada_nome, ignore.case = FALSE), camada_nome]))
 
 # Fine earth
 # R layers are consolidated rock layers. These layers should have terrafina == NA_real.
