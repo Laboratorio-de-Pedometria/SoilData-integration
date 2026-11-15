@@ -1311,6 +1311,26 @@ soildata[
     profund_inf = profund_inf + (-2)
   )
 ]
+# ctb0045 has many Oo layers with no data for terrafina, argila, carbono...
+# For these profiles, get the minimum profund_inf and subtract it from all depth
+# limits (profund_sup and profund_inf) of all layers of that profile. This will
+# standardize the topsoil layer to start at 0 cm depth.
+soildata[dataset_id == "ctb0045", min_depth := min(profund_inf), by = id]
+soildata[dataset_id == "ctb0045", `:=`(
+  profund_sup = profund_sup - min_depth,
+  profund_inf = profund_inf - min_depth
+)]
+soildata[, min_depth := NULL]
+# ctb0080 has many Oo layers with no data for terrafina, argila, carbono...
+# For these profiles, get the minimum profund_inf and subtract it from all depth
+# limits (profund_sup and profund_inf) of all layers of that profile. This will
+# standardize the topsoil layer to start at 0 cm depth.
+soildata[dataset_id == "ctb0080", min_depth := min(profund_inf), by = id]
+soildata[dataset_id == "ctb0080", `:=`(
+  profund_sup = profund_sup - min_depth,
+  profund_inf = profund_inf - min_depth
+)]
+soildata[, min_depth := NULL]
 
 # profund_sup == profund_inf ###################################################
 
@@ -2528,46 +2548,28 @@ if (FALSE) {
      terrafina, argila, carbono, ph, ctc)
   ])
 }
-# If terrafina == NA and camada_nome contains and "Bw", set terrafina to 1000
-# g/kg.
-soildata[
-  is.na(terrafina) & grepl("Bw", camada_nome, ignore.case = TRUE),
-  terrafina := 1000
-]
-# If terrafina == NA and camada_nome %in% e_layers, set terrafina to 1000
-# g/kg.
-e_layers <- c(
-  "(E)", "2BE", "2E", "A   E", "A E", "A/E", "A1/(E)", "AE", "AE/B", "APE",
-  "APE1", "APE2", "B/E", "BE", "BhE1", "BhE2", "Btx/E", "E", "E/A", "E/B",
-  "E/Bh", "E1", "E2", "E3", "EA", "EB", "EBB", "Ebsh", "Ebsh1", "Eg", "Eg1",
-  "Eg2", "Eh", "Eh (Bh)", "En", "Ezn"
-)
-soildata[
-  is.na(terrafina) & camada_nome %in% e_layers,
-  terrafina := 1000
-]
-# If terrafina == NA and camada_nome contains and "Bt", set terrafina to 1000
-# g/kg.
-soildata[
-  is.na(terrafina) & grepl("Bt", camada_nome, ignore.case = TRUE),
-  terrafina := 1000
-]
 
-sort(unique(soildata[grepl("E", camada_nome, ignore.case = FALSE), camada_nome]))
+# terrafina > 1000 #############################################################
+# Check how many layers have terrafina > 1000 g/kg. This is not possible.
+soildata[terrafina > 1000, .N]
+# 0 layers
 
-# Fine earth
-# R layers are consolidated rock layers. These layers should have terrafina == NA_real.
-# Correct samples with terrafina == 0 g/kg
-# When terrafina == 0, we set the fine earth content to 1000 g/kg.
-soildata[terrafina == 0, .N]
-# 23 samples with terrafina == 0
-cols <- c("id", "camada_nome", "profund_sup", "profund_inf", "terrafina", "argila", "taxon_sibcs")
-print(soildata[terrafina == 0, ..cols])
-# If camada_nome != "R", set terrafina to 1000 g/kg
-soildata[camada_nome == "R", terrafina := NA_real_]
-soildata[camada_nome == "2R", terrafina := NA_real_]
-soildata[camada_nome == "IIR", terrafina := NA_real_]
-soildata[terrafina == 0, terrafina := 1000]
+# Further corrections ##########################################################
+# ctb0751-53 is classified as "LATOSSOLO VERMELHO ESCURO ÁLICO cascalhento A 
+# moderado textura muito argilosa". The document reports values of coarse 
+# fragments as (%): 44 (A1), 22 (A3), 15 (B1), 95 (B21), and 9 (B22). We think 
+# that the value of 95% is a typo, and should be 9%. We found no evidence in the
+# document of presence of such a high value of coarse fragments in this soil
+# profile. So we correct this value here. If terrafina is 50 g/kg, then we set 
+# it to 910 g/kg.
+soildata[id == "ctb0751-53" & terrafina == 50, terrafina := 910]
+
+
+
+
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
 
 # Fine earth content
 soildata[, esqueleto := 1000 - terrafina]
