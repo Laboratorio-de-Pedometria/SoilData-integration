@@ -26,7 +26,7 @@ soildata <- data.table::fread("data/14_soildata.txt", sep = "\t")
 summary_soildata(soildata)
 # Layers: 63146
 # Events: 20251
-# Georeference: 16709 (yes) / 3542 (no)
+# Georeference: 16710 (yes) / 3541 (no)
 # Date: 20094 (yes) / 157 (no)
 # Datasets: 271
 
