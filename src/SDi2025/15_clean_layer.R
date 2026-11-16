@@ -2644,18 +2644,50 @@ if (FALSE) {
 }
 
 # Further corrections ##########################################################
-# ctb0751-53 is classified as "LATOSSOLO VERMELHO ESCURO ÁLICO cascalhento A 
-# moderado textura muito argilosa". The document reports values of coarse 
-# fragments as (%): 44 (A1), 22 (A3), 15 (B1), 95 (B21), and 9 (B22). We think 
+# ctb0751-53 is classified as "LATOSSOLO VERMELHO ESCURO ÁLICO cascalhento A
+# moderado textura muito argilosa". The document reports values of coarse
+# fragments as (%): 44 (A1), 22 (A3), 15 (B1), 95 (B21), and 9 (B22). We think
 # that the value of 95% is a typo, and should be 9%. We found no evidence in the
 # document of presence of such a high value of coarse fragments in this soil
-# profile. So we correct this value here. If terrafina is 50 g/kg, then we set 
+# profile. So we correct this value here. If terrafina is 50 g/kg, then we set
 # it to 910 g/kg.
 soildata[id == "ctb0751-53" & terrafina == 50, terrafina := 910]
+
+# Correct fine earth content. Apparently there was a mistake during data entry
+# in the source spreadsheet, i.e. the value of terrafina was set to 100 g/kg 
+# instead of 1000 g/kg.
+soildata[
+  id_original == "ctb0565-Perfil-08" & camada_nome == "BC1",
+  terrafina := ifelse(terrafina == 100, 1000, terrafina)
+]
+# ctb0637-Perfil-2, camada_nome == A. There was a mistake during data entry in 
+# the source spreadsheet, i.e. the value of terrafina was set to 100 g/kg 
+# instead of 1000 g/kg. This was corrected in the source spreadsheet.
+soildata[
+  id_original == "ctb0637-Perfil-2" & camada_nome == "A",
+  terrafina := ifelse(terrafina == 100, 1000, terrafina)
+]
+# ctb0033-RO1068. The source spreadsheet reports values of fine earth content of
+# -25% and of gravel content of 125% for the Bf1 horizon. This is an evident
+# error. As there is no significant difference in the morphological description,
+# we assume that the correct value of fine earth content is 95%. We correct this
+# value here.
+soildata[
+  id_original == "ctb0033-RO1068" & camada_nome == "Bf1",
+  terrafina_fonte := ifelse(terrafina == -250, "especialista", terrafina_fonte)
+]
+soildata[
+  id_original == "ctb0033-RO1068" & camada_nome == "Bf1",
+  terrafina := ifelse(terrafina == -250, 950, terrafina)
+]
 
 # terrafina > 1000 #############################################################
 # Check how many layers have terrafina > 1000 g/kg. This is not possible.
 soildata[terrafina > 1000, .N]
+# 0 layers
+
+# terrafina < 0 ################################################################
+soildata[terrafina < 0, .N]
 # 0 layers
 
 # Source of terrafina values ###################################################
@@ -2666,43 +2698,43 @@ soildata[
   terrafina_fonte := "original"
 ]
 soildata[, .N, by = terrafina_fonte]
-# 1:        original 53010
+# 1:        original 53009
 # 2:            <NA>  8155
-# 3:    especialista  1240
+# 3:    especialista  1241
 
 # Create "esqueleto" column ####################################################
 soildata[, esqueleto := 1000 - terrafina]
+# Check samples with esqueleto > 800 and camada_nome not in r_layers
+r_layers <- c("2R", "4R", "IIIR", "IIR", "R")
+print(soildata[esqueleto > 800 & !(camada_nome %in% r_layers), .N])
+# 126 sample with esqueleto > 800
+# The following datasets have been checked for esqueleto > 800 and are ok.
+ctb_ok <- c(
+  "ctb0006", "ctb0011", "ctb0017", "ctb0025", "ctb0033", "ctb0038", "ctb0044",
+  "ctb0562", "ctb0600", "ctb0605", "ctb0606",
+  "ctb0609", # LATOSSOLOS PETROPLÍNTICOS textura muito cascalhenta fase pedregosa
+  "ctb0617", # CAMBISSOLO fase pedregosa
+  "ctb0635", # CAMBISSOLO textura cascalhenta fase concrecionária
+  "ctb0637", # PODZÓLICO VERMELHO-AMARELO CONCRECIONÁRIO
+  "ctb0646", # SOLOS CONCRECIONÁRIOS
+  "ctb0657", # horizonte constituido por concreçôes de ferro
+  "ctb0661", # Solo Litólico textura cascalhenta fase pedregosa e rochosa &
+  # Latosol fase concrecionária
+)
+if (FALSE) {
+  View(soildata[
+    !(dataset_id %in% ctb_ok) & esqueleto > 800 & !(camada_nome %in% r_layers),
+    .(id, camada_nome, profund_sup, profund_inf, esqueleto, terrafina, argila)
+  ])
+}
+
+# esqueleto > 1000 #############################################################
+soildata[!is.na(esqueleto) & esqueleto > 1000, .N]
+# 0 layers
 
 
 
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-# Check samples with esqueleto > 800
-print(soildata[esqueleto > 800, .N])
-# 133 sample with esqueleto > 800
-# Correct soil skeleton and fine earth content
-soildata[id_original == "ctb0565-Perfil-08" & camada_nome == "BC1", `:=`(
-  esqueleto = 0,
-  terrafina = 1000
-)]
-# These datasets have been checked
-ctb_ok <- c(
-  "ctb0006", "ctb0011", "ctb0017", "ctb0025", "ctb0033", "ctb0038", "ctb0044", "ctb0562",
-  "ctb0600", "ctb0605", "ctb0606"
-)
-cols <- c("id", "camada_nome", "profund_sup", "profund_inf", "esqueleto", "terrafina")
-# View(soildata[!(dataset_id %in% ctb_ok) & esqueleto > 800, ..cols])
-# Filter out samples with skeleton > 1000.
-# Some layers have esqueleto > 1000. This is not possible.
-# We filter out these layers. These layers need to be checked in the source data in the
-# future.
-soildata <- soildata[is.na(esqueleto) | esqueleto < 1000]
-summary_soildata(soildata)
-# Layers: 57326
-# Events: 16868
-# Georeferenced events: 14387
-# Datasets: 255
-
 
 # Particle size distribution
 # Check if the sum of the three fractions is 1000 g/kg
