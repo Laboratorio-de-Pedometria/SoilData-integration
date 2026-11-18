@@ -7,7 +7,8 @@
 # integrated Brazilian Soil Dataset produced by script 14. It standardizes layer
 # names and depth intervals, removes repeated or invalid layers, normalizes soil
 # property values, applies known layer corrections, plots the spatial
-# distribution, and exports the layer-cleaned dataset to data/15_soildata.txt.
+# distributions and spatial distribution, and exports the layer-cleaned dataset
+# to data/15_soildata.txt.
 rm(list = ls())
 
 # Source helper functions
@@ -3080,6 +3081,56 @@ plot(brazil["code_state"],
   main = "Spatial distribution of SoilData after cleaning layers"
 )
 plot(soildata_sf["estado_id"], cex = 0.3, add = TRUE, pch = 20)
+dev.off()
+
+# FIGURE 15.2 ##################################################################
+# Check distribution of soil variables after cleaning layers: argila, silte,
+# areia, ctc, carbono, ph, ce, terrafina, esqueleto, dsi
+plot_variables <- c(
+  "argila", "silte", "areia", "ctc", "carbono", "ph", "terrafina",
+  "esqueleto", "dsi", "ce"
+)
+plot_labels <- c(
+  "Clay\n(g/kg)", "Silt\n(g/kg)", "Sand\n(g/kg)", "CEC\n(cmolc/kg)",
+  "Organic carbon\n(g/kg)", "pH", "Fine earth\n(g/kg)",
+  "Coarse fragments\n(g/kg)", "Bulk density\n(kg/dm3)",
+  "Electrical conductivity\n(dS/m)"
+)
+plot_data <- soildata[, ..plot_variables]
+
+panel.hist <- function(x, ...) {
+  histogram <- hist(x, plot = FALSE)
+  counts <- histogram$counts / max(histogram$counts)
+  usr <- par("usr")
+  on.exit(par(usr = usr))
+  par(usr = c(usr[1:2], 0, 1.05))
+  rect(
+    histogram$breaks[-length(histogram$breaks)], 0,
+    histogram$breaks[-1], counts,
+    col = "gray85", border = "white"
+  )
+}
+panel.points <- function(x, y, ...) {
+  points(
+    x, y, pch = 16, cex = 0.18,
+    col = grDevices::adjustcolor("firebrick", alpha.f = 0.25)
+  )
+}
+
+file_path <- fig_path("152_soil_variable_distribution_after_cleaning_layers.png")
+png(file_path, width = 480 * 3, height = 480 * 3, res = 72 * 3)
+par(oma = c(0, 0, 3, 0), las = 1)
+pairs(
+  plot_data,
+  labels = plot_labels,
+  lower.panel = panel.points,
+  upper.panel = panel.points,
+  diag.panel = panel.hist,
+  cex.labels = 0.8,
+  cex.axis = 0.6,
+  gap = 0.5,
+  main = "Distribution of soil properties after cleaning layers"
+)
 dev.off()
 
 # Write data to disk ###########################################################
