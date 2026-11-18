@@ -2973,6 +2973,12 @@ soildata[id_original == "ctb0562-Perfil-14" & camada_nome == "Bw2",
 soildata[id_original == "ctb0563-Perfil-1" & camada_nome == "Cr2",
   dsi := ifelse(dsi == 2.78, 1.50, dsi)
 ]
+# ctb0572-Perfil-078. We checked the document and already corrected the value in 
+# the source spreadsheet.
+# camada_nome == "BC" -> dsi == 1.37
+soildata[id_original == "ctb0572-Perfil-078" & camada_nome == "BC",
+  dsi := ifelse(dsi == 2.67, 1.37, dsi)
+]
 # ctb0605-P-07. We checked the document and already corrected the value in the 
 # source spreadsheet.
 # camada_nome == "AB" -> dsi == 1.24
@@ -3015,27 +3021,14 @@ soildata[id_original == "ctb0787-1" & camada_nome == "B3",
 soildata[id_original == "ctb0787-1" & camada_nome == "A2",
   dsi := ifelse(dsi == 2.58, 1.35, dsi)
 ]
-
-
-
-
-
-
-
-
-
-
-
-
-
 # Check distribution of bulk density values after corrections
 soildata[, dsi := round(dsi, 2)]
 soildata[, .N, by = dsi][order(dsi)]
-# Values range between 0.12 and 2.90 Mg/m^3.
+# Values range between 0.12 and 2.50 Mg/m^3.
 
 # dsi > 2.5 ####################################################################
 soildata[dsi > 2.5, .N]
-# 13 layers with dsi > 2.5 Mg/m^3.
+# 1 layers with dsi > 2.5 Mg/m^3.
 if (FALSE) {
   View(soildata[dsi > 2.5, .(id, camada_nome, profund_sup, profund_inf, dsi)])
 }
