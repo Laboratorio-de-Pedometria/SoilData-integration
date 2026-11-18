@@ -2841,7 +2841,7 @@ n_psd_out <- soildata[!is.na(psd) & !(psd %in% psd_lims), .N]
 print(n_psd_out)
 # 0 layers 
 if (n_psd_out > 0) {
-  stop("There are layers with PSD outside the limits. Please check the source data.")
+  stop("There are layers with PSD outside the limits. Please check the data.")
 } else {
   # No layers outside the limits
   # If the sum of the three fractions is different from 1000 g/kg, adjust their
@@ -2862,35 +2862,86 @@ if (n_psd_out > 0) {
   print(soildata[, .N, by = dtp_fonte])
 }
 
+# Correct bulk density values ##################################################
+# Some layers have incorrect bulk density values. We correct these values based
+# on inspection of the source documents. These corrections need to be 
+# implemented in the source spreadsheet in the future.
+soildata[
+  id_original == "ctb0562-Perfil-13" & camada_id == 2, 
+  dsi := ifelse(dsi == 2.6, 0.86, dsi)
+]
+soildata[
+  id_original == "ctb0562-Perfil-14" & camada_id == 1,
+  dsi := ifelse(dsi == 2.53, 1.09, dsi)
+]
+soildata[
+  id_original == "ctb0562-Perfil-14" & camada_id == 2, 
+  dsi := ifelse(dsi == 2.6, 0.9, dsi)
+]
+soildata[
+  id_original == "ctb0608-15-V-RCC" & camada_id == 3, 
+  dsi := ifelse(dsi == 0.42, 1.94, dsi)
+]
+soildata[
+  id_original == "ctb0631-Perfil-17" & camada_id == 3,
+  dsi := ifelse(dsi == 0.14, 1.1, dsi)
+]
+soildata[
+  id_original == "ctb0700-15" & camada_id == 1,
+  dsi := ifelse(dsi == 2.53, 1.6, dsi)
+]
+soildata[
+  id_original == "ctb0700-15" & camada_id == 2, 
+  dsi := ifelse(dsi == 2.56, 1.49, dsi)
+]
+soildata[
+  id_original == "ctb0771-26" & camada_id == 1,
+  dsi := ifelse(dsi == 2.59, 1.32, dsi)
+]
+soildata[
+  id_original == "ctb0771-26" & camada_id == 2, 
+  dsi := ifelse(dsi == 2.56, 1.37, dsi)
+]
+soildata[
+  id_original == "ctb0777-1" & camada_id == 1, 
+  dsi := ifelse(dsi == 2.65, 1.35, dsi)
+]
+soildata[
+  id_original == "ctb0787-1" & camada_id == 2, 
+  dsi := ifelse(dsi == 2.58, 1.35, dsi)
+]
+soildata[
+  id_original == "ctb0787-4" & camada_id == 1, 
+  dsi := ifelse(dsi == 2.35, 1.35, dsi)
+]
+soildata[
+  id_original == "ctb0787-4" & camada_id == 2, 
+  dsi := ifelse(dsi == 1.3, 1.27, dsi)
+]
+soildata[
+  id_original == "ctb0811-2" & camada_id == 3, 
+  dsi := ifelse(dsi == 0.34, 1.64, dsi)
+]
+soildata[
+  id_original == "ctb0702-P-46" & camada_id == 1, 
+  dsi := ifelse(dsi == 2.08, 1.08, dsi)
+] # check document
+soildata[
+  id_original == "ctb0572-Perfil-063" & camada_id == 2, 
+  dsi := ifelse(dsi == 0.34, 1.84, dsi)
+]
+soildata[
+  id_original == "ctb0605-P-06" & camada_id == 2, 
+  dsi := ifelse(dsi == 0.31, 1.32, dsi)
+]
+# Check distribution of bulk density values after corrections
+soildata[, dsi := round(dsi, 2)]
+soildata[, .N, by = dsi][order(dsi)]
+# Values range between 0.12 and 2.90 Mg/m^3.
 
-cols <- c("id", "camada_nome", "argila", "silte", "areia", "psd")
-soildata[!is.na(psd) & !(psd %in% psd_lims), ..cols]
 
 
 
-
-
-# Correct bulk density values
-# Some layers have incorrect bulk density values. We correct these layers based on inspection of 
-# the source documents. These corrections need to be implemented in the source data
-# in the future.
-soildata[id_original == "ctb0562-Perfil-13" & camada_id == 2, dsi := ifelse(dsi == 2.6, 0.86, dsi)]
-soildata[id_original == "ctb0562-Perfil-14" & camada_id == 1, dsi := ifelse(dsi == 2.53, 1.09, dsi)]
-soildata[id_original == "ctb0562-Perfil-14" & camada_id == 2, dsi := ifelse(dsi == 2.6, 0.9, dsi)]
-soildata[id_original == "ctb0608-15-V-RCC" & camada_id == 3, dsi := ifelse(dsi == 0.42, 1.94, dsi)]
-soildata[id_original == "ctb0631-Perfil-17" & camada_id == 3, dsi := ifelse(dsi == 0.14, 1.1, dsi)]
-soildata[id_original == "ctb0700-15" & camada_id == 1, dsi := ifelse(dsi == 2.53, 1.6, dsi)]
-soildata[id_original == "ctb0700-15" & camada_id == 2, dsi := ifelse(dsi == 2.56, 1.49, dsi)]
-soildata[id_original == "ctb0771-26" & camada_id == 1, dsi := ifelse(dsi == 2.59, 1.32, dsi)]
-soildata[id_original == "ctb0771-26" & camada_id == 2, dsi := ifelse(dsi == 2.56, 1.37, dsi)]
-soildata[id_original == "ctb0777-1" & camada_id == 1, dsi := ifelse(dsi == 2.65, 1.35, dsi)]
-soildata[id_original == "ctb0787-1" & camada_id == 2, dsi := ifelse(dsi == 2.58, 1.35, dsi)]
-soildata[id_original == "ctb0787-4" & camada_id == 1, dsi := ifelse(dsi == 2.35, 1.35, dsi)]
-soildata[id_original == "ctb0787-4" & camada_id == 2, dsi := ifelse(dsi == 1.3, 1.27, dsi)]
-soildata[id_original == "ctb0811-2" & camada_id == 3, dsi := ifelse(dsi == 0.34, 1.64, dsi)]
-soildata[id_original == "ctb0702-P-46" & camada_id == 1, dsi := ifelse(dsi == 2.08, 1.08, dsi)] # check document
-soildata[id_original == "ctb0572-Perfil-063" & camada_id == 2, dsi := ifelse(dsi == 0.34, 1.84, dsi)]
-soildata[id_original == "ctb0605-P-06" & camada_id == 2, dsi := ifelse(dsi == 0.31, 1.32, dsi)]
 # Check soildata
 summary_soildata(soildata)
 # SDi2025 ---
