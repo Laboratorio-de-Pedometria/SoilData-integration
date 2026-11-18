@@ -22,12 +22,24 @@ library(geobr)
 brazil <- read_brazil_states()
 
 # Read the dataset-cleaned SoilData from the previous script
-soildata <- data.table::fread("data/14_soildata.txt", sep = "\t")
+soildata <- data.table::fread("data/15_soildata.txt", sep = "\t")
 summary_soildata(soildata)
+# SDi2025 ---
+# Layers: 62405
+# Events: 20307
+# Georeference: 16723 (yes) / 3584 (no)
+# Date: 20148 (yes) / 159 (no)
+# Datasets: 271
 
-# Clean events
-# Correct date (there is a typo in the spreadsheet). We checked the original document.
-soildata[id == "ctb0585-Perfil-9", data_ano := ifelse(all(data_ano == 1993), 1983, data_ano)]
+# Correct date #################################################################
+# ctb0585-Perfil-9. There is a typo in the spreadsheet). We checked the original
+# document.
+soildata[
+  id == "ctb0585-Perfil-9", 
+  data_ano := ifelse(all(data_ano == 1993), 1983, data_ano)
+]
+
+
 
 # Get unique events
 soildata_events <- soildata[!is.na(coord_x) & !is.na(coord_y) & !is.na(data_ano), id[1],
