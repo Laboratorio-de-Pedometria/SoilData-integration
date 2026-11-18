@@ -2442,7 +2442,7 @@ soildata[id == "ctb0637-Perfil-77" & camada_nome == "R", `:=`(
   profund_sup = 268,
   profund_inf = 288
 )]
-ctb0637-Perfil-79. Set depth limits of the R layer to 138-158 cm. This was 
+# ctb0637-Perfil-79. Set depth limits of the R layer to 138-158 cm. This was 
 # decided after checking the source document and was corrected in the source 
 # spreadsheet.
 soildata[id == "ctb0637-Perfil-79" & camada_nome == "R", `:=`(
@@ -3062,25 +3062,16 @@ soildata[
   dataset_id == "ctb0718" & observacao_id == "51",
   carbono := ifelse(carbono == 145, 14.5, carbono)
 ]
+# ctb0037-girua-081
+# Correct negative carbon value (must correct in the source spreadsheet in the 
+# future)
+soildata[carbono < 0 & id == "ctb0037-girua-081", carbono := NA_real_]
 
-# Check soildata
-summary_soildata(soildata)
-# SDi2025 ---
-# Layers: 57324
-# Events: 16868
-# Georeferenced events: 14387
-# Datasets: 255
-
-
-
-
-
-
-
-# FIGURE 15.1
+# FIGURE 15.1 ##################################################################
 # Check spatial distribution after cleaning layers
 soildata_sf <- soildata[!is.na(coord_x) & !is.na(coord_y)]
-soildata_sf <- sf::st_as_sf(soildata_sf, coords = c("coord_x", "coord_y"), crs = 4326)
+soildata_sf <- sf::st_as_sf(
+  soildata_sf, coords = c("coord_x", "coord_y"), crs = 4326)
 # Plot spatial distribution
 file_path <- fig_path("151_spatial_distribution_after_cleaning_layers.png")
 png(file_path, width = 480 * 3, height = 480 * 3, res = 72 * 3)
@@ -3091,14 +3082,12 @@ plot(brazil["code_state"],
 plot(soildata_sf["estado_id"], cex = 0.3, add = TRUE, pch = 20)
 dev.off()
 
-
-
-
-
-# Write data to disk ###############################################################################
+# Write data to disk ###########################################################
 summary_soildata(soildata)
-# Layers: 57077
-# Events: 16824
-# Georeferenced events: 14334
-# Datasets: 255
+# SDi2025 ---
+# Layers: 62405
+# Events: 20307
+# Georeference: 16723 (yes) / 3584 (no)
+# Date: 20148 (yes) / 159 (no)
+# Datasets: 271
 data.table::fwrite(soildata, "data/15_soildata.txt", sep = "\t")
