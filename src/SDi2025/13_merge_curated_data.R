@@ -104,13 +104,13 @@ curated_data <- data.table::rbindlist(curated_list, fill = TRUE)
 curated_data <- curated_data[, ..read_cols]
 curated_data[, id := paste0(dataset_id, "-", observacao_id)]
 summary_soildata(curated_data)
-# 2026 ---
+# SDi2025 ---
 # Layers: 13446
 # Events: 5914
-# Georeference: 5472 (yes) / 442 (no)
+# Georeference: 5471 (yes) / 443 (no)
 # Date: 5911 (yes) / 3 (no)
 # Datasets: 40
-# 2025 ---
+# SDi2024 ---
 # Layers: 10105
 # Events: 3780
 # Georeferenced events: 3366
@@ -121,13 +121,13 @@ summary_soildata(curated_data)
 file <- "data/12_soildata.txt"
 soildata <- data.table::fread(file, sep = "\t", na.strings = c("", "NA"))
 summary_soildata(soildata)
-# 2026 ---
+# SDi2025 ---
 # Layers: 51629
 # Events: 14894
 # Georeference: 11792 (yes) / 3102 (no)
 # Date: 14739 (yes) / 155 (no)
 # Datasets: 242
-# 2025 ---
+# SDi2024 ---
 # Layers: 52256
 # Events: 15171
 # Georeferenced events: 12041
@@ -159,13 +159,13 @@ curated_data <- merge(curated_data, metadata, by = "dataset_id", all.x = TRUE)
 curated_ctb <- curated_data[, unique(dataset_id)]
 soildata <- soildata[!dataset_id %in% curated_ctb]
 summary_soildata(soildata)
-# 2026 ---
+# SDi2025 ---
 # Layers: 50413
 # Events: 14480
 # Georeference: 11380 (yes) / 3100 (no)
 # Date: 14326 (yes) / 154 (no)
 # Datasets: 234
-# 2025 ---
+# SDi2024 ---
 # Layers: 51040
 # Events: 14757
 # Georeferenced events: 11629
@@ -174,13 +174,13 @@ summary_soildata(soildata)
 # Merge curated data with SoilData
 soildata <- rbind(soildata, curated_data, fill = TRUE)
 summary_soildata(soildata)
-# 2026 ---
+# SDi2025 ---
 # Layers: 63859
 # Events: 20394
-# Georeference: 16852 (yes) / 3542 (no)
+# Georeference: 16851 (yes) / 3543 (no)
 # Date: 20237 (yes) / 157 (no)
 # Datasets: 274
-# 2025 ---
+# SDi2024 ---
 # Layers: 61145
 # Events: 18537
 # Georeferenced events: 14995
@@ -247,13 +247,13 @@ dev.off()
 
 # Export cleaned data ##########################################################
 summary_soildata(soildata)
-# 2026 ---
+# SDi2025 ---
 # Layers: 63859
 # Events: 20394
-# Georeference: 16852 (yes) / 3542 (no)
+# Georeference: 16851 (yes) / 3543 (no)
 # Date: 20237 (yes) / 157 (no)
 # Datasets: 274
-# 2025 ---
+# SDi2024 ---
 # Layers: 61145
 # Events: 18537
 # Georeferenced events: 14995

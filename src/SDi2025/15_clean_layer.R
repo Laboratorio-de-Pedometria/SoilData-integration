@@ -24,9 +24,10 @@ brazil <- read_brazil_states()
 # Read the dataset-cleaned SoilData from the previous script
 soildata <- data.table::fread("data/14_soildata.txt", sep = "\t")
 summary_soildata(soildata)
+# SDi2025 ---
 # Layers: 63146
 # Events: 20251
-# Georeference: 16710 (yes) / 3541 (no)
+# Georeference: 16709 (yes) / 3542 (no)
 # Date: 20094 (yes) / 157 (no)
 # Datasets: 271
 
@@ -138,6 +139,7 @@ soildata <- soildata[repeated == FALSE, ]
 soildata[, repeated := NULL]
 soildata[, any_repeated := NULL]
 summary_soildata(soildata)
+# SDi2025 ---
 # Layers: 62574
 # Events: 20251
 # Georeference: 16709 (yes) / 3542 (no)
@@ -1117,6 +1119,7 @@ soildata[id == "ctb0832-126" & amostra_id == 47303, `:=`(
 )]
 # Check data
 summary_soildata(soildata)
+# SDi2025 ---
 # Layers: 62414
 # Events: 20257
 # Georeference: 16715 (yes) / 3542 (no)
@@ -1536,6 +1539,7 @@ soildata[, max_profund_inf := NULL]
 nrow(soildata[profund_sup == profund_inf])
 # 0 layers
 summary_soildata(soildata)
+# SDi2025 ---
 # Layers: 62414
 # Events: 20257
 # Georeference: 16715 (yes) / 3542 (no)
@@ -1750,6 +1754,7 @@ soildata[
 soildata[, max_profund_inf := NULL]
 # Check data
 summary_soildata(soildata)
+# SDi2025 ---
 # Layers: 62405
 # Events: 20307
 # Georeference: 16723 (yes) / 3584 (no)
@@ -2718,7 +2723,7 @@ ctb_ok <- c(
   "ctb0637", # PODZÓLICO VERMELHO-AMARELO CONCRECIONÁRIO
   "ctb0646", # SOLOS CONCRECIONÁRIOS
   "ctb0657", # horizonte constituido por concreçôes de ferro
-  "ctb0661", # Solo Litólico textura cascalhenta fase pedregosa e rochosa &
+  "ctb0661" # Solo Litólico textura cascalhenta fase pedregosa e rochosa &
   # Latosol fase concrecionária
 )
 if (FALSE) {
@@ -2845,7 +2850,9 @@ soildata[id_original == "ctb0811-2" & camada_id == 3, dsi := ifelse(dsi == 0.34,
 soildata[id_original == "ctb0702-P-46" & camada_id == 1, dsi := ifelse(dsi == 2.08, 1.08, dsi)] # check document
 soildata[id_original == "ctb0572-Perfil-063" & camada_id == 2, dsi := ifelse(dsi == 0.34, 1.84, dsi)]
 soildata[id_original == "ctb0605-P-06" & camada_id == 2, dsi := ifelse(dsi == 0.31, 1.32, dsi)]
+# Check soildata
 summary_soildata(soildata)
+# SDi2025 ---
 # Layers: 57324
 # Events: 16868
 # Georeferenced events: 14387

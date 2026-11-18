@@ -23,13 +23,13 @@ brazil <- read_brazil_states()
 # Read SoilData data processed in the previous script
 soildata <- data.table::fread("data/13_soildata.txt", sep = "\t")
 summary_soildata(soildata)
-# 2026 ---
+# SDi2025 ---
 # Layers: 63859
 # Events: 20394
-# Georeference: 16852 (yes) / 3542 (no)
+# Georeference: 16851 (yes) / 3543 (no)
 # Date: 20237 (yes) / 157 (no)
 # Datasets: 274
-# 2025 ---
+# SDi2024 ---
 # Layers: 61145
 # Events: 18537
 # Georeferenced events: 14995
@@ -65,9 +65,10 @@ if (length(duplicates_idx) > 0L) {
 # Drop dataset_id = ctb0002 duplicates from soildata
 soildata <- soildata[!(dataset_id == "ctb0002" & observacao_id %in% duplicates_idx)]
 summary_soildata(soildata)
+# SDi2025 ---
 # Layers: 63844
 # Events: 20379
-# Georeference: 16837 (yes) / 3542 (no)
+# Georeference: 16836 (yes) / 3543 (no)
 # Date: 20222 (yes) / 157 (no)
 # Datasets: 274
 
@@ -92,9 +93,10 @@ soildata <- soildata[!(
   dataset_id == "ctb0029" & municipio_id == "Silveira Martins" &
     amostra_tipo == "SIMPLES"), ]
 summary_soildata(soildata)
+# SDi2025 ---
 # Layers: 63840
 # Events: 20375
-# Georeference: 16833 (yes) / 3542 (no)
+# Georeference: 16832 (yes) / 3543 (no)
 # Date: 20218 (yes) / 157 (no)
 # Datasets: 274
 
@@ -105,9 +107,10 @@ summary_soildata(soildata)
 # These datasets are exact duplicates. We remove ctb0654.
 soildata <- soildata[dataset_id != "ctb0654", ]
 summary_soildata(soildata)
+# SDi2025 ---
 # Layers: 63732
 # Events: 20355
-# Georeference: 16814 (yes) / 3541 (no)
+# Georeference: 16813 (yes) / 3542 (no)
 # Date: 20198 (yes) / 157 (no)
 # Datasets: 273
 
@@ -118,9 +121,10 @@ summary_soildata(soildata)
 # These data need to be checked in the future.
 soildata <- soildata[dataset_id != "ctb0800", ]
 summary_soildata(soildata)
+# SDi2025 ---
 # Layers: 63487
 # Events: 20311
-# Georeference: 16770 (yes) / 3541 (no)
+# Georeference: 16769 (yes) / 3542 (no)
 # Date: 20154 (yes) / 157 (no)
 # Datasets: 272
 
@@ -130,9 +134,10 @@ summary_soildata(soildata)
 # These datasets are exact duplicates. We remove ctb0808.
 soildata <- soildata[dataset_id != "ctb0808", ]
 summary_soildata(soildata)
+# SDi2025 ---
 # Layers: 63146
 # Events: 20251
-# Georeference: 16710 (yes) / 3541 (no)
+# Georeference: 16709 (yes) / 3542 (no)
 # Date: 20094 (yes) / 157 (no)
 # Datasets: 271
 
@@ -152,10 +157,10 @@ dev.off()
 
 # Write data to disk ###########################################################
 summary_soildata(soildata)
-# 2026 ---
+# SDi2025 ---
 # Layers: 63146
 # Events: 20251
-# Georeference: 16710 (yes) / 3541 (no)
+# Georeference: 16709 (yes) / 3542 (no)
 # Date: 20094 (yes) / 157 (no)
 # Datasets: 271
 data.table::fwrite(soildata, "data/14_soildata.txt", sep = "\t")

@@ -1457,13 +1457,13 @@ if(FALSE) {
 
 # Write data to disk ###########################################################
 summary_soildata(soildata)
-# 2026 ---
+# SDi2025 ---
 # Layers: 50103
 # Events: 14005
 # Georeference: 10903 (yes) / 3102 (no)
 # Date: 13850 (yes) / 155 (no)
 # Datasets: 235
-# 2025 ---
+# SDi2024 ---
 # Layers: 49684
 # Events: 14006
 # Georeference: 10907 (yes) / 3099 (no)

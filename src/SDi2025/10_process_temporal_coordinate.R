@@ -1151,6 +1151,7 @@ nrow(br_soil2023[
 
 # Write data to disk ###########################################################
 summary_soildata(br_soil2023)
+# SDi2025 ---
 # Layers: 49769
 # Events: 13859
 # Georeference: 10859 (yes) / 3000 (no)
