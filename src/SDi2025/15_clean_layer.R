@@ -2934,13 +2934,70 @@ soildata[
   id_original == "ctb0605-P-06" & camada_id == 2, 
   dsi := ifelse(dsi == 0.31, 1.32, dsi)
 ]
+soildata[id_original == "ctb0058-RN_20",
+  dsi := ifelse(dsi == 2.11, 1.11, dsi)
+]
+# ctb0562-Perfil-10. We checked the document and already corrected the value in
+# the source spreadsheet.
+# camada_nome == "BA" -> dsi == 0.72
+soildata[id_original == "ctb0562-Perfil-10" & camada_nome == "BA",
+  dsi := ifelse(dsi == 2.63, 0.72, dsi)
+]
+# camada_nome == "Bw" -> dsi == 0.74
+soildata[id_original == "ctb0562-Perfil-10" & camada_nome == "Bw",
+  dsi := ifelse(dsi == 2.74, 0.74, dsi)
+]
+# ctb0562-Perfil-13. We checked the document and already corrected the value in 
+# the source spreadsheet.
+# camada_nome == "Bw1" -> dsi == 0.87
+soildata[id_original == "ctb0562-Perfil-13" & camada_nome == "Bw1",
+  dsi := ifelse(dsi == 2.6, 0.87, dsi)
+]
+# camada_nome == "Bw2" -> dsi == 0.92
+soildata[id_original == "ctb0562-Perfil-13" & camada_nome == "Bw2",
+  dsi := ifelse(dsi == 2.6, 0.92, dsi)
+]
+# ctb0562-Perfil-14. We checked the document and already corrected the value in 
+# the source spreadsheet.
+# camada_nome == "Bw1" -> dsi == 0.87
+soildata[id_original == "ctb0562-Perfil-14" & camada_nome == "Bw1",
+  dsi := ifelse(dsi == 2.6, 0.87, dsi)
+]
+# camada_nome == "Bw2" -> dsi == 1.10
+soildata[id_original == "ctb0562-Perfil-14" & camada_nome == "Bw2",
+  dsi := ifelse(dsi == 2.63, 1.10, dsi)
+]
+
+
 # Check distribution of bulk density values after corrections
 soildata[, dsi := round(dsi, 2)]
 soildata[, .N, by = dsi][order(dsi)]
 # Values range between 0.12 and 2.90 Mg/m^3.
 
+# dsi > 2.5 ####################################################################
+soildata[dsi > 2.5, .N]
+# 13 layers with dsi > 2.5 Mg/m^3.
+if (FALSE) {
+  View(soildata[dsi > 2.5, .(id, camada_nome, profund_sup, profund_inf, dsi)])
+}
+# Clean soil bulk density data
+# Delete possible inconsistent values
+soildata[dsi > 2.5, dsi := NA_real_]
 
-
+# Correct carbon content values ################################################
+# THIS HAS ALREADY BEEN CORRECTED IN THE ORIGINAL DATASET. WE KEEP IT HERE FOR
+# REFERENCE.
+soildata[
+  dataset_id == "ctb0607" & observacao_id == "PERFIL-92",
+  carbono := ifelse(carbono == 413, 41.3, carbono)
+]
+# THIS HAS ALREADY BEEN CORRECTED IN THE ORIGINAL DATASET. WE KEEP IT HERE FOR
+# REFERENCE.
+# ctb0718-51. carbon is recorded as 145 g/kg. It is corrected to 14.5 g/kg.
+soildata[
+  dataset_id == "ctb0718" & observacao_id == "51",
+  carbono := ifelse(carbono == 145, 14.5, carbono)
+]
 
 # Check soildata
 summary_soildata(soildata)
@@ -2952,18 +3009,9 @@ summary_soildata(soildata)
 
 
 
-# THIS HAS ALREADY BEEN CORRECTED IN THE ORIGINAL DATASET. WE KEEP IT HERE FOR REFERENCE.
-soildata[
-  dataset_id == "ctb0607" & observacao_id == "PERFIL-92",
-  carbono := ifelse(carbono == 413, 41.3, carbono)
-]
 
-# THIS HAS ALREADY BEEN CORRECTED IN THE ORIGINAL DATASET. WE KEEP IT HERE FOR REFERENCE.
-# ctb0718-51. carbon is recorded as 145 g/kg. It is corrected to 14.5 g/kg.
-soildata[
-  dataset_id == "ctb0718" & observacao_id == "51",
-  carbono := ifelse(carbono == 145, 14.5, carbono)
-]
+
+
 
 # FIGURE 15.1
 # Check spatial distribution after cleaning layers
@@ -2979,12 +3027,9 @@ plot(brazil["code_state"],
 plot(soildata_sf["estado_id"], cex = 0.3, add = TRUE, pch = 20)
 dev.off()
 
-# Clean soil bulk density data
-# Delete possible inconsistent values
-soildata[dsi > 2.5, dsi := NA_real_]
 
-# Correct inconsistent soil bulk density values
-soildata[id_original == "ctb0058-RN_20", dsi := ifelse(dsi == 2.11, 1.11, dsi)]
+
+
 
 # Write data to disk ###############################################################################
 summary_soildata(soildata)
