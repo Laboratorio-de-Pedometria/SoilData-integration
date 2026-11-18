@@ -2967,6 +2967,65 @@ soildata[id_original == "ctb0562-Perfil-14" & camada_nome == "Bw1",
 soildata[id_original == "ctb0562-Perfil-14" & camada_nome == "Bw2",
   dsi := ifelse(dsi == 2.63, 1.10, dsi)
 ]
+# ctb0563-Perfil-1. We checked the document and already corrected the value in 
+# the source spreadsheet.
+# camada_nome == "Cr2" -> dsi == 1.50
+soildata[id_original == "ctb0563-Perfil-1" & camada_nome == "Cr2",
+  dsi := ifelse(dsi == 2.78, 1.50, dsi)
+]
+# ctb0605-P-07. We checked the document and already corrected the value in the 
+# source spreadsheet.
+# camada_nome == "AB" -> dsi == 1.24
+soildata[id_original == "ctb0605-P-07" & camada_nome == "AB",
+  dsi := ifelse(dsi == 0.74, 1.24, dsi)
+]
+# camada_nome == "BA" -> dsi == 1.26
+soildata[id_original == "ctb0605-P-07" & camada_nome == "BA",
+  dsi := ifelse(dsi == 0.59, 1.26, dsi)
+]
+# camada_nome == "CR" -> dsi == 1.25
+soildata[id_original == "ctb0605-P-07" & camada_nome == "CR",
+  dsi := ifelse(dsi == 2.78, 1.25, dsi)
+]
+# ctb0605-P-13. We checked the document and already corrected the value in the 
+# source spreadsheet.
+# camada_nome == "Ag|AG" -> dsi == 1.25
+soildata[id_original == "ctb0605-P-13" & camada_nome %in% c("Ag", "AG"),
+  dsi := ifelse(dsi == 2.57, 1.25, dsi)
+]
+# ctb0631-Perfil-22. We checked the document and already corrected the value in 
+# the source spreadsheet.
+# camada_nome == "B2" -> dsi == 0.88
+soildata[id_original == "ctb0631-Perfil-22" & camada_nome == "B2",
+  dsi := ifelse(dsi == 2.9, 0.88, dsi)
+]
+# ctb0631-Perfil-44. We checked the document and already corrected the value in 
+# the source spreadsheet.
+# camada_nome == "B22t" -> dsi == 1.25
+soildata[id_original == "ctb0631-Perfil-44" & camada_nome == "B22t",
+  dsi := ifelse(dsi == 2.86, 1.25, dsi)
+]
+# ctb0787-1. We checked the document and already corrected the value in the 
+# source spreadsheet.
+# camada_nome == "B3" -> dsi == 1.38
+soildata[id_original == "ctb0787-1" & camada_nome == "B3",
+  dsi := ifelse(dsi == 2.64, 1.38, dsi)
+]
+# camada_nome == "A2" -> dsi == 1.35
+soildata[id_original == "ctb0787-1" & camada_nome == "A2",
+  dsi := ifelse(dsi == 2.58, 1.35, dsi)
+]
+
+
+
+
+
+
+
+
+
+
+
 
 
 # Check distribution of bulk density values after corrections
