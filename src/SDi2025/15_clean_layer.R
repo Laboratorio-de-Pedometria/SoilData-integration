@@ -2737,55 +2737,67 @@ if (FALSE) {
 soildata[!is.na(esqueleto) & esqueleto > 1000, .N]
 # 0 layers
 
-
-
-# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-# Particle size distribution
-# Check if the sum of the three fractions is 1000 g/kg
-soildata[, argila := round(argila)]
-soildata[, silte := round(silte)]
-soildata[, areia := round(areia)]
-soildata[, psd := argila + silte + areia]
-# Correct the particle size fractions
-# Some layers have incorrect particle size fractions. We correct these layers based on visual
-# inspection of the source documents. These corrections need to be implemented in the source data
-# in the future.
+# Error in particle size distribution ##########################################
+# Some layers have incorrect values for one or more particle size fractions. We
+# correct these layers based on visual inspection of the source documents. These
+# corrections need to be implemented in the source spreedsheet in the future.
 soildata[
-  id_original == "ctb0591-P-13-Sao-Mateus-do-Sul" & camada_nome == "BW1" & argila == 597, `:=` (
+  id_original == "ctb0591-P-13-Sao-Mateus-do-Sul" & 
+  camada_nome == "BW1" & 
+  argila == 597, `:=` (
     argila = 1000 - 160 - 90,
     silte = 160,
     areia = 90
   )
 ]
 soildata[
-  id_original == "ctb0591-P-13-Sao-Mateus-do-Sul" & camada_nome == "BW2" & argila == 0, `:=` (
+  id_original == "ctb0591-P-13-Sao-Mateus-do-Sul" & 
+  camada_nome == "BW2" & 
+  argila == 0, `:=` (
     argila = 1000 - 140 - 100,
     silte = 140,
     areia = 100
   )
 ]
 soildata[
-  id_original == "ctb0591-P-13-Sao-Mateus-do-Sul" & camada_nome == "BW3" & argila == 148, `:=`(
+  id_original == "ctb0591-P-13-Sao-Mateus-do-Sul" & 
+  camada_nome == "BW3" & 
+  argila == 148, `:=`(
     argila = 1000 - 130 - 100,
     silte = 130,
     areia = 100
   )
 ]
 soildata[
-  id_original == "ctb0620-Á-de-Chapecó-3" & camada_nome == "Ap" & argila == 0, `:=`(
+  id_original == "ctb0620-Á-de-Chapecó-3" & 
+  camada_nome == "Ap" & 
+  argila == 0, `:=`(
     argila = 1000 - 360 - 20,
     silte = 360,
     areia = 20
   )
 ]
 soildata[
-  id_original == "ctb0646-PERFIL-20" & camada_nome == "C2" & argila == 0, `:=`(
+  id_original == "ctb0646-PERFIL-20" & 
+  camada_nome == "C2" & 
+  argila == 0, `:=`(
     argila = NA_real_,
     silte = NA_real_,
     areia = NA_real_
   )
 ]
+
+# Sum of psd != 1000 ###########################################################
+# Check if the sum of the three fractions is 1000 g/kg
+soildata[, argila := round(argila)]
+soildata[, silte := round(silte)]
+soildata[, areia := round(areia)]
+soildata[, psd := argila + silte + areia]
+# Check the distribution of the particle size fractions
+soildata[, .N, by = psd]
+
+# Correct the particle size fractions
+
 # Check if there is any size fraction equal to 0
 # clay
 ctb_zero_clay <- c(
