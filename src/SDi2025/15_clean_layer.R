@@ -3021,20 +3021,32 @@ soildata[id_original == "ctb0787-1" & camada_nome == "B3",
 soildata[id_original == "ctb0787-1" & camada_nome == "A2",
   dsi := ifelse(dsi == 2.58, 1.35, dsi)
 ]
+# Correct outliers (THIS HAS ALSO BEEN DONE IN THE SOURCE SPREADSHEET)
+soildata[
+  id == "ctb0793-PERFIL-01", dsi := ifelse(dsi == 2.44, 1.07, dsi)]
+soildata[
+  id == "ctb0811-50" & profund_sup == 40, dsi := ifelse(dsi == 2.5, 1.69, dsi)]
+soildata[
+  id == "ctb0811-50" & profund_sup == 80, dsi := ifelse(dsi == 2.5, 1.63, dsi)]
+soildata[id == "ctb0811-2", dsi := ifelse(dsi == 0.34, 1.64, dsi)]
+soildata[id == "ctb0572-Perfil-063", dsi := ifelse(dsi == 0.34, 0.84, dsi)]
+soildata[id == "ctb0572-Perfil-063", dsi := ifelse(dsi == 1.84, 0.84, dsi)]
+
+# Correct other outliers (NOT CORRECTED IN THE SOURCE SPREADSHEET AS WE DO NOT 
+# HAVE ACCESS TO THE SOURCE TEXT DOCUMENT)
+soildata[id == "ctb0829-P46", dsi := ifelse(dsi == 1.09, 2.09, dsi)]
+
 # Check distribution of bulk density values after corrections
 soildata[, dsi := round(dsi, 2)]
 soildata[, .N, by = dsi][order(dsi)]
-# Values range between 0.12 and 2.50 Mg/m^3.
+# Values range between 0.12 and 2.25 Mg/m^3.
 
 # dsi > 2.5 ####################################################################
 soildata[dsi > 2.5, .N]
-# 1 layers with dsi > 2.5 Mg/m^3.
+# 0 layers with dsi > 2.5 Mg/m^3.
 if (FALSE) {
   View(soildata[dsi > 2.5, .(id, camada_nome, profund_sup, profund_inf, dsi)])
 }
-# Clean soil bulk density data
-# Delete possible inconsistent values
-soildata[dsi > 2.5, dsi := NA_real_]
 
 # Correct carbon content values ################################################
 # THIS HAS ALREADY BEEN CORRECTED IN THE ORIGINAL DATASET. WE KEEP IT HERE FOR
