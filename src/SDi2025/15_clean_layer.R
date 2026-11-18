@@ -2787,6 +2787,40 @@ soildata[
   )
 ]
 
+# clay == 0 ####################################################################
+# The following datasets have been checked for clay == 0 and are ok.
+ctb_zero_clay <- c(
+  "ctb0607", "ctb0656", "ctb0666", "ctb0679", "ctb0020", "ctb0691", "ctb0695", "ctb0698", "ctb0705"
+)
+soildata[argila == 0 & !dataset_id %in% ctb_zero_clay, .N]
+# 15 layers (they need to be checked in the source data in the future)
+# Print the layers with clay == 0
+if (FALSE) {
+  cols <- c("id", "camada_nome", "argila", "silte", "areia", "ctc", "carbono", 
+  "ph", "terrafina", "esqueleto", "taxon_sibcs", "municipio_id", "estado_id")
+  View(soildata[argila == 0 & !dataset_id %in% ctb_zero_clay, ..cols])
+}
+
+# silt == 0 ####################################################################
+soildata[silte == 0, .N]
+# 62 layers (they need to be checked in the source data in the future)
+# Print the layers with silt == 0
+if (FALSE) {
+  cols <- c("id", "camada_nome", "argila", "silte", "areia", "ctc", "carbono", 
+  "ph", "terrafina", "esqueleto", "taxon_sibcs", "municipio_id", "estado_id")
+  View(soildata[silte == 0, ..cols])
+}
+
+# sand == 0 ####################################################################
+soildata[areia == 0, .N]
+# 101 layers (they need to be checked in the source data in the future)
+# Print the layers with sand == 0
+if (FALSE) {
+  cols <- c("id", "camada_nome", "taxon_sibcs", "municipio_id", "estado_id",
+  "argila", "silte", "areia", "ctc", "carbono", "ph", "terrafina", "esqueleto")
+  View(soildata[areia == 0, ..cols])
+}
+
 # Sum of psd != 1000 ###########################################################
 # Check if the sum of the three fractions is 1000 g/kg
 soildata[, argila := round(argila)]
@@ -2794,31 +2828,18 @@ soildata[, silte := round(silte)]
 soildata[, areia := round(areia)]
 soildata[, psd := argila + silte + areia]
 # Check the distribution of the particle size fractions
-soildata[, .N, by = psd]
+soildata[, .N, by = psd][order(psd)]
+# Values vary from 900 to 1090
+
+
 
 # Correct the particle size fractions
-
 # Check if there is any size fraction equal to 0
 # clay
-ctb_zero_clay <- c(
-  "ctb0607", "ctb0656", "ctb0666", "ctb0679", "ctb0020", "ctb0691", "ctb0695", "ctb0698",
-  "ctb0705"
-)
-soildata[argila == 0 & !dataset_id %in% ctb_zero_clay, .N]
-# 12 layers (they need to be checked in the source data in the future)
-# Print the layers with clay == 0
-cols <- c("id", "camada_nome", "argila", "silte", "areia")
-soildata[argila == 0 & !dataset_id %in% ctb_zero_clay, ..cols]
-# silt
-soildata[silte == 0, .N]
-# 57 layers (they need to be checked in the source data in the future)
-# Print the layers with silt == 0
-soildata[silte == 0, ..cols]
+
+
 # sand
-soildata[areia == 0, .N]
-# 102 layers (they need to be checked in the source data in the future)
-# Print the layers with sand == 0
-soildata[areia == 0, ..cols]
+
 
 # Check if the sum of the three fractions is 1000 g/kg
 # We also check for values close to 100% (90-110%), which may be due to rounding errors.
