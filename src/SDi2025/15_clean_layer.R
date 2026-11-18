@@ -2821,46 +2821,54 @@ if (FALSE) {
   View(soildata[areia == 0, ..cols])
 }
 
-# Sum of psd != 1000 ###########################################################
-# Check if the sum of the three fractions is 1000 g/kg
+# Sum of !(psd %in% 900:1100) ##################################################
+# Check if the sum of the three fractions is 1000 g/kg. We also check for values
+# close to 100% (90-110%), which may be due to rounding errors.
 soildata[, argila := round(argila)]
 soildata[, silte := round(silte)]
 soildata[, areia := round(areia)]
 soildata[, psd := argila + silte + areia]
 # Check the distribution of the particle size fractions
-soildata[, .N, by = psd][order(psd)]
-# Values vary from 900 to 1090
-
-
-
-# Correct the particle size fractions
-# Check if there is any size fraction equal to 0
-# clay
-
-
-# sand
-
-
-# Check if the sum of the three fractions is 1000 g/kg
-# We also check for values close to 100% (90-110%), which may be due to rounding errors.
 soildata[psd != 1000, .N]
-# 188 layers
+# 526 layers
+soildata[, .N, by = psd][order(psd)]
+# Values vary from 900 to 1090 g/kg
+
+# Define the limits for the particle size fractions accounting for possible
+# rounding errors.
 psd_lims <- 900:1100
-soildata[!is.na(psd) & !(psd %in% psd_lims), .N]
-# 2 layers, both from ctb0025-Perfil-38. We drop these layers. They need to be checked in the
-# source data in the future.
-soildata <- soildata[!(id_original == "ctb0025-Perfil-38" & camada_nome == "Bt2")]
-soildata <- soildata[!(id_original == "ctb0025-Perfil-38" & camada_nome == "BC")]
+n_psd_out <- soildata[!is.na(psd) & !(psd %in% psd_lims), .N]
+print(n_psd_out)
+# 0 layers 
+if (n_psd_out > 0) {
+  stop("There are layers with PSD outside the limits. Please check the source data.")
+} else {
+  # No layers outside the limits
+  # If the sum of the three fractions is different from 1000 g/kg, adjust their
+  # values, adding the difference to the silt fraction. We only consider layers 
+  # with psd between 900 and 1100 g/kg. We add a column dtp_fonte to 
+  # indicate that we adjusted the particle size fractions based on the sum of 
+  # the three fractions.
+  soildata[
+    !is.na(psd), 
+    dtp_fonte := ifelse(psd != 1000, "ajustada", "original")
+  ]
+  soildata[psd != 1000, argila := round(argila / psd * 1000)]
+  soildata[psd != 1000, areia := round(areia / psd * 1000)]
+  soildata[psd != 1000, silte := 1000 - argila - areia]
+  soildata[, psd := round(argila + silte + areia)]
+  print(soildata[psd != 1000, psd])  
+  soildata[, psd := NULL]
+  print(soildata[, .N, by = dtp_fonte])
+}
+
+
 cols <- c("id", "camada_nome", "argila", "silte", "areia", "psd")
 soildata[!is.na(psd) & !(psd %in% psd_lims), ..cols]
-# If the sum of the three fractions is different from 1000 g/kg, adjust their values, adding the
-# difference to the silt fraction. We only consider layers with psd between 900 and 1100 g/kg.
-soildata[psd != 1000, argila := round(argila / psd * 1000)]
-soildata[psd != 1000, areia := round(areia / psd * 1000)]
-soildata[psd != 1000, silte := 1000 - argila - areia]
-soildata[, psd := round(argila + silte + areia)]
-soildata[psd != 1000, psd]
-soildata[, psd := NULL]
+
+
+
+
 
 # Correct bulk density values
 # Some layers have incorrect bulk density values. We correct these layers based on inspection of 
