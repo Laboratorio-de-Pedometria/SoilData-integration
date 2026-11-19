@@ -60,7 +60,7 @@ soildata <- soildata_current[, -c(
   "calcio_kcl_eaa", "campanha_id_febr", "ctce_soma_calc", "data_coleta_dia",
   "data_coleta_mes", "dataset_versao", "erosao_presenca", "erosao_presenca",
   "erosao_tipo", "fosforo_mehlich1_eam", "id", "id_original", "magnesio_kcl_eaa",
-  "palavras_chave", "potassio_mehlich1_eeac", "publicacao_data",
+  "organizacao_nome", "palavras_chave", "potassio_mehlich1_eeac", "publicacao_data",
   "relevo_exposicao", "relevo_local", "relevo_posicao", "observacao_data"
 )]
 
@@ -71,7 +71,7 @@ setnames(soildata, "data_ano_fonte", "data_fonte")
 setnames(soildata, "dsi", "densidade")
 # Check columns names
 paste(colnames(soildata), collapse = ", ")
-# dataset_id, observacao_id, dataset_titulo, organizacao_nome, dataset_licenca, sisb_id, ibge_id, coord_x, coord_y, coord_precisao, coord_fonte, pais_id, estado_id, municipio_id, amostra_tipo, amostra_quanti, amostra_area, taxon_sibcs, taxon_st, taxon_wrb, camada_id, amostra_id, camada_nome, profund_sup, profund_inf, terrafina, argila, silte, areia, carbono, ctc, ph, densidade, ce, data_ano, data_ano_fonte, coord_datum, pedregosidade, rochosidade, terrafina_fonte, esqueleto, dtp_fonte
+# dataset_id, observacao_id, dataset_titulo, dataset_licenca, sisb_id, ibge_id, coord_x, coord_y, coord_precisao, coord_fonte, pais_id, estado_id, municipio_id, amostra_tipo, amostra_quanti, amostra_area, taxon_sibcs, taxon_st, taxon_wrb, camada_id, amostra_id, camada_nome, profund_sup, profund_inf, terrafina, argila, silte, areia, carbono, ctc, ph, densidade, ce, data_ano, data_ano_fonte, coord_datum, pedregosidade, rochosidade, terrafina_fonte, esqueleto, dtp_fonte
 if (FALSE) {
   View(soildata)
 }
@@ -145,7 +145,7 @@ soildata[, .N, by = .(dataset_licenca)][order(dataset_licenca)]
 # 2:    CC BY-NC 4.0 30531
 # 3: CC BY-NC-SA 4.0   136
 
-# pais_id
+# pais_id ######################################################################
 # if BR, then Brasil
 soildata[pais_id == "BR", pais_id := "Brasil"]
 # if NA of "", then Brasil
@@ -153,12 +153,16 @@ soildata[is.na(pais_id) | pais_id == "", pais_id := "Brasil"]
 # statistics
 soildata[, .N, by = .(pais_id)][order(pais_id)]
 
-# estado_id
-# Check if the number of unique values in estado_id is 27 (26 states + Federal District)
+# estado_id ####################################################################
+# Rio de Janeiro -> RJ
+soildata[estado_id == "Rio de Janeiro", estado_id := "RJ"]
+# Check if the number of unique values in estado_id is 27 (26 states + Federal 
+# District)
 soildata[estado_id == "", estado_id := NA_character_]
 # statistics
 soildata[, .N, by = .(estado_id)][order(estado_id)]
-# Intersect with Brazilian states
+
+# Intersect with Brazilian states ##############################################
 soildata_sf <- unique(soildata[
   is.na(estado_id) & !(is.na(coord_x) | is.na(coord_y)),
   .(dataset_id, observacao_id, coord_x, coord_y)
@@ -173,34 +177,46 @@ soildata_sf <- sf::st_join(
   join = sf::st_within, left = TRUE
 )
 # Extract data.table
-soildata_sf <- data.table::as.data.table(soildata_sf)[, .(dataset_id, observacao_id, abbrev_state)]
+soildata_sf <- as.data.table(soildata_sf)[, .(dataset_id, observacao_id, abbrev_state)]
 # Update estado_id in soildata, keeping all of its existing values and adding new ones
 soildata <- merge(soildata, soildata_sf, by = c("dataset_id", "observacao_id"), all.x = TRUE)
 soildata[is.na(estado_id), estado_id := abbrev_state]
 soildata[, abbrev_state := NULL]
+
 # Set manual corrections for estado_id based on dataset_id and observacao_id
-soildata[dataset_id == "ctb0053", estado_id := ifelse(is.na(estado_id), "RO", estado_id), by = observacao_id]
-soildata[dataset_id == "ctb0711" & observacao_id == "48", estado_id := ifelse(is.na(estado_id), "AM", estado_id)]
-soildata[dataset_id == "ctb0831", estado_id := ifelse(is.na(estado_id), "PR", estado_id), by = observacao_id]
+soildata[
+  dataset_id == "ctb0033",
+  estado_id := ifelse(is.na(estado_id), "RO", estado_id),
+  by = observacao_id
+]
+soildata[dataset_id == "ctb0053",
+  estado_id := ifelse(is.na(estado_id), "RO", estado_id),
+  by = observacao_id
+]
+soildata[
+  dataset_id == "ctb0711" & observacao_id == "48",
+  estado_id := ifelse(is.na(estado_id), "AM", estado_id)
+]
+soildata[dataset_id == "ctb0831",
+  estado_id := ifelse(is.na(estado_id), "PR", estado_id),
+  by = observacao_id
+]
 # statistics
 soildata[, .N, by = .(estado_id)][order(estado_id)]
-# dataset_id: ctb0770
-# observacao_id: E110 and E84
-# soildata[is.na(estado_id), .(dataset_id, observacao_id,  coord_x, coord_y)]
+if (FALSE) {
+  # View the data for the rows where estado_id is NA
+  View(soildata[is.na(estado_id), .(dataset_id, observacao_id, coord_x, coord_y)])
+}
+soildata[is.na(estado_id), .(dataset_id, observacao_id,  coord_x, coord_y)]
 
-# municipio_id
+# municipio_id #################################################################
 # Replace "" and "-" with NA
 soildata[municipio_id == "", municipio_id := NA_character_]
 soildata[municipio_id == "-", municipio_id := NA_character_]
 # statistics
 soildata[, .N, by = .(municipio_id)]
 
-# Drop column
-# organizacao_nome
-# drop column
-soildata[, organizacao_nome := NA_character_]
-
-# coord_datum
+# coord_datum ##################################################################
 # If coord_datum == "", set to NA
 soildata[coord_datum == "", coord_datum := NA_character_]
 # If coord_datum is not NA, but coord_x or coord_y are NA, set coord_datum to NA
@@ -211,16 +227,28 @@ soildata[coord_datum == "4326", coord_datum := "EPSG:4326"]
 soildata[is.na(coord_datum) & !is.na(coord_x) & !is.na(coord_y), coord_datum := "EPSG:4326"]
 # statistics
 soildata[!(is.na(coord_x) | is.na(coord_y)), .N, by = .(coord_datum)][order(coord_datum)]
+#    coord_datum     N
+#         <char> <int>
+# 1:   EPSG:4326 51206
 
-# ano_fonte
-# If ano_fonte == "", set to NA
-soildata[ano_fonte == "", ano_fonte := NA_character_]
-# If ano_fonte is NA but data_ano is not NA, set ano_fonte to "original"
-soildata[is.na(ano_fonte) & !is.na(data_ano), ano_fonte := "original"]
+# data_fonte ###################################################################
+# If data_fonte == "", set to NA
+soildata[data_fonte == "", data_fonte := NA_character_]
+# If data_fonte is NA but data_ano is not NA, set data_fonte to "original"
+soildata[is.na(data_fonte) & !is.na(data_ano), data_fonte := "original"]
+# Original -> "original"
+soildata[data_fonte == "Original", data_fonte := "original"]
+# Estimativa -> "estimativa"
+soildata[data_fonte == "Estimativa", data_fonte := "estimativa"]
 # statistics
-soildata[, .N, by = .(ano_fonte)][order(ano_fonte)]
+soildata[, .N, by = .(data_fonte)][order(data_fonte)]
+#    data_fonte     N
+#        <char> <int>
+# 1: estimativa 12711
+# 2:   original 49117
+# 3:       <NA>   308
 
-# data_ano
+# data_ano #####################################################################
 # Many datasets still have no information for data_ano (sampling year)
 soildata[, .N, by = .(data_ano)][order(data_ano)]
 
