@@ -854,8 +854,28 @@ soildata[id == "ctb0607-PERFIL-92", coord_x := -37.0623882]
 soildata[id == "ctb0607-PERFIL-92", coord_fonte := "Google Maps (curadoria)"]
 soildata[id == "ctb0607-PERFIL-92", .(id, coord_y, coord_x, coord_fonte)]
 
-# Intersection with the Brazilian territory ####################################
+# ctb0599-AC-17
+# The point originally fell outside of the Brazilian territory (in the sea).
+# Based on the description of the source document and the patter of the other 
+# points in the same dataset, we decided to move it to a nearby area. This was
+# not implemented in the source spreadsheets.
+# -22.858523, -43.224346
+soildata[id == "ctb0599-AC-17", coord_x := -43.224346]
+soildata[id == "ctb0599-AC-17", coord_y := -22.858523]
+soildata[id == "ctb0599-AC-17", coord_fonte := "Google Maps (curadoria)"]
 
+# ctb0599-AC-16
+# The point originally fell outside of the survey area, in a densily urbanized 
+# area. Based on the description of the source document and the patter of the 
+# other points in the same dataset, we guessed an error in the longitude value 
+# of about two minutes. We decided to move it. This was not implemented in the 
+# source spreadsheets.
+# -22.859226, -43.222940
+soildata[id == "ctb0599-AC-16", coord_x := -43.222940]
+soildata[id == "ctb0599-AC-16", coord_y := -22.859226]
+soildata[id == "ctb0599-AC-16", coord_fonte := "Google Maps (curadoria)"]
+
+# Intersection with the Brazilian territory ####################################
 # Check intersection with the Brazilian territory 'brazil sf' object
 soildata_sf <- sf::st_as_sf(soildata[!is.na(coord_x) & !is.na(coord_y)],
   coords = c("coord_x", "coord_y"), crs = 4326
@@ -863,14 +883,33 @@ soildata_sf <- sf::st_as_sf(soildata[!is.na(coord_x) & !is.na(coord_y)],
 brazil <- sf::st_transform(brazil, crs = 4326)
 soildata_sf <- sf::st_join(soildata_sf, brazil["code_state"], left = TRUE)
 nrow(soildata_sf[is.na(soildata_sf$code_state), ])
-# 136
-# View(soildata_sf[is.na(soildata_sf$code_state), ])
-# ctb0020 is outside Brazil. This happened because the latitude is positive when it should be
-# negative. We need to correct this event in the source data.
-# mapview::mapview(soildata_sf[is.na(soildata_sf$code_state), ])
-# Correct the coordinates if necessary
-soildata[dataset_id == "ctb0020", coord_y := ifelse(coord_y > 0, coord_y * -1, coord_y)]
-soildata[dataset_id == "ctb0020", .(id, coord_y, coord_x, coord_fonte)]
+# 0
+soildata_sf[is.na(soildata_sf$code_state), "id"]
+if (FALSE) {
+  # Check points in an interactive map
+  mapview::mapview(soildata_sf[is.na(soildata_sf$code_state), ])
+}
+
+
+
+
+
+# create spatial object will all samples from id = ctb0599
+tmp_sf <- sf::st_as_sf(soildata[dataset_id == "ctb0599" & !is.na(coord_x) & !is.na(coord_y), ],
+  coords = c("coord_x", "coord_y"), crs = 4326
+)
+mapview::mapview(tmp_sf)
+
+# THIS IS NOT AN ISSUE ANYMORE
+# # ctb0020 is outside Brazil. This happened because the latitude is positive when
+# # it should be negative. We need to correct this event in the source data.
+# # mapview::mapview(soildata_sf[is.na(soildata_sf$code_state), ])
+# # Correct the coordinates if necessary
+# soildata[
+#   dataset_id == "ctb0020",
+#   coord_y := ifelse(coord_y > 0, coord_y * -1, coord_y)
+# ]
+# soildata[dataset_id == "ctb0020", .(id, coord_y, coord_x, coord_fonte)]
 soildata_sf <- sf::st_as_sf(soildata[!is.na(coord_x) & !is.na(coord_y)],
   coords = c("coord_x", "coord_y"), crs = 4326
 )
