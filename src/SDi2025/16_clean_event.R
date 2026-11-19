@@ -27,7 +27,7 @@ summary_soildata(soildata)
 # SDi2025 ---
 # Layers: 62405
 # Events: 20307
-# Georeference: 16723 (yes) / 3584 (no)
+# Georeference: 16724 (yes) / 3583 (no)
 # Date: 20148 (yes) / 159 (no)
 # Datasets: 271
 
@@ -38,7 +38,17 @@ soildata[
   id == "ctb0585-Perfil-9", 
   data_ano := ifelse(all(data_ano == 1993), 1983, data_ano)
 ]
-
+# ctb0023. Dados de 'Características e Gênense de uma Sequência de Solos nas
+# Ecostas do Nordeste do Rio Grande do Sul'
+# The document does not inform the exact date or year in which the author
+# conducted fieldwork for the description and collection of samples from the
+# profiles. Based on the usual academic assumptions and the references cited in
+# the document itself, the most likely period for the collection of the
+# profiles is between 1978 and 1979.
+soildata[
+  dataset_id == "ctb0023" & is.na(data_ano), data_ano_fonte := "estimativa"
+]
+soildata[dataset_id == "ctb0023" & is.na(data_ano), data_ano := 1978]
 
 
 # Get unique events
