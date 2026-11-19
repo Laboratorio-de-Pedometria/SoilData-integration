@@ -130,6 +130,7 @@ print(br_soil2023[has_date == TRUE & no_date == TRUE,
 br_soil2023 <- br_soil2023[
   !(has_date == TRUE & no_date == TRUE & is.na(data_ano))
 ]
+br_soil2023[, c("has_date", "no_date") := NULL]
 summary_soildata(br_soil2023)
 # Layers: 50286 (we lost 184 layers)
 # Events: 14043 (no event was lost)
