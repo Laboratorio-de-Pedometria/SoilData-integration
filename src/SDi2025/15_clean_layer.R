@@ -1723,7 +1723,10 @@ soildata[, id_original := id]
 # Ids are built from id_original, avoiding a join that updates its own key.
 soildata[
   id_original %in% splittable_profiles$id & profile_lane > 1L,
-  id := paste0(id_original, "-profile-", profile_lane)
+  `:=`(
+    id = paste0(id_original, "-profile-", profile_lane),
+    observacao_id = paste0(observacao_id, "-profile-", profile_lane)
+  )
 ]
 
 cat(
