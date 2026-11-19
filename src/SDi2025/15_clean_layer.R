@@ -3076,12 +3076,13 @@ soildata[carbono < 0 & id == "ctb0037-girua-081", carbono := NA_real_]
 # nonmissing values agree; preserve existing values and leave conflicting or
 # layer-specific values unchanged.
 event_fields <- c(
-  names(soildata)[seq_len(match("camada_id", names(soildata)) - 1L)],
-  "data_ano", "data_ano_fonte", "coord_datum",
-  "erosao_presenca", "erosao_tipo"
+  "dataset_titulo", "coord_x", "coord_y", "coord_precisao", "coord_fonte",
+  "coord_datum", "pais_id", "estado_id", "municipio_id", "amostra_tipo",
+  "amostra_quanti", "amostra_area", "taxon_sibcs", "taxon_st", "taxon_wrb",
+  "data_ano", "data_ano_fonte", "relevo_posicao", "relevo_local",
+  "relevo_exposicao", "erosao_presenca", "erosao_tipo", "id_original",
+  "rochosidade", "pedregosidade"
 )
-event_fields <- setdiff(event_fields, c("dataset_id", "observacao_id"))
-
 for (field in event_fields) {
   if (is.character(soildata[[field]])) {
     empty_values <- which(!is.na(soildata[[field]]) & !nzchar(soildata[[field]]))
