@@ -3138,7 +3138,7 @@ summary_soildata(soildata)
 # SDi2025 ---
 # Layers: 62405
 # Events: 20307
-# Georeference: 16723 (yes) / 3584 (no)
+# Georeference: 16724 (yes) / 3583 (no)
 # Date: 20148 (yes) / 159 (no)
 # Datasets: 271
 data.table::fwrite(soildata, "data/15_soildata.txt", sep = "\t")
