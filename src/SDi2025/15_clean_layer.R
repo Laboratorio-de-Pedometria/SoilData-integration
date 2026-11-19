@@ -3071,10 +3071,9 @@ soildata[carbono < 0 & id == "ctb0037-girua-081", carbono := NA_real_]
 # Layers missing event-level values ###########################################
 # Previous scripts handled overlapping and missing layers, and merged layers
 # from different datasets. A layer created during this process may be missing
-# event-level values, such as coordinates, collection date, soil classification,
-# state, or municipality. For each event, fill missing values only when its
-# nonmissing values agree; preserve existing values and leave conflicting or
-# layer-specific values unchanged.
+# event-level values such as coordinates, collection date, soil classification,
+# state, or municipality. These variables are constant within each event, so
+# fill missing values from another layer with the same event ID.
 event_fields <- c(
   "dataset_titulo", "coord_x", "coord_y", "coord_precisao", "coord_fonte",
   "coord_datum", "pais_id", "estado_id", "municipio_id", "amostra_tipo",
@@ -3083,29 +3082,18 @@ event_fields <- c(
   "relevo_exposicao", "erosao_presenca", "erosao_tipo", "id_original",
   "rochosidade", "pedregosidade"
 )
-for (field in event_fields) {
-  if (is.character(soildata[[field]])) {
-    empty_values <- which(!is.na(soildata[[field]]) & !nzchar(soildata[[field]]))
-    data.table::set(soildata, i = empty_values, j = field, value = NA_character_)
-  }
-}
-
-event_values <- soildata[
+soildata[
   ,
-  lapply(.SD, function(x) {
-    values <- unique(x[!is.na(x)])
-    if (length(values) == 1L) values else x[NA_integer_]
+  (event_fields) := lapply(.SD, function(x) {
+    if (is.character(x)) {
+      x[!is.na(x) & !nzchar(x)] <- NA_character_
+    }
+    x[which(!is.na(x))[1L]]
   }),
   by = id,
   .SDcols = event_fields
 ]
-soildata[event_values,
-  on = "id",
-  (event_fields) := lapply(event_fields, function(field) {
-    
-  data.table::fcoalesce(get(field), get(paste0("i.", field)))
-})]
-rm(event_fields, event_values)
+rm(event_fields)
 
 # FIGURE 15.1 ##################################################################
 # Check spatial distribution after cleaning layers
