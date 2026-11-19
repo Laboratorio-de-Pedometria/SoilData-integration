@@ -890,16 +890,6 @@ if (FALSE) {
   mapview::mapview(soildata_sf[is.na(soildata_sf$code_state), ])
 }
 
-
-
-
-
-# create spatial object will all samples from id = ctb0599
-tmp_sf <- sf::st_as_sf(soildata[dataset_id == "ctb0599" & !is.na(coord_x) & !is.na(coord_y), ],
-  coords = c("coord_x", "coord_y"), crs = 4326
-)
-mapview::mapview(tmp_sf)
-
 # THIS IS NOT AN ISSUE ANYMORE
 # # ctb0020 is outside Brazil. This happened because the latitude is positive when
 # # it should be negative. We need to correct this event in the source data.
@@ -910,44 +900,41 @@ mapview::mapview(tmp_sf)
 #   coord_y := ifelse(coord_y > 0, coord_y * -1, coord_y)
 # ]
 # soildata[dataset_id == "ctb0020", .(id, coord_y, coord_x, coord_fonte)]
-soildata_sf <- sf::st_as_sf(soildata[!is.na(coord_x) & !is.na(coord_y)],
-  coords = c("coord_x", "coord_y"), crs = 4326
-)
-soildata_sf <- sf::st_join(soildata_sf, brazil["code_state"], left = TRUE)
-nrow(soildata_sf[is.na(soildata_sf$code_state), ])
+# soildata_sf <- sf::st_as_sf(soildata[!is.na(coord_x) & !is.na(coord_y)],
+#   coords = c("coord_x", "coord_y"), crs = 4326
+# )
+# soildata_sf <- sf::st_join(soildata_sf, brazil["code_state"], left = TRUE)
+# nrow(soildata_sf[is.na(soildata_sf$code_state), ])
 # 0
 
-# THIS HAS ALREADY BEEN CORRECTED IN THE ORIGINAL DATASET. WE KEEP IT HERE FOR REFERENCE.
-soildata[
-  dataset_id == "ctb0607" & observacao_id == "PERFIL-92",
-  carbono := ifelse(carbono == 413, 41.3, carbono)
-]
-
-# THIS HAS ALREADY BEEN CORRECTED IN THE ORIGINAL DATASET. WE KEEP IT HERE FOR REFERENCE.
-# ctb0718-51. carbon is recorded as 145 g/kg. It is corrected to 14.5 g/kg.
-soildata[
-  dataset_id == "ctb0718" & observacao_id == "51",
-  carbono := ifelse(carbono == 145, 14.5, carbono)
-]
-
-# FIGURE 15.1
-# Check spatial distribution after cleaning layers
+# FIGURE 16.1 ##################################################################
+# Check spatial distribution after cleaning events
 soildata_sf <- soildata[!is.na(coord_x) & !is.na(coord_y)]
-soildata_sf <- sf::st_as_sf(soildata_sf, coords = c("coord_x", "coord_y"), crs = 4326)
+soildata_sf <- sf::st_as_sf(
+  soildata_sf,
+  coords = c("coord_x", "coord_y"), crs = 4326
+)
 # Plot spatial distribution
-file_path <- fig_path("151_spatial_distribution_after_cleaning_layers.png")
+file_path <- fig_path("161_spatial_distribution_after_cleaning_events.png")
 png(file_path, width = 480 * 3, height = 480 * 3, res = 72 * 3)
 plot(brazil["code_state"],
   col = "gray95", lwd = 0.5, reset = FALSE,
-  main = "Spatial distribution of SoilData after cleaning layers"
+  main = "Spatial distribution of SoilData after cleaning events"
 )
 plot(soildata_sf["estado_id"], cex = 0.3, add = TRUE, pch = 20)
 dev.off()
 
-# Write data to disk ###############################################################################
+# Write data to disk ###########################################################
 summary_soildata(soildata)
+# SDi2025 ---
+# Layers: 62136
+# Events: 20259
+# Georeference: 16676 (yes) / 3583 (no)
+# Date: 20105 (yes) / 154 (no)
+# Datasets: 271
+# SDi2024 ---
 # Layers: 57077
 # Events: 16824
 # Georeferenced events: 14334
 # Datasets: 255
-data.table::fwrite(soildata, "data/15_soildata.txt", sep = "\t")
+data.table::fwrite(soildata, "data/16_soildata.txt", sep = "\t")
