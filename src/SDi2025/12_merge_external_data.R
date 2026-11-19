@@ -200,6 +200,16 @@ if (FALSE) {
   # View high-inconsistency records
   View(audit_dt[order(-inconsistency_score)])
 }
+# Keep diagnostic fields through classification and audit, then remove them
+# before merging the accepted IFN records into the integrated dataset.
+quality_fields <- c(
+  "flag_invalid_texture", "flag_soc_inversion", "flag_mad_soc", "flag_mad_bd",
+  "flag_mad_clay", "flag_ptf_bd", "std_ptf_res", "inconsistency_score",
+  "quality_flag"
+)
+ifndata[, (quality_fields) := NULL]
+ifndata_filtered[, (quality_fields) := NULL]
+rm(quality_fields)
 summary_soildata(ifndata_filtered)
 # Layers: 1526
 # Events: 889
