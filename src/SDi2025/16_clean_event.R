@@ -762,17 +762,17 @@ summary_soildata(soildata)
 # Georeferenced events: 14334
 # Datasets: 255
 
+# Manual adjustment of coordinates #############################################
+# This has already been implemented in the source spreadsheets.
 
-
-# Update coordinates (this has already been implemented in the source spreadsheets)
 # MATA ATLÂNTICA
 # ctb0691-15
 # -20.270007, -40.277173
 # mapview::mapview(
 #   sf::st_as_sf(soildata[id == "ctb0691-15", ], coords = c("coord_x", "coord_y"), crs = 4326)
 # )
-# This point is in the airport of Vitoria, ES. We checked Google Maps/Earth and decided to move it
-# to a nearby area.
+# This point is in the airport of Vitoria, ES. We checked Google Maps/Earth and 
+# decided to move it to a nearby area.
 soildata[id == "ctb0691-15", .(id, coord_y, coord_x, coord_fonte)]
 soildata[id == "ctb0691-15", coord_y := -20.270007]
 soildata[id == "ctb0691-15", coord_x := -40.277173]
@@ -853,6 +853,8 @@ soildata[id == "ctb0607-PERFIL-92", coord_y := -10.7552957]
 soildata[id == "ctb0607-PERFIL-92", coord_x := -37.0623882]
 soildata[id == "ctb0607-PERFIL-92", coord_fonte := "Google Maps (curadoria)"]
 soildata[id == "ctb0607-PERFIL-92", .(id, coord_y, coord_x, coord_fonte)]
+
+# Intersection with the Brazilian territory ####################################
 
 # Check intersection with the Brazilian territory 'brazil sf' object
 soildata_sf <- sf::st_as_sf(soildata[!is.na(coord_x) & !is.na(coord_y)],
