@@ -1315,26 +1315,31 @@ soildata[
     profund_inf = profund_inf + (-2)
   )
 ]
-# ctb0045 has many Oo layers with no data for terrafina, argila, carbono...
-# For these profiles, get the minimum profund_inf and subtract it from all depth
-# limits (profund_sup and profund_inf) of all layers of that profile. This will
-# standardize the topsoil layer to start at 0 cm depth.
-soildata[dataset_id == "ctb0045", min_depth := min(profund_inf), by = id]
-soildata[dataset_id == "ctb0045", `:=`(
-  profund_sup = profund_sup - min_depth,
-  profund_inf = profund_inf - min_depth
-)]
-soildata[, min_depth := NULL]
-# ctb0080 has many Oo layers with no data for terrafina, argila, carbono...
-# For these profiles, get the minimum profund_inf and subtract it from all depth
-# limits (profund_sup and profund_inf) of all layers of that profile. This will
-# standardize the topsoil layer to start at 0 cm depth.
-soildata[dataset_id == "ctb0080", min_depth := min(profund_inf), by = id]
-soildata[dataset_id == "ctb0080", `:=`(
-  profund_sup = profund_sup - min_depth,
-  profund_inf = profund_inf - min_depth
-)]
-soildata[, min_depth := NULL]
+# For ctb0045 and ctb0080 profiles with Oo layers, subtract the minimum
+# profund_inf from all layer depths to start the topsoil at 0 cm.
+for (dataset in c("ctb0045", "ctb0080")) {
+  organic_ids <- soildata[
+    dataset_id == dataset & camada_nome == "Oo",
+    unique(id)
+  ]
+  if (length(organic_ids) == 0L) {
+    next
+  }
+  soildata[
+    dataset_id == dataset & id %in% organic_ids,
+    min_depth := min(profund_inf),
+    by = id
+  ]
+  soildata[
+    dataset_id == dataset & id %in% organic_ids,
+    `:=`(
+      profund_sup = profund_sup - min_depth,
+      profund_inf = profund_inf - min_depth
+    )
+  ]
+  soildata[, min_depth := NULL]
+}
+rm(dataset, organic_ids)
 
 # profund_sup == profund_inf ###################################################
 
