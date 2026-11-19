@@ -34,17 +34,22 @@ summary_soildata(soildata)
 # Georeferenced events: 14334
 # Datasets: 255
 
-# Datasets with missing soil classification or not included in the original FEBR repository
-# The following datasets do not have soil classification information (taxon_sibcs) in the current
-# soildata or were not included in the old FEBR repository (e.g., ctb0061, ctb0062).
-# Thus, we will not try to update the soil classification information for these datasets.
+# Datasets with missing soil classification ####################################
+# The following datasets do not have soil classification information
+# (taxon_sibcs) in the current soildata or were not included in the old FEBR
+# repository (e.g., ctb0061, ctb0062). Thus, we will not try to update the soil
+# classification information for these datasets.
 no_taxon <- c(
-  "ctb0035", "ctb0053", "ctb0055", "ctb0059", "ctb0024", "ctb0040",
-  "ctb0049", "ctb0056", "ctb0057", "ctb0058", "ctb0060", "ctb0061", "ctb0062", "ctb0063"
+  "ctb0035", "ctb0053", "ctb0055", "ctb0059", "ctb0024", "ctb0040", "ctb0044",
+  "ctb0049", 
+  "ctb0056", "ctb0057", "ctb0058", "ctb0060", "ctb0061", "ctb0062", "ctb0063",
+  "ctb0092", "ctb0093", "ctb0103"
 )
+
 # Check which of the remaining datasets are missing soil classification
 # We will try to update only these datasets
-missing_taxon <- soildata[!(dataset_id %in% no_taxon) & taxon_sibcs == "" | is.na(taxon_sibcs),
+missing_taxon <- soildata[
+  !(dataset_id %in% no_taxon) & taxon_sibcs == "" | is.na(taxon_sibcs), 
   .N,
   by = dataset_id
 ][order(-N)]
@@ -52,10 +57,12 @@ missing_taxon <- soildata[!(dataset_id %in% no_taxon) & taxon_sibcs == "" | is.n
 missing_taxon <- missing_taxon[N > 50]
 print(missing_taxon)
 
-# Download data from the FEBR repository
+# Download data from the FEBR repository #######################################
 # Check if the file already exists to avoid re-downloading
 if (!file.exists("data/febr_taxon_data.rds")) {
-  taxon_data <- febr::observation(missing_taxon$dataset_id, c("taxon", "sibcs"))
+  taxon_data <- febr::observation(
+    missing_taxon$dataset_id, c("taxon", "sibcs")
+  )
   taxon_data <- data.table::rbindlist(taxon_data, use.names = TRUE, fill = TRUE)
   saveRDS(taxon_data, "data/febr_taxon_data.rds")
 } else {
@@ -64,8 +71,8 @@ if (!file.exists("data/febr_taxon_data.rds")) {
 colnames(taxon_data)
 
 # Select relevant columns with soil classification
-# Various columns have soil classification information. We will select the most relevant ones in the
-# following order:
+# Various columns have soil classification information. We will select the most 
+# relevant ones in the following order:
 # 1. sibcs_2013
 # 2. sibcs_2006
 # 3. taxon_sibcs_200X
@@ -80,7 +87,9 @@ colnames(taxon_data)
 get_col <- function(dt, col) {
   if (col %in% names(dt)) dt[[col]] else rep(NA_character_, nrow(dt))
 }
-taxon_data[, taxon_sibcs := fifelse(!is.na(get_col(.SD, "sibcs_2013")), get_col(.SD, "sibcs_2013"),
+taxon_data[
+  ,
+  taxon_sibcs := fifelse(!is.na(get_col(.SD, "sibcs_2013")), get_col(.SD, "sibcs_2013"), 
   fifelse(!is.na(get_col(.SD, "sibcs_2006")), get_col(.SD, "sibcs_2006"),
     fifelse(!is.na(get_col(.SD, "taxon_sibcs_200X")), get_col(.SD, "taxon_sibcs_200X"),
       fifelse(!is.na(get_col(.SD, "taxon_sibcs_200x")), get_col(.SD, "taxon_sibcs_200x"),
@@ -300,94 +309,78 @@ soildata[taxon_sibcs == "Hapl", taxon_sibcs := NA_character_]
 # Print strings with max length smaller than 5 characters
 soildata[nchar(taxon_sibcs) < 5 & taxon_sibcs != "", taxon_sibcs]
 # RQo -> Neossolo Quartzarênico
-soildata[, taxon_sibcs := gsub("RQo", "Neossolo Quartzarênico", taxon_sibcs,
+soildata[
+  ,
+  taxon_sibcs := gsub("RQo", "Neossolo Quartzarênico", taxon_sibcs, 
   ignore.case = TRUE
 )]
 # LVa -> Latossolo Vermelho Amarelo
-soildata[, taxon_sibcs := gsub("LVa ", "Latossolo Vermelho Amarelo", taxon_sibcs,
+soildata[
+  ,
+  taxon_sibcs := gsub("LVa ", "Latossolo Vermelho Amarelo", taxon_sibcs, 
   ignore.case = TRUE
 )]
 # Pva -> Podzólico Vermelho Amarelo
-soildata[, taxon_sibcs := gsub("Pva ", "Podzólico Vermelho Amarelo", taxon_sibcs,
+soildata[
+  ,
+  taxon_sibcs := gsub("Pva ", "Podzólico Vermelho Amarelo", taxon_sibcs, 
   ignore.case = TRUE
 )]
 # PVe -> Podzólico Vermelho Escuro
-soildata[, taxon_sibcs := gsub("PVe ", "Podzólico Vermelho Escuro", taxon_sibcs,
+soildata[
+  ,
+  taxon_sibcs := gsub("PVe ", "Podzólico Vermelho Escuro", taxon_sibcs, 
   ignore.case = TRUE
 )]
 # LBRa -> Latossolo Bruno
-soildata[, taxon_sibcs := gsub("LBRa ", "Latossolo Bruno", taxon_sibcs,
+soildata[
+  ,
+  taxon_sibcs := gsub("LBRa ", "Latossolo Bruno", taxon_sibcs, 
   ignore.case = TRUE
 )]
 # LRd -> Latossolo Roxo distrófico
-soildata[, taxon_sibcs := gsub("LRd ", "Latossolo Roxo distrófico", taxon_sibcs,
+soildata[
+  ,
+  taxon_sibcs := gsub("LRd ", "Latossolo Roxo distrófico", taxon_sibcs, 
   ignore.case = TRUE
 )]
 # LRa -> Latossolo Roxo álico
-soildata[, taxon_sibcs := gsub("LRa ", "Latossolo Roxo álico", taxon_sibcs,
+soildata[
+  ,
+  taxon_sibcs := gsub("LRa ", "Latossolo Roxo álico", taxon_sibcs, 
   ignore.case = TRUE
 )]
 # TBRa -> Terra Bruna álica
-soildata[, taxon_sibcs := gsub("TBRa ", "Terra Bruna álica", taxon_sibcs,
+soildata[
+  ,
+  taxon_sibcs := gsub("TBRa ", "Terra Bruna álica", taxon_sibcs, 
   ignore.case = TRUE
 )]
 # TRe -> Terra Roxa estruturada
-soildata[, taxon_sibcs := gsub("TRe ", "Terra Roxa estruturada", taxon_sibcs,
+soildata[
+  ,
+  taxon_sibcs := gsub("TRe ", "Terra Roxa estruturada", taxon_sibcs, 
   ignore.case = TRUE
 )]
 
 # Check if the taxon_sibcs was updated
 # How does it compare to the previous missing_taxon?
 print(missing_taxon)
-soildata[dataset_id %in% missing_taxon$dataset_id & taxon_sibcs == "" | is.na(taxon_sibcs),
+soildata[dataset_id %in% missing_taxon$dataset_id &
+  taxon_sibcs == "" | is.na(taxon_sibcs), 
   .N,
   by = dataset_id
 ][order(-N)]
 
-# tmp: For Wenceslau Geraldes Teixeira (Embrapa Solos)
-if (FALSE) {
-  # Remove all records for well drained soils based on soil classification
-  # Drop soildata records with "VERMELHO" in taxon_sibcs
-  drop <- paste0("VERMELHO|VERMELHA|VEMELHO|vermelha")
-  wenceslau <- soildata[!grepl(drop, taxon_sibcs, ignore.case = TRUE)]
-  # Drop soildata records with "Amarelo" in taxon_sibcs
-  wenceslau <- wenceslau[!grepl("AMARELO|AMARELA", taxon_sibcs, ignore.case = TRUE)]
-  # Drop soildata records with "CRÔMICO" in taxon_sibcs
-  wenceslau <- wenceslau[!grepl("CRÔMICO|CROMICO|CROMADO", taxon_sibcs, ignore.case = TRUE)]
-  # Drop soildata records with "BRUNO-ACINZENTADO" in taxon_sibcs
-  wenceslau <- wenceslau[!grepl("BRUNO-ACINZENTADO|Brunos", taxon_sibcs, ignore.case = TRUE)]
-  # Drop soildata records with "EBÂNICO" in taxon_sibcs
-  wenceslau <- wenceslau[!grepl("EBÂNICO|EBANICO", taxon_sibcs, ignore.case = TRUE)]
-  # Drop soildata records with "LATOSSOLO" in taxon_sibcs
-  wenceslau <- wenceslau[!grepl("LATOSSOLO|LATOSOL|latoss|Oxic", taxon_sibcs, ignore.case = TRUE)]
-  # Drop soildata records with "Nitossolo" in taxon_sibcs
-  wenceslau <- wenceslau[!grepl("NITOSSOLO|NITOSOL|Terra roxa", taxon_sibcs, ignore.case = TRUE)]
-  # Drop soildata records with "Terra Bruna" in taxon_sibcs
-  wenceslau <- wenceslau[!grepl("TERRA BRUNA|BRUNOS", taxon_sibcs, ignore.case = TRUE)]
-  # Drop soildata records with "ORGÂNICO" in taxon_sibcs
-  wenceslau <- wenceslau[!grepl("ORGÂNICO|ORGANOSSOLO", taxon_sibcs, ignore.case = TRUE)]
-  # Drop soildata records with "LITÓLICO" in taxon_sibcs
-  wenceslau <- wenceslau[!grepl("LITÓLICO|LITOLICO|LITOSOL", taxon_sibcs, ignore.case = TRUE)]
-  # Drop soildata records with "REGOLITICO" in taxon_sibcs
-  drop <- paste0("REGOLÍTICO|REGOLITICO|RIGOLÍTICO")
-  wenceslau <- wenceslau[!grepl(drop, taxon_sibcs, ignore.case = TRUE)]
-  # Drop soildata records with "QUARTZARÊNICO" in taxon_sibcs
-  drop <- paste0("QUARTZARÊNICO|QUARTZARENICO|QUARTZOSA|QUARTZARÊNICÓ|QUARTSOZA")
-  wenceslau <- wenceslau[!grepl(drop, taxon_sibcs, ignore.case = TRUE)]
-  # Drop soildata records with "CHERNOSSOLO" in taxon_sibcs
-  wenceslau <- wenceslau[!grepl("CHERNOSSOLO", taxon_sibcs, ignore.case = TRUE)]
-  # Drop soildata records with "CAMBISSOLO" in taxon_sibcs
-  wenceslau <- wenceslau[!grepl("CAMBISSOLO|CAMBISOL", taxon_sibcs, ignore.case = TRUE)]
-  # Drop soildata records with "PÉTRICO" in taxon_sibcs
-  drop <- paste0("PÉTRICO|PETRICO|Laterítico|Concrecionário")
-  wenceslau <- wenceslau[!grepl(drop, taxon_sibcs, ignore.case = TRUE)]
-  wenceslau[, sample(unique(taxon_sibcs))]
-  # write to disk
-  data.table::fwrite(wenceslau, "data/15_soildata_wenceslau.txt", sep = "\t")
-}
-
-# Write data to disk ###############################################################################
+# Write data to disk ###########################################################
 summary_soildata(soildata)
+# SDi2025 ---
+# Layers: 62136
+# Events: 20259
+# Georeference: 16676 (yes) / 3583 (no)
+# Date: 20105 (yes) / 154 (no)
+# Datasets: 271
+# SDi2024 ---
 # Layers: 57077
 # Events: 16824
 # Georeferenced events: 14334
