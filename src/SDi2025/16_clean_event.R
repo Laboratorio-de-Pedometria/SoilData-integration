@@ -51,41 +51,56 @@ soildata[
 soildata[dataset_id == "ctb0023" & is.na(data_ano), data_ano := 1978]
 
 
+
+# Unique events ################################################################
 # Get unique events
-soildata_events <- soildata[!is.na(coord_x) & !is.na(coord_y) & !is.na(data_ano), id[1],
+soildata_events <- soildata[
+  !is.na(coord_x) & !is.na(coord_y) & !is.na(data_ano), id[1],
   by = c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
 ]
 nrow(soildata_events)
-# 13255 events
+# 16703 events
+
+# Duplicated events ############################################################
 # Identify duplicated events
 # Duplicated events have equal spatial and temporal coordinates.
 # Make sure to analise events with complete spatial and temporal coordinates.
 # For every duplicate, identify and show the copy.
 soildata_events[
-  ,
-  duplicated := duplicated(paste0(observacao_id, coord_x, coord_y, data_ano)) |
+  !is.na(coord_x) & !is.na(coord_y) & !is.na(data_ano),
+  duplicated := duplicated(paste0(coord_x, coord_y, data_ano)) |
     duplicated(paste0(coord_x, coord_y, data_ano), fromLast = TRUE)
 ]
-cols <- c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
-# View(soildata_events[duplicated == TRUE, ])
-
-# ctb0010
-# Identify duplicated events in ctb0010 dataset
-# dataset_titulo = Conjunto de dados da dissertação 'Substâncias húmicas em solos de diferentes
-# feições geomorfológicas no rebordo do planalto do Rio Grande do Sul'.
-# This dataset (Fábio Menezes, UFSM) contains many events with the same coordinates. However, this
-# is not entirely a mistake. The events were sampled in a transect with points very close to each
-# other and the author simply recorded the same coordinates for all points in the transect.
-idx_duplicated <- soildata_events[dataset_id == "ctb0010" & duplicated == TRUE, V1]
+print(soildata_events[, .N, by = duplicated])
+#    duplicated     N
+#        <lgcl> <int>
+# 1:      FALSE 16352
+# 2:       TRUE   351
+if (FALSE) {
+  View(soildata_events[duplicated == TRUE, ])
+}
+# ctb0010. Dados de 'Substâncias húmicas em solos de diferentes feições
+# geomorfológicas no rebordo do planalto do Rio Grande do Sul'
+# This dataset (Fábio Menezes, UFSM) contains many events with the same
+# coordinates. However, this is not entirely a mistake. The events were sampled
+# in a transect with points very close to each other and the author simply
+# recorded the same coordinates for all points in the transect.
+idx_duplicated <- soildata_events[
+  dataset_id == "ctb0010" & duplicated == TRUE, V1
+]
 # Create a spatial object for ctb0010 dataset
 ctb0010_sf <- sf::st_as_sf(soildata[id %in% idx_duplicated],
   coords = c("coord_x", "coord_y"), crs = 4326
 )
-# mapview::mapview(ctb0010_sf)  # Check points in an interactive map
+if (FALSE) {
+  # Check points in an interactive map
+  mapview::mapview(ctb0010_sf)
+}
 # Transform to UTM
 ctb0010_sf <- sf::st_transform(ctb0010_sf, crs = 32720)
-# Jitter coordinates by 1 meter to separate overlapping points and pass the duplication test. But
-# we should check the source document and update the coordinates if possible in the source data.
+# Jitter coordinates by 1 meter to separate overlapping points and pass the
+# duplication test. But we should check the source document and update the 
+# coordinates if possible in the source data.
 amount <- 1
 set.seed(1984) # For reproducibility
 ctb0010_sf <- sf::st_jitter(ctb0010_sf, amount = amount)
@@ -104,42 +119,33 @@ soildata[id %in% idx_duplicated, `:=`(
   # In coord_fonte, append " + amount m jitter" to the existing text.
   coord_fonte = paste0(coord_fonte, " + ", amount, " m jitter"),
   # In coord_precisao, add 'amount' to the existing value if it a number larger than 0.
-  coord_precisao = ifelse(coord_precisao > 0, coord_precisao + amount, coord_precisao)
+  coord_precisao = ifelse(coord_precisao > 0, as.numeric(coord_precisao) + amount, coord_precisao)
 )]
 rm(ctb0010_sf, idx_duplicated, amount)
 
-# Get unique events
-soildata_events <- soildata[!is.na(coord_x) & !is.na(coord_y) & !is.na(data_ano), id[1],
-  by = c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
+# ctb0029. "Carbono e matéria orgânica em amostras do solo do Estado do Rio
+# Grande do Sul por diferentes métodos de determinação"
+# This dataset (Alessandro Rosa, UFSM) reuses data from other datasets. Also,
+# some events from some datasets were recorded with the same coordinates just
+# for being very close to each other. We need to check these events in the
+# source document and update the coordinates if possible in the source data.
+idx_duplicated <- soildata_events[
+  dataset_id == "ctb0029" & duplicated == TRUE, V1
 ]
-soildata_events[
-  ,
-  duplicated := duplicated(paste0(observacao_id, coord_x, coord_y, data_ano)) |
-    duplicated(paste0(coord_x, coord_y, data_ano), fromLast = TRUE)
-]
-cols <- c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
-# View(soildata_events[duplicated == TRUE, ])
-
-# ctb0029 (need to check this events in the source data)
-# Identify duplicated events in ctb0029 dataset
-# dataset_titulo = "Carbono e matéria orgânica em amostras do solo do Estado do Rio Grande do Sul por
-# diferentes métodos de determinação"
-# This dataset (Alessandro Rosa, UFSM) reuses data from other datasets. Also, some events from some
-# datasets were recorded with the same coordinates just for being very close to each other. We need
-# to check these events in the source document and update the coordinates if possible in the source
-# data.
-idx_duplicated <- soildata_events[dataset_id == "ctb0029" & duplicated == TRUE, V1]
 # Create a spatial object for ctb0029 dataset
 ctb0029_sf <- sf::st_as_sf(soildata[id %in% idx_duplicated],
   coords = c("coord_x", "coord_y"), crs = 4326
 )
-# mapview::mapview(ctb0029_sf)  # Check points in an interactive map
+if (FALSE) {
+  # Check points in an interactive map
+  mapview::mapview(ctb0029_sf)
+}
 # Transform to UTM
 ctb0029_sf <- sf::st_transform(ctb0029_sf, crs = 32720)
 # Jitter coordinates
-# We jitter the coordinates by 1 meter to separate overlapping points and pass the duplication
-# test. But we should check the source document and update the coordinates if possible in the
-# source data.
+# We jitter the coordinates by 1 meter to separate overlapping points and pass 
+# the duplication test. But we should check the source document and update the
+# coordinates if possible in the source data.
 amount <- 1
 set.seed(1984) # For reproducibility
 ctb0029_sf <- sf::st_jitter(ctb0029_sf, amount = amount)
@@ -158,42 +164,42 @@ soildata[id %in% idx_duplicated, `:=`(
   # In coord_fonte, append " + amount m jitter" to the existing text.
   coord_fonte = paste0(coord_fonte, " + ", amount, " m jitter"),
   # In coord_precisao, add 'amount' to the existing value if it a number larger than 0.
-  coord_precisao = ifelse(coord_precisao > 0, coord_precisao + amount, coord_precisao)
+  coord_precisao = ifelse(coord_precisao > 0, as.numeric(coord_precisao) + amount, coord_precisao)
 )]
 rm(ctb0029_sf, idx_duplicated, amount)
 
-# Events located in urban areas. Delete coordinates. We need to check these events in the
-# source data in the future.
-ctb0029_ids <- c(99, 26, 66, 67, 24, 44, 105, 51, 62)
-soildata[dataset_id == "ctb0029" & observacao_id %in% ctb0029_ids, `:=`(
-  coord_x = NA_real_,
-  coord_y = NA_real_,
-  coord_precisao = NA_real_,
-  coord_fonte = NA_character_,
-  coord_datum = NA_character_
-)]
-rm(ctb0029_ids)
+# DEPRECATED
+# # Events located in urban areas. Delete coordinates. We need to check these
+# # events in the source data in the future.
+# ctb0029_ids <- c(99, 26, 66, 67, 24, 44, 105, 51, 62)
+# soildata[dataset_id == "ctb0029" & observacao_id %in% ctb0029_ids, `:=`(
+#   coord_x = NA_real_,
+#   coord_y = NA_real_,
+#   coord_precisao = NA_real_,
+#   coord_fonte = NA_character_,
+#   coord_datum = NA_character_
+# )]
+# rm(ctb0029_ids)
 
-# Get unique events
-soildata_events <- soildata[!is.na(coord_x) & !is.na(coord_y) & !is.na(data_ano), id[1],
-  by = c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
+# ctb0033
+# We did not expect duplicated events in this dataset anymore. Need to check
+# this events in the source data.
+idx_duplicated <- soildata_events[
+  dataset_id == "ctb0033" & duplicated == TRUE, V1
 ]
-soildata_events[
-  ,
-  duplicated := duplicated(paste0(observacao_id, coord_x, coord_y, data_ano)) |
-    duplicated(paste0(coord_x, coord_y, data_ano), fromLast = TRUE)
-]
-cols <- c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
-# View(soildata_events[duplicated == TRUE, ])
-
-# ctb0033 (need to check this events in the source data)
-# Identify duplicated events in ctb0033 dataset. We did not expect duplicated events in this
-# dataset anymore.
-idx_duplicated <- soildata_events[dataset_id == "ctb0033" & duplicated == TRUE, V1]
 # Create a spatial object for ctb0033 dataset
+
+soildata[id %in% idx_duplicated, .(
+  dataset_id, observacao_id, coord_x, coord_y, data_ano
+)]
+
 ctb0033_sf <- sf::st_as_sf(soildata[id %in% idx_duplicated],
   coords = c("coord_x", "coord_y"), crs = 4326
 )
+if (FALSE) {
+  # Check points in an interactive map
+  mapview::mapview(ctb0033_sf)
+}
 # Transform to UTM
 ctb0033_sf <- sf::st_transform(ctb0033_sf, crs = 32720)
 # Jitter coordinates by 1 meter to separate overlapping points and pass the duplication test. But
