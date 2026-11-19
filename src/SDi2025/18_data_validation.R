@@ -67,11 +67,9 @@ soildata <- soildata_current[, -c(
 # Rename columns ###############################################################
 # data_ano_fonte -> data_fonte
 setnames(soildata, "data_ano_fonte", "data_fonte")
-# dsi -> densidade
-setnames(soildata, "dsi", "densidade")
 # Check columns names
 paste(colnames(soildata), collapse = ", ")
-# dataset_id, observacao_id, dataset_titulo, dataset_licenca, sisb_id, ibge_id, coord_x, coord_y, coord_precisao, coord_fonte, pais_id, estado_id, municipio_id, amostra_tipo, amostra_quanti, amostra_area, taxon_sibcs, taxon_st, taxon_wrb, camada_id, amostra_id, camada_nome, profund_sup, profund_inf, terrafina, argila, silte, areia, carbono, ctc, ph, densidade, ce, data_ano, data_ano_fonte, coord_datum, pedregosidade, rochosidade, terrafina_fonte, esqueleto, dtp_fonte
+# dataset_id, observacao_id, dataset_titulo, dataset_licenca, sisb_id, ibge_id, coord_x, coord_y, coord_precisao, coord_fonte, pais_id, estado_id, municipio_id, amostra_tipo, amostra_quanti, amostra_area, taxon_sibcs, taxon_st, taxon_wrb, camada_id, amostra_id, camada_nome, profund_sup, profund_inf, terrafina, argila, silte, areia, carbono, ctc, ph, dsi, ce, data_ano, data_ano_fonte, coord_datum, pedregosidade, rochosidade, terrafina_fonte, esqueleto, dtp_fonte
 if (FALSE) {
   View(soildata)
 }
@@ -256,19 +254,19 @@ soildata[, .N, by = .(data_ano)][order(data_ano)]
 dsi_min <- 0.5
 dsi_min_taxon <- "Organossolo|Húmico|ORGÂNICO|Hístico"
 dsi_min_layer <- "O|H|Bw"
-# Check if the minimum densidade is greater than or equal to 0.5
-min(soildata$densidade, na.rm = TRUE) >= dsi_min
-# Check for densidade values less than 0.5 and not in "Organossolo|Húmico" soils or in "O|H" layers
+# Check if the minimum dsi is greater than or equal to 0.5
+min(soildata$dsi, na.rm = TRUE) >= dsi_min
+# Check for dsi values less than 0.5 and not in "Organossolo|Húmico" soils or in "O|H" layers
 soildata[
-  densidade < dsi_min & !grepl(dsi_min_taxon, taxon_sibcs, ignore.case = TRUE) &
+  dsi < dsi_min & !grepl(dsi_min_taxon, taxon_sibcs, ignore.case = TRUE) &
   !grepl(dsi_min_layer, camada_nome, ignore.case = TRUE),
-  .(taxon_sibcs, camada_nome, densidade, ctc, carbono, dataset_id, observacao_id)
+  .(taxon_sibcs, camada_nome, dsi, ctc, carbono, dataset_id, observacao_id)
 ]
-# Set those densidade values to NA: we cannot find justification for such low values
+# Set those dsi values to NA: we cannot find justification for such low values
 soildata[
-  densidade < dsi_min & !grepl(dsi_min_taxon, taxon_sibcs, ignore.case = TRUE) &
+  dsi < dsi_min & !grepl(dsi_min_taxon, taxon_sibcs, ignore.case = TRUE) &
   !grepl(dsi_min_layer, camada_nome, ignore.case = TRUE),
-  densidade := NA_real_
+  dsi := NA_real_
 ]
 
 # Maximum soil density #########################################################
@@ -276,12 +274,12 @@ dsi_max <- 2L
 dsi_max_taxon <- "VERTISSOLO|vértico|FLÚVICO"
 dsi_max_layer <- "v|t|Cg|Cn"
 # Check if the maximum dsi is less than or equal to 2
-max(soildata$densidade, na.rm = TRUE) <= dsi_max
-# Check for densidade values greater than 2 and not in "VERTISSOLO" soils or in "v|t" layers
+max(soildata$dsi, na.rm = TRUE) <= dsi_max
+# Check for dsi values greater than 2 and not in "VERTISSOLO" soils or in "v|t" layers
 soildata[
-  densidade > dsi_max & !grepl(dsi_max_taxon, taxon_sibcs, ignore.case = TRUE) &
+  dsi > dsi_max & !grepl(dsi_max_taxon, taxon_sibcs, ignore.case = TRUE) &
   !grepl(dsi_max_layer, camada_nome, ignore.case = TRUE),
-  .(taxon_sibcs, camada_nome, densidade, areia, carbono, dataset_id, observacao_id)
+  .(taxon_sibcs, camada_nome, dsi, areia, carbono, dataset_id, observacao_id)
 ]
 # The values appear to be correct, so we will not change them.
 
