@@ -1377,6 +1377,7 @@ soildata[
   equal_depth == TRUE & profund_sup == 0 & profund_inf == 0,
   .(id, camada_nome, profund_sup, profund_inf)
 ]
+soildata[, equal_depth := NULL]
 # ctb0617-Extra-28: Depths were not recorded in the source document, but 
 # erroneously recorded as 0 in the source spreadsheet. This was corrected in the
 # source spreadsheet. We set the depth limits to NA. This was already corrected 
