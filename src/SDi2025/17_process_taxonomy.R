@@ -377,7 +377,7 @@ summary_soildata(soildata)
 # SDi2025 ---
 # Layers: 62136
 # Events: 20259
-# Georeference: 16676 (yes) / 3583 (no)
+# Georeference: 16675 (yes) / 3584 (no)
 # Date: 20105 (yes) / 154 (no)
 # Datasets: 271
 # SDi2024 ---
