@@ -31,6 +31,11 @@ summary_soildata(soildata)
 # Date: 20148 (yes) / 159 (no)
 # Datasets: 271
 
+# Set variable classes #########################################################
+# Set the class of coord_precisao to numeric
+soildata[, .N, by = coord_precisao]
+soildata[, coord_precisao := as.numeric(coord_precisao)]
+
 # Correct date #################################################################
 # ctb0585-Perfil-9. There is a typo in the spreadsheet). We checked the original
 # document.
@@ -50,22 +55,19 @@ soildata[
 ]
 soildata[dataset_id == "ctb0023" & is.na(data_ano), data_ano := 1978]
 
-
-
 # Unique events ################################################################
-# Get unique events
+# Get unique events not missing spatial and temporal coordinates 
 soildata_events <- soildata[
   !is.na(coord_x) & !is.na(coord_y) & !is.na(data_ano), id[1],
   by = c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
 ]
 nrow(soildata_events)
-# 16703 events
+# 16706 events
 
 # Duplicated events ############################################################
-# Identify duplicated events
-# Duplicated events have equal spatial and temporal coordinates.
-# Make sure to analise events with complete spatial and temporal coordinates.
-# For every duplicate, identify and show the copy.
+# Identify duplicated events. Duplicated events have equal spatial and temporal
+# coordinates. Make sure to analise events with complete spatial and temporal 
+# coordinates. For every duplicate, identify and show the copy.
 soildata_events[
   !is.na(coord_x) & !is.na(coord_y) & !is.na(data_ano),
   duplicated := duplicated(paste0(coord_x, coord_y, data_ano)) |
@@ -74,54 +76,49 @@ soildata_events[
 print(soildata_events[, .N, by = duplicated])
 #    duplicated     N
 #        <lgcl> <int>
-# 1:      FALSE 16352
+# 1:      FALSE 16355
 # 2:       TRUE   351
 if (FALSE) {
   View(soildata_events[duplicated == TRUE, ])
 }
-# ctb0010. Dados de 'Substâncias húmicas em solos de diferentes feições
-# geomorfológicas no rebordo do planalto do Rio Grande do Sul'
-# This dataset (Fábio Menezes, UFSM) contains many events with the same
-# coordinates. However, this is not entirely a mistake. The events were sampled
-# in a transect with points very close to each other and the author simply
-# recorded the same coordinates for all points in the transect.
+# Counts per dataset_id
+print(soildata_events[duplicated == TRUE, .N, by = dataset_id][order(-N)])
+#     dataset_id     N
+#         <char> <int>
+#  1:    ctb0702    44
+#  2:    ctb0829    44
+#  3:    ctb0029    43
+#  4:    ctb0607    22
+#  5:    ctb0631    20
+#  6:    ctb0010    18
+#  7:    ctb0832    15
+#  8:    ctb0572    14
+#  9:    ctb0585    13
+# 10:    ctb0683    11
+# 11:    ctb0033    10
+# 12:    ctb0617    10
+
+# ctb0702. Dados do 'PROJETO DE GESTÃO AMBIENTAL INTEGRADO DO ESTADO DO AMAZONAS'
+# It appears that all of the duplicated events in ctb0702 are copies from events
+# in ctb0829. Levantamento de reconhecimento dos solos da região sul-sudeste do
+# Estado do Amazonas-IPAAM. We need to check these events in the source
+# documents. Here, we simply remove the duplicated events in ctb0702 and keep
+# the events in ctb0829.
+# Identify duplicated events in ctb0702 dataset
 idx_duplicated <- soildata_events[
-  dataset_id == "ctb0010" & duplicated == TRUE, V1
+  dataset_id == "ctb0702" & duplicated == TRUE, V1
 ]
-# Create a spatial object for ctb0010 dataset
-ctb0010_sf <- sf::st_as_sf(soildata[id %in% idx_duplicated],
-  coords = c("coord_x", "coord_y"), crs = 4326
-)
-if (FALSE) {
-  # Check points in an interactive map
-  mapview::mapview(ctb0010_sf)
-}
-# Transform to UTM
-ctb0010_sf <- sf::st_transform(ctb0010_sf, crs = 32720)
-# Jitter coordinates by 1 meter to separate overlapping points and pass the
-# duplication test. But we should check the source document and update the 
-# coordinates if possible in the source data.
-amount <- 1
-set.seed(1984) # For reproducibility
-ctb0010_sf <- sf::st_jitter(ctb0010_sf, amount = amount)
-# Transform back to WGS84
-ctb0010_sf <- sf::st_transform(ctb0010_sf, crs = 4326)
-# Extract coordinates from the spatial object
-ctb0010_sf <- data.table(
-  observacao_id = ctb0010_sf$observacao_id,
-  coord_x = sf::st_coordinates(ctb0010_sf)[, "X"],
-  coord_y = sf::st_coordinates(ctb0010_sf)[, "Y"]
-)
-# Update coordinates in soildata
-soildata[id %in% idx_duplicated, `:=`(
-  coord_x = ctb0010_sf[, coord_x],
-  coord_y = ctb0010_sf[, coord_y],
-  # In coord_fonte, append " + amount m jitter" to the existing text.
-  coord_fonte = paste0(coord_fonte, " + ", amount, " m jitter"),
-  # In coord_precisao, add 'amount' to the existing value if it a number larger than 0.
-  coord_precisao = ifelse(coord_precisao > 0, as.numeric(coord_precisao) + amount, coord_precisao)
-)]
-rm(ctb0010_sf, idx_duplicated, amount)
+# Remove duplicated events in ctb0702
+soildata <- soildata[!(id %in% idx_duplicated & dataset_id == "ctb0702")]
+rm(idx_duplicated)
+# Check data
+summary_soildata(soildata)
+# SDi2025 ---
+# Layers: 62158
+# Events: 20263
+# Georeference: 16680 (yes) / 3583 (no)
+# Date: 20109 (yes) / 154 (no)
+# Datasets: 271
 
 # ctb0029. "Carbono e matéria orgânica em amostras do solo do Estado do Rio
 # Grande do Sul por diferentes métodos de determinação"
@@ -164,7 +161,7 @@ soildata[id %in% idx_duplicated, `:=`(
   # In coord_fonte, append " + amount m jitter" to the existing text.
   coord_fonte = paste0(coord_fonte, " + ", amount, " m jitter"),
   # In coord_precisao, add 'amount' to the existing value if it a number larger than 0.
-  coord_precisao = ifelse(coord_precisao > 0, as.numeric(coord_precisao) + amount, coord_precisao)
+  coord_precisao = ifelse(coord_precisao > 0, coord_precisao + amount, coord_precisao)
 )]
 rm(ctb0029_sf, idx_duplicated, amount)
 
@@ -181,96 +178,16 @@ rm(ctb0029_sf, idx_duplicated, amount)
 # )]
 # rm(ctb0029_ids)
 
-# ctb0033
-# We did not expect duplicated events in this dataset anymore. Need to check
-# this events in the source data.
-idx_duplicated <- soildata_events[
-  dataset_id == "ctb0033" & duplicated == TRUE, V1
-]
-# Create a spatial object for ctb0033 dataset
-
-soildata[id %in% idx_duplicated, .(
-  dataset_id, observacao_id, coord_x, coord_y, data_ano
-)]
-
-ctb0033_sf <- sf::st_as_sf(soildata[id %in% idx_duplicated],
-  coords = c("coord_x", "coord_y"), crs = 4326
-)
-if (FALSE) {
-  # Check points in an interactive map
-  mapview::mapview(ctb0033_sf)
-}
-# Transform to UTM
-ctb0033_sf <- sf::st_transform(ctb0033_sf, crs = 32720)
-# Jitter coordinates by 1 meter to separate overlapping points and pass the duplication test. But
-# we should check the source document and update the coordinates if possible in the source data.
-amount <- 1
-set.seed(1984) # For reproducibility
-ctb0033_sf <- sf::st_jitter(ctb0033_sf, amount = amount)
-# Transform back to WGS84
-ctb0033_sf <- sf::st_transform(ctb0033_sf, crs = 4326)
-# Extract coordinates from the spatial object.
-ctb0033_sf <- data.table(
-  observacao_id = ctb0033_sf$observacao_id,
-  coord_x = sf::st_coordinates(ctb0033_sf)[, "X"],
-  coord_y = sf::st_coordinates(ctb0033_sf)[, "Y"]
-)
-# Update coordinates in soildata
-soildata[id %in% idx_duplicated, `:=`(
-  coord_x = ctb0033_sf[, coord_x],
-  coord_y = ctb0033_sf[, coord_y],
-  # In coord_fonte, append " + amount m jitter" to the existing text.
-  coord_fonte = paste0(coord_fonte, " + ", amount, " m jitter"),
-  # In coord_precisao, add 'amount' to the existing value if it a number larger than 0.
-  coord_precisao = ifelse(coord_precisao > 0, coord_precisao + amount, coord_precisao)
-)]
-rm(ctb0033_sf, idx_duplicated)
-
-# Get unique events
-soildata_events <- soildata[!is.na(coord_x) & !is.na(coord_y) & !is.na(data_ano), id[1],
-  by = c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
-]
-soildata_events[
-  ,
-  duplicated := duplicated(paste0(observacao_id, coord_x, coord_y, data_ano)) |
-    duplicated(paste0(coord_x, coord_y, data_ano), fromLast = TRUE)
-]
-cols <- c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
-# View(soildata_events[duplicated == TRUE, ])
-
-# ctb0702 (need to check this events in the source data)
-# dataset_titulo = "Dados do 'PROJETO DE GESTÃO AMBIENTAL INTEGRADO DO ESTADO DO AMAZONAS.'"
-# It appears that all of the duplicated events in ctb0702 are copies from events in ctb0829.
-# dataset_titulo = "Levantamento de reconhecimento dos solos da região sul-sudeste do Estado do
-# Amazonas-IPAAM"
-# We need to check these events in the source documents. Here, we simply remove the duplicated
-# events in ctb0702 and keep the events in ctb0829.
-# Identify duplicated events in ctb0702 dataset
-idx_duplicated <- soildata_events[dataset_id == "ctb0702" & duplicated == TRUE, V1]
-# Remove duplicated events in ctb0702
-soildata <- soildata[!(id %in% idx_duplicated & dataset_id == "ctb0702")]
-rm(idx_duplicated)
-
-# Get unique events
-soildata_events <- soildata[!is.na(coord_x) & !is.na(coord_y) & !is.na(data_ano), id[1],
-  by = c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
-]
-soildata_events[
-  ,
-  duplicated := duplicated(paste0(observacao_id, coord_x, coord_y, data_ano)) |
-    duplicated(paste0(coord_x, coord_y, data_ano), fromLast = TRUE)
-]
-cols <- c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
-# View(soildata_events[duplicated == TRUE, ])
-
-# ctb0607 (need to check this events in the source data)
-# dataset_titulo = "Levantamento de reconhecimento de média intensidade do solos da região dos
-# Tabuleiros Costeiros e da Baixada Litorânea do Estado de Sergipe"
-# Apparently, all of the duplicated events in ctb0607 are unique events in the source data. We
-# need to check these events in the source documents more carefully in the future. Here, we simply
-# jitter the coordinates by a small amount to pass the duplication test.
+# ctb0607. Levantamento de reconhecimento de média intensidade do solos da
+# região dos Tabuleiros Costeiros e da Baixada Litorânea do Estado de Sergipe.
+# Apparently, all of the duplicated events in ctb0607 are unique events in the
+# source data. We need to check these events in the source documents more
+# carefully in the future. Here, we simply jitter the coordinates by a small
+# amount to pass the duplication test.
 # Identify duplicated events in ctb0607 dataset
-idx_duplicated <- soildata_events[dataset_id == "ctb0607" & duplicated == TRUE, V1]
+idx_duplicated <- soildata_events[
+  dataset_id == "ctb0607" & duplicated == TRUE, V1
+]
 # Create a spatial object for ctb0607 dataset
 ctb0607_sf <- sf::st_as_sf(soildata[id %in% idx_duplicated],
   coords = c("coord_x", "coord_y"), crs = 4326
@@ -304,140 +221,22 @@ soildata[id %in% idx_duplicated, `:=`(
 )]
 rm(ctb0607_sf, idx_duplicated)
 
-# Get unique events
-soildata_events <- soildata[!is.na(coord_x) & !is.na(coord_y) & !is.na(data_ano), id[1],
-  by = c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
+# ctb0631. Levantamento de reconhecimento dos solos do Estado do Paraná - Tomos
+# I e II. It is not clear why there are duplicated events in this dataset. We
+# need to check these events in the source documents more carefully in the
+# future. Here, we simply jitter the coordinates by a amount small amount to
+# pass the duplication test.
+idx_duplicated <- soildata_events[
+  dataset_id == "ctb0631" & duplicated == TRUE, V1
 ]
-soildata_events[
-  ,
-  duplicated := duplicated(paste0(observacao_id, coord_x, coord_y, data_ano)) |
-    duplicated(paste0(coord_x, coord_y, data_ano), fromLast = TRUE)
-]
-cols <- c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
-# View(soildata_events[duplicated == TRUE, ])
-
-# ctb0585
-# Identify duplicated events in ctb0585 dataset
-# dataset_titulo = "Conjunto de dados do 'Solos do Campo Experimental da Embrapa Milho e Sorgo:
-# suas características e classificação no novo sistema brasileiro'"
-# This dataset (Embrapa Milho e Sorgo, Sete Lagoas, MG) contains the very same central coordinates
-# for all events. However, the source document provides relative positions for each event based on
-# the central coordinates. We use these relative positions to update the coordinates of each
-# event.
-# We assume that the original coordinates are in SAD69 (EPSG:4618) and then we transform to UTM zone
-# 20S (EPSG:32720) to apply the relative position offsets.
-idx_duplicated <- soildata_events[dataset_id == "ctb0585" & duplicated == TRUE, V1]
-# Create a spatial object for ctb0585 dataset
-# The CRS probably is SAD69
-ctb0585_sf <- sf::st_as_sf(soildata[id %in% idx_duplicated],
-  coords = c("coord_x", "coord_y"), crs = 4618
-)
-# Transform to UTM
-ctb0585_sf <- sf::st_transform(ctb0585_sf, crs = 32720)
-ctb0585_sf <- data.table(
-  observacao_id = ctb0585_sf$observacao_id,
-  coord_x = sf::st_coordinates(ctb0585_sf)[, "X"],
-  coord_y = sf::st_coordinates(ctb0585_sf)[, "Y"]
-)
-# Perfil-1: A 2.200 metros a W. do meridiano de 44º10' e a 5.300 metros ao S. do paralelo de 19º27'.
-ctb0585_sf[observacao_id == "Perfil-1", `:=`(
-  coord_x = coord_x - 2200,
-  coord_y = coord_y - 5300
-)]
-# Perfil-10: A 100 metros a W. do meridiano de 44º10? e a 3.300 metros ao S. do paralelo de 19º27?.
-ctb0585_sf[observacao_id == "Perfil-10", `:=`(
-  coord_x = coord_x - 100,
-  coord_y = coord_y - 3300
-)]
-# Perfil-11: A 1.800 metros a L. do meridiano de 44º10? e a 2.900 metros ao N. do paralelo de 19º27?.
-ctb0585_sf[observacao_id == "Perfil-11", `:=`(
-  coord_x = coord_x + 1800,
-  coord_y = coord_y + 2900
-)]
-# Perfil-12: A 700 metros a L. do meridiano de 44º10? e a 3.100 metros ao N. do paralelo de 19º27?.
-ctb0585_sf[observacao_id == "Perfil-12", `:=`(
-  coord_x = coord_x + 700,
-  coord_y = coord_y + 3100
-)]
-# Perfil-13: A 600 metros a W do meridiano de 44º10? e a 1.500 metros ao N. do paralelo de 19º27?.
-ctb0585_sf[observacao_id == "Perfil-13", `:=`(
-  coord_x = coord_x - 600,
-  coord_y = coord_y + 1500
-)]
-# Perfil-2: A 2.300 metros a W. do meridiano de 44º10? e a 2.000 metros ao S. do paralelo de 19º27?.
-ctb0585_sf[observacao_id == "Perfil-2", `:=`(
-  coord_x = coord_x - 2300,
-  coord_y = coord_y - 2000
-)]
-# Perfil-21: A 800 metros a W do meridiano de 44º10? e a 1.300 metros ao N. do paralelo de 19º27?.
-ctb0585_sf[observacao_id == "Perfil-21", `:=`(
-  coord_x = coord_x - 800,
-  coord_y = coord_y + 1300
-)]
-# Perfil-27: A 2000 metros a L do meridiano de 44º10? e a 3.000 metros ao N. do paralelo de 19º27?.
-ctb0585_sf[observacao_id == "Perfil-27", `:=`(
-  coord_x = coord_x + 2000,
-  coord_y = coord_y + 3000
-)]
-# Perfil-30: A 100 metros a L do meridiano de 44º10? e a 1.300 metros ao N. do paralelo de 19º27?.
-ctb0585_sf[observacao_id == "Perfil-30", `:=`(
-  coord_x = coord_x + 100,
-  coord_y = coord_y + 1300
-)]
-# Perfil-43: A 700 metros a W do meridiano de 44º10? e a 900 metros ao N. do paralelo de 19º27?.
-ctb0585_sf[observacao_id == "Perfil-43", `:=`(
-  coord_x = coord_x - 700,
-  coord_y = coord_y + 900
-)]
-# Perfil-7: A 1.200 metros a W. do meridiano de 44º10? e a 200 metros ao S. do paralelo de 19º27?.
-ctb0585_sf[observacao_id == "Perfil-7", `:=`(
-  coord_x = coord_x - 1200,
-  coord_y = coord_y - 200
-)]
-# Perfil-8: A 1.000 metros a L. do meridiano de 44º10? e a 1.600 metros ao N. do paralelo de 19º27?.
-ctb0585_sf[observacao_id == "Perfil-8", `:=`(
-  coord_x = coord_x + 1000,
-  coord_y = coord_y + 1600
-)]
-# Perfil-9: A 800 metros a W. do meridiano de 44º10? e a 2.700 metros ao S. do paralelo de 19º27?.
-ctb0585_sf[observacao_id == "Perfil-9", `:=`(
-  coord_x = coord_x - 800,
-  coord_y = coord_y - 2700
-)]
-# Create spatial object again
-ctb0585_sf <- sf::st_as_sf(ctb0585_sf, coords = c("coord_x", "coord_y"), crs = 32720)
-# Transform back to WGS84
-ctb0585_sf <- sf::st_transform(ctb0585_sf, crs = 4326)
-# Update coordinates in soildata
-soildata[id %in% idx_duplicated, `:=`(
-  coord_x = sf::st_coordinates(ctb0585_sf)[, "X"],
-  coord_y = sf::st_coordinates(ctb0585_sf)[, "Y"]
-)]
-rm(ctb0585_sf, idx_duplicated)
-
-# Get unique events
-soildata_events <- soildata[!is.na(coord_x) & !is.na(coord_y) & !is.na(data_ano), id[1],
-  by = c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
-]
-soildata_events[
-  ,
-  duplicated := duplicated(paste0(observacao_id, coord_x, coord_y, data_ano)) |
-    duplicated(paste0(coord_x, coord_y, data_ano), fromLast = TRUE)
-]
-cols <- c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
-# View(soildata_events[duplicated == TRUE, ])
-
-# ctb0631
-# Identify duplicated events in ctb0631 dataset
-# dataset_titulo = "Levantamento de reconhecimento dos solos do Estado do Paraná - Tomos I e II"
-# It is not clear why there are duplicated events in this dataset. We need to check these events
-# in the source documents more carefully in the future. Here, we simply jitter the coordinates by
-# a small amount to pass the duplication test.
-idx_duplicated <- soildata_events[dataset_id == "ctb0631" & duplicated == TRUE, V1]
 # Create a spatial object for ctb0631 dataset
 ctb0631_sf <- sf::st_as_sf(soildata[id %in% idx_duplicated],
   coords = c("coord_x", "coord_y"), crs = 4326
 )
+if (FALSE) {
+  # Check points in an interactive map
+  mapview::mapview(ctb0631_sf)
+}
 # Transform to UTM
 ctb0631_sf <- sf::st_transform(ctb0631_sf, crs = 32720)
 # Jitter coordinates
@@ -463,22 +262,447 @@ soildata[id %in% idx_duplicated, `:=`(
 )]
 rm(ctb0631_sf, idx_duplicated, amount)
 
-# Get unique events
-soildata_events <- soildata[!is.na(coord_x) & !is.na(coord_y) & !is.na(data_ano), id[1],
+# ctb0010. Dados de 'Substâncias húmicas em solos de diferentes feições
+# geomorfológicas no rebordo do planalto do Rio Grande do Sul'
+# This dataset (Fábio Menezes, UFSM) contains many events with the same
+# coordinates. However, this is not entirely a mistake. The events were sampled
+# in a transect with points very close to each other and the author simply
+# recorded the same coordinates for all points in the transect.
+idx_duplicated <- soildata_events[
+  dataset_id == "ctb0010" & duplicated == TRUE, V1
+]
+# Create a spatial object for ctb0010 dataset
+ctb0010_sf <- sf::st_as_sf(soildata[id %in% idx_duplicated],
+  coords = c("coord_x", "coord_y"), crs = 4326
+)
+if (FALSE) {
+  # Check points in an interactive map
+  mapview::mapview(ctb0010_sf)
+}
+# Transform to UTM
+ctb0010_sf <- sf::st_transform(ctb0010_sf, crs = 32720)
+# Jitter coordinates by 1 meter to separate overlapping points and pass the
+# duplication test. But we should check the source document and update the 
+# coordinates if possible in the source data.
+amount <- 1
+set.seed(1984) # For reproducibility
+ctb0010_sf <- sf::st_jitter(ctb0010_sf, amount = amount)
+# Transform back to WGS84
+ctb0010_sf <- sf::st_transform(ctb0010_sf, crs = 4326)
+# Extract coordinates from the spatial object
+ctb0010_sf <- data.table(
+  observacao_id = ctb0010_sf$observacao_id,
+  coord_x = sf::st_coordinates(ctb0010_sf)[, "X"],
+  coord_y = sf::st_coordinates(ctb0010_sf)[, "Y"]
+)
+# Update coordinates in soildata
+soildata[id %in% idx_duplicated, `:=`(
+  coord_x = ctb0010_sf[, coord_x],
+  coord_y = ctb0010_sf[, coord_y],
+  # In coord_fonte, append " + amount m jitter" to the existing text.
+  coord_fonte = paste0(coord_fonte, " + ", amount, " m jitter"),
+  # In coord_precisao, add 'amount' to the existing value if it a number larger than 0.
+  coord_precisao = ifelse(coord_precisao > 0, coord_precisao + amount, coord_precisao)
+)]
+rm(ctb0010_sf, idx_duplicated, amount)
+
+# ctb0832. Dados de 'Levantamento do Estado do Rio de Janeiro'. We do not have
+# access to the source document. However, the spreadsheet data suggest that these
+# are all unique events. Those with duplicated coordinates were samples near by,
+# but the author recorded the same coordinates for all points in the transect.
+idx_duplicated <- soildata_events[
+  dataset_id == "ctb0832" & duplicated == TRUE, V1
+]
+# Create a spatial object for ctb0832 dataset
+ctb0832_sf <- sf::st_as_sf(soildata[id %in% idx_duplicated],
+  coords = c("coord_x", "coord_y"), crs = 4326
+)
+if (FALSE) {
+  # Check points in an interactive map
+  mapview::mapview(ctb0832_sf)
+}
+# Transform to UTM
+ctb0832_sf <- sf::st_transform(ctb0832_sf, crs = 32720)
+# Jitter coordinates by 1 meter to separate overlapping points and pass the
+# duplication test. But we should check the source document and update the
+# coordinates if possible in the source data.
+amount <- 1
+set.seed(1984) # For reproducibility
+ctb0832_sf <- sf::st_jitter(ctb0832_sf, amount = amount)
+# Transform back to WGS84
+ctb0832_sf <- sf::st_transform(ctb0832_sf, crs = 4326)
+# Extract coordinates from the spatial object
+ctb0832_sf <- data.table(
+  observacao_id = ctb0832_sf$observacao_id,
+  coord_x = sf::st_coordinates(ctb0832_sf)[, "X"],
+  coord_y = sf::st_coordinates(ctb0832_sf)[, "Y"]
+)
+# Update coordinates in soildata
+soildata[id %in% idx_duplicated, `:=`(
+  coord_x = ctb0832_sf[, coord_x],
+  coord_y = ctb0832_sf[, coord_y],
+  # In coord_fonte, append " + amount m jitter" to the existing text.
+  coord_fonte = paste0(coord_fonte, " + ", amount, " m jitter"),
+  # In coord_precisao, add 'amount' to the existing value if it a number larger than 0.
+  coord_precisao = ifelse(coord_precisao > 0, coord_precisao + amount, coord_precisao)
+)]
+rm(ctb0832_sf, idx_duplicated, amount)
+
+# ctb0572. Solos do Estado de Santa Catarina. Apparently, all of the duplicated
+# events in ctb0572 are unique events in the source data. There simply appear to
+# have been recorded with the same coordinates. We need to check these events in
+# the source documents more carefully in the future. Here, we simply jitter the 
+# coordinates by a small amount to pass the duplication test.
+idx_duplicated <- soildata_events[
+  dataset_id == "ctb0572" & duplicated == TRUE, V1
+]
+# Create a spatial object for ctb0572 dataset
+ctb0572_sf <- sf::st_as_sf(soildata[id %in% idx_duplicated],
+  coords = c("coord_x", "coord_y"), crs = 4326
+)
+if (FALSE) {
+  # Check points in an interactive map
+  mapview::mapview(ctb0572_sf)
+}
+# Transform to UTM
+ctb0572_sf <- sf::st_transform(ctb0572_sf, crs = 32720)
+# Jitter coordinates by 1 meter to separate overlapping points and pass the
+# duplication test. But we should check the source document and update the
+# coordinates if possible in the source data.
+amount <- 1
+set.seed(1984) # For reproducibility
+ctb0572_sf <- sf::st_jitter(ctb0572_sf, amount = amount)
+# Transform back to WGS84
+ctb0572_sf <- sf::st_transform(ctb0572_sf, crs = 4326)
+# Extract coordinates from the spatial object
+ctb0572_sf <- data.table(
+  observacao_id = ctb0572_sf$observacao_id,
+  coord_x = sf::st_coordinates(ctb0572_sf)[, "X"],
+  coord_y = sf::st_coordinates(ctb0572_sf)[, "Y"]
+)
+# Update coordinates in soildata
+soildata[id %in% idx_duplicated, `:=`(
+  coord_x = ctb0572_sf[, coord_x],
+  coord_y = ctb0572_sf[, coord_y],
+  # In coord_fonte, append " + amount m jitter" to the existing text.
+  coord_fonte = paste0(coord_fonte, " + ", amount, " m jitter"),
+  # In coord_precisao, add 'amount' to the existing value if it a number larger than 0.
+  coord_precisao = ifelse(coord_precisao > 0, coord_precisao + amount, coord_precisao)
+)]
+rm(ctb0572_sf, idx_duplicated, amount)
+
+# ctb0585. Conjunto de dados do 'Solos do Campo Experimental da Embrapa Milho e
+# Sorgo: suas características e classificação no novo sistema brasileiro. This
+# dataset (Embrapa Milho e Sorgo, Sete Lagoas, MG) contains the very same
+# central coordinates for all events. However, the source document provides
+# relative positions for each event based on the central coordinates. We use
+# these relative positions to update the coordinates of each event.
+# We assume that the original coordinates are in SAD69 (EPSG:4618) and then we
+# transform to UTM zone 20S (EPSG:32720) to apply the relative position offsets.
+idx_duplicated <- soildata_events[
+  dataset_id == "ctb0585" & duplicated == TRUE, V1
+]
+# Create a spatial object for ctb0585 dataset
+# The CRS probably is SAD69
+ctb0585_sf <- sf::st_as_sf(soildata[id %in% idx_duplicated],
+  coords = c("coord_x", "coord_y"), crs = 4618
+)
+# Transform to UTM
+ctb0585_sf <- sf::st_transform(ctb0585_sf, crs = 32720)
+ctb0585_sf <- data.table(
+  observacao_id = ctb0585_sf$observacao_id,
+  coord_x = sf::st_coordinates(ctb0585_sf)[, "X"],
+  coord_y = sf::st_coordinates(ctb0585_sf)[, "Y"]
+)
+# Perfil-1: A 2.200 metros a W. do meridiano de 44º10' e a 5.300 metros ao S. 
+# do paralelo de 19º27'.
+ctb0585_sf[observacao_id == "Perfil-1", `:=`(
+  coord_x = coord_x - 2200,
+  coord_y = coord_y - 5300
+)]
+# Perfil-10: A 100 metros a W. do meridiano de 44º10? e a 3.300 metros ao S. do 
+# paralelo de 19º27?.
+ctb0585_sf[observacao_id == "Perfil-10", `:=`(
+  coord_x = coord_x - 100,
+  coord_y = coord_y - 3300
+)]
+# Perfil-11: A 1.800 metros a L. do meridiano de 44º10? e a 2.900 metros ao N. 
+# do paralelo de 19º27?.
+ctb0585_sf[observacao_id == "Perfil-11", `:=`(
+  coord_x = coord_x + 1800,
+  coord_y = coord_y + 2900
+)]
+# Perfil-12: A 700 metros a L. do meridiano de 44º10? e a 3.100 metros ao N. do 
+# paralelo de 19º27?.
+ctb0585_sf[observacao_id == "Perfil-12", `:=`(
+  coord_x = coord_x + 700,
+  coord_y = coord_y + 3100
+)]
+# Perfil-13: A 600 metros a W do meridiano de 44º10? e a 1.500 metros ao N. do 
+# paralelo de 19º27?.
+ctb0585_sf[observacao_id == "Perfil-13", `:=`(
+  coord_x = coord_x - 600,
+  coord_y = coord_y + 1500
+)]
+# Perfil-2: A 2.300 metros a W. do meridiano de 44º10? e a 2.000 metros ao S. do
+# paralelo de 19º27?.
+ctb0585_sf[observacao_id == "Perfil-2", `:=`(
+  coord_x = coord_x - 2300,
+  coord_y = coord_y - 2000
+)]
+# Perfil-21: A 800 metros a W do meridiano de 44º10? e a 1.300 metros ao N. do 
+# paralelo de 19º27?.
+ctb0585_sf[observacao_id == "Perfil-21", `:=`(
+  coord_x = coord_x - 800,
+  coord_y = coord_y + 1300
+)]
+# Perfil-27: A 2000 metros a L do meridiano de 44º10? e a 3.000 metros ao N. do
+# paralelo de 19º27?.
+ctb0585_sf[observacao_id == "Perfil-27", `:=`(
+  coord_x = coord_x + 2000,
+  coord_y = coord_y + 3000
+)]
+# Perfil-30: A 100 metros a L do meridiano de 44º10? e a 1.300 metros ao N. do
+# paralelo de 19º27?.
+ctb0585_sf[observacao_id == "Perfil-30", `:=`(
+  coord_x = coord_x + 100,
+  coord_y = coord_y + 1300
+)]
+# Perfil-43: A 700 metros a W do meridiano de 44º10? e a 900 metros ao N. do 
+# paralelo de 19º27?.
+ctb0585_sf[observacao_id == "Perfil-43", `:=`(
+  coord_x = coord_x - 700,
+  coord_y = coord_y + 900
+)]
+# Perfil-7: A 1.200 metros a W. do meridiano de 44º10? e a 200 metros ao S. do 
+# paralelo de 19º27?.
+ctb0585_sf[observacao_id == "Perfil-7", `:=`(
+  coord_x = coord_x - 1200,
+  coord_y = coord_y - 200
+)]
+# Perfil-8: A 1.000 metros a L. do meridiano de 44º10? e a 1.600 metros ao N. do
+# paralelo de 19º27?.
+ctb0585_sf[observacao_id == "Perfil-8", `:=`(
+  coord_x = coord_x + 1000,
+  coord_y = coord_y + 1600
+)]
+# Perfil-9: A 800 metros a W. do meridiano de 44º10? e a 2.700 metros ao S. do 
+# paralelo de 19º27?.
+ctb0585_sf[observacao_id == "Perfil-9", `:=`(
+  coord_x = coord_x - 800,
+  coord_y = coord_y - 2700
+)]
+# Create spatial object again
+ctb0585_sf <- sf::st_as_sf(
+  ctb0585_sf,
+  coords = c("coord_x", "coord_y"), crs = 32720
+)
+# Transform back to WGS84
+ctb0585_sf <- sf::st_transform(ctb0585_sf, crs = 4326)
+# Update coordinates in soildata
+soildata[id %in% idx_duplicated, `:=`(
+  coord_x = sf::st_coordinates(ctb0585_sf)[, "X"],
+  coord_y = sf::st_coordinates(ctb0585_sf)[, "Y"]
+)]
+rm(ctb0585_sf, idx_duplicated)
+
+# ctb0683. All cases of duplicated events in ctb0683 are a profile and its
+# extra sample. We did not check the source document, but we assume that these
+# are unique events in the source data. Here, we simply jitter the coordinates
+# by a small amount to pass the duplication test.
+idx_duplicated <- soildata_events[
+  dataset_id == "ctb0683" & duplicated == TRUE, V1
+]
+# Create a spatial object for ctb0683 dataset
+ctb0683_sf <- sf::st_as_sf(soildata[id %in% idx_duplicated],
+  coords = c("coord_x", "coord_y"), crs = 4326
+)
+if (FALSE) {
+  # Check points in an interactive map
+  mapview::mapview(ctb0683_sf)
+}
+# Transform to UTM
+ctb0683_sf <- sf::st_transform(ctb0683_sf, crs = 32720)
+# Jitter coordinates by 1 meter to separate overlapping points and pass the
+# duplication test. But we should check the source document and update the
+# coordinates if possible in the source data.
+amount <- 1
+set.seed(1984) # For reproducibility
+ctb0683_sf <- sf::st_jitter(ctb0683_sf, amount = amount)
+# Transform back to WGS84
+ctb0683_sf <- sf::st_transform(ctb0683_sf, crs = 4326)
+# Extract coordinates from the spatial object
+ctb0683_sf <- data.table(
+  observacao_id = ctb0683_sf$observacao_id,
+  coord_x = sf::st_coordinates(ctb0683_sf)[, "X"],
+  coord_y = sf::st_coordinates(ctb0683_sf)[, "Y"]
+)
+# Update coordinates in soildata
+soildata[id %in% idx_duplicated, `:=`(
+  coord_x = ctb0683_sf[, coord_x],
+  coord_y = ctb0683_sf[, coord_y],
+  # In coord_fonte, append " + amount m jitter" to the existing text.
+  coord_fonte = paste0(coord_fonte, " + ", amount, " m jitter"),
+  # In coord_precisao, add 'amount' to the existing value if it a number larger than 0.
+  coord_precisao = ifelse(coord_precisao > 0, coord_precisao + amount, coord_precisao)
+)]
+rm(ctb0683_sf, idx_duplicated, amount)
+
+# ctb0033
+# We did not expect duplicated events in this dataset anymore. Need to check
+# this events in the source data.
+idx_duplicated <- soildata_events[
+  dataset_id == "ctb0033" & duplicated == TRUE, V1
+]
+# Create a spatial object for ctb0033 dataset
+ctb0033_sf <- sf::st_as_sf(soildata[id %in% idx_duplicated],
+  coords = c("coord_x", "coord_y"), crs = 4326
+)
+if (FALSE) {
+  # Check points in an interactive map
+  mapview::mapview(ctb0033_sf)
+}
+# Transform to UTM
+ctb0033_sf <- sf::st_transform(ctb0033_sf, crs = 32720)
+# Jitter coordinates by 1 meter to separate overlapping points and pass the 
+# duplication test. But we should check the source document and update the
+# coordinates if possible in the source data.
+amount <- 1
+set.seed(1984) # For reproducibility
+ctb0033_sf <- sf::st_jitter(ctb0033_sf, amount = amount)
+# Transform back to WGS84
+ctb0033_sf <- sf::st_transform(ctb0033_sf, crs = 4326)
+# Extract coordinates from the spatial object.
+ctb0033_sf <- data.table(
+  observacao_id = ctb0033_sf$observacao_id,
+  coord_x = sf::st_coordinates(ctb0033_sf)[, "X"],
+  coord_y = sf::st_coordinates(ctb0033_sf)[, "Y"]
+)
+# Update coordinates in soildata
+soildata[id %in% idx_duplicated, `:=`(
+  coord_x = ctb0033_sf[, coord_x],
+  coord_y = ctb0033_sf[, coord_y],
+  # In coord_fonte, append " + amount m jitter" to the existing text.
+  coord_fonte = paste0(coord_fonte, " + ", amount, " m jitter"),
+  # In coord_precisao, add 'amount' to the existing value if it a number larger than 0.
+  coord_precisao = ifelse(coord_precisao > 0, coord_precisao + amount, coord_precisao)
+)]
+rm(ctb0033_sf, idx_duplicated, amount)
+
+# ctb0617. Apparently, all of the duplicated events in ctb0617 are unique events in the
+# source data. We need to check these events in the source documents in the future. Here, we simply jitter the coordinates by a small amount to pass the duplication test.
+idx_duplicated <- soildata_events[
+  dataset_id == "ctb0617" & duplicated == TRUE, V1
+]
+# Create a spatial object for ctb0617 dataset
+ctb0617_sf <- sf::st_as_sf(soildata[id %in% idx_duplicated],
+  coords = c("coord_x", "coord_y"), crs = 4326
+)
+if (FALSE) {
+  # Check points in an interactive map
+  mapview::mapview(ctb0617_sf)
+}
+# Transform to UTM
+ctb0617_sf <- sf::st_transform(ctb0617_sf, crs = 32720)
+# Jitter coordinates by 1 meter to separate overlapping points and pass the
+# duplication test. But we should check the source document and update the
+# coordinates if possible in the source data.
+amount <- 1
+set.seed(1984) # For reproducibility
+ctb0617_sf <- sf::st_jitter(ctb0617_sf, amount = amount)
+# Transform back to WGS84
+ctb0617_sf <- sf::st_transform(ctb0617_sf, crs = 4326)
+# Extract coordinates from the spatial object.
+ctb0617_sf <- data.table(
+  observacao_id = ctb0617_sf$observacao_id,
+  coord_x = sf::st_coordinates(ctb0617_sf)[, "X"],
+  coord_y = sf::st_coordinates(ctb0617_sf)[, "Y"]
+)
+# Update coordinates in soildata
+soildata[id %in% idx_duplicated, `:=`(
+  coord_x = ctb0617_sf[, coord_x],
+  coord_y = ctb0617_sf[, coord_y],
+  # In coord_fonte, append " + amount m jitter" to the existing text.
+  coord_fonte = paste0(coord_fonte, " + ", amount, " m jitter"),
+  # In coord_precisao, add 'amount' to the existing value if it a number larger than 0.
+  coord_precisao = ifelse(coord_precisao > 0, coord_precisao + amount, coord_precisao)
+)]
+rm(ctb0617_sf, idx_duplicated, amount)
+
+# Get unique events not missing spatial and temporal coordinates 
+soildata_events <- soildata[
+  !is.na(coord_x) & !is.na(coord_y) & !is.na(data_ano), id[1],
   by = c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
 ]
+nrow(soildata_events)
+# 16939 events
+# Compute duplicated events based on coordinates and year
 soildata_events[
-  ,
-  duplicated := duplicated(paste0(observacao_id, coord_x, coord_y, data_ano)) |
+  !is.na(coord_x) & !is.na(coord_y) & !is.na(data_ano),
+  duplicated := duplicated(paste0(coord_x, coord_y, data_ano)) |
     duplicated(paste0(coord_x, coord_y, data_ano), fromLast = TRUE)
 ]
-cols <- c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
-# View(soildata_events[duplicated == TRUE, ])
+print(soildata_events[, .N, by = duplicated])
+#    duplicated     N
+#        <lgcl> <int>
+# 1:      FALSE 16851
+# 2:       TRUE   88
+if (FALSE) {
+  View(soildata_events[duplicated == TRUE, ])
+}
+
+# ctb0640-P-IIRCC-4-RJ is equal to ctb0641-P-IIIRCC-4-RJ. Drop one of them.
+# ctb0640: Anais da II Reunião de Classificação, Correlação de Solo e 
+# Interpretação de Aptidão Agrícola.
+# ctb0641: Anais da III Reunião  de Classificação, Correlação de Solos e 
+# Interpretação de Aptidão Agrícola
+soildata <- soildata[!id == "ctb0641-P-IIIRCC-4-RJ", ]
+
+# ctb0765-GWDSM-4 is equal to ctb0811-76. Drop one of them.
+soildata <- soildata[!id == "ctb0811-76", ]
+
+# ctb0769-87 is equal to ctb0811-96. Drop one of them.
+soildata <- soildata[!id == "ctb0811-96", ]
+
+# ctb0765-GWDSM-6 is equal to ctb0811-67. Drop one of them.
+soildata <- soildata[!id == "ctb0811-67", ]
+
+# Check data
+summary_soildata(soildata)
+# SDi2025 ---
+# Layers: 62136
+# Events: 20259
+# Georeference: 16676 (yes) / 3583 (no)
+# Date: 20105 (yes) / 154 (no)
+# Datasets: 271
+
+# Get unique events not missing spatial and temporal coordinates 
+soildata_events <- soildata[
+  !is.na(coord_x) & !is.na(coord_y) & !is.na(data_ano), id[1],
+  by = c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
+]
+nrow(soildata_events)
+# 16935 events
+# Compute duplicated events based on coordinates and year
+soildata_events[
+  !is.na(coord_x) & !is.na(coord_y) & !is.na(data_ano),
+  duplicated := duplicated(paste0(coord_x, coord_y, data_ano)) |
+    duplicated(paste0(coord_x, coord_y, data_ano), fromLast = TRUE)
+]
+print(soildata_events[, .N, by = duplicated])
+#    duplicated     N
+#        <lgcl> <int>
+# 1:      FALSE 16855
+# 2:       TRUE   88
+if (FALSE) {
+  View(soildata_events[duplicated == TRUE, ])
+}
 
 # all other datasets
 # Identify duplicated events in all other datasets
-# We need to check these events in the source documents more carefully in the future. Here, we
-# simply jitter the coordinates by a small amount to pass the duplication test.
+# We need to check these events in the source documents more carefully in the 
+# future. Here, we simply jitter the coordinates by a small amount to pass the 
+# duplication test.
 idx_duplicated <- soildata_events[duplicated == TRUE, V1]
 # Create a spatial object for all duplicated datasets
 soildata_sf <- sf::st_as_sf(soildata[id %in% idx_duplicated],
@@ -509,23 +733,36 @@ soildata[id %in% idx_duplicated, `:=`(
 )]
 rm(soildata_sf, idx_duplicated, amount)
 
-# Get unique events
+# Check unique events
 soildata_events <- soildata[!is.na(coord_x) & !is.na(coord_y) & !is.na(data_ano), id[1],
   by = c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
 ]
+# Compute duplicated events based on coordinates and year
 soildata_events[
-  ,
-  duplicated := duplicated(paste0(observacao_id, coord_x, coord_y, data_ano)) |
+  !is.na(coord_x) & !is.na(coord_y) & !is.na(data_ano),
+  duplicated := duplicated(paste0(coord_x, coord_y, data_ano)) |
     duplicated(paste0(coord_x, coord_y, data_ano), fromLast = TRUE)
 ]
-cols <- c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
-# View(soildata_events[duplicated == TRUE, ])
+print(soildata_events[, .N, by = duplicated])
+#    duplicated     N
+#        <lgcl> <int>
+# 1:      FALSE 17155
 
+# Check data
 summary_soildata(soildata)
+# SDi2025 ---
+# Layers: 62136
+# Events: 20259
+# Georeference: 16676 (yes) / 3583 (no)
+# Date: 20105 (yes) / 154 (no)
+# Datasets: 271
+# SDi2024 ---
 # Layers: 57077
 # Events: 16824
 # Georeferenced events: 14334
 # Datasets: 255
+
+
 
 # Update coordinates (this has already been implemented in the source spreadsheets)
 # MATA ATLÂNTICA
