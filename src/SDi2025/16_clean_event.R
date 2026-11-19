@@ -31,10 +31,8 @@ summary_soildata(soildata)
 # Date: 20148 (yes) / 159 (no)
 # Datasets: 271
 
-# Set variable classes #########################################################
-# Set the class of coord_precisao to numeric
+# Coordinate precision values ##################################################
 soildata[, .N, by = coord_precisao]
-soildata[, coord_precisao := as.numeric(coord_precisao)]
 
 # Correct date #################################################################
 # ctb0585-Perfil-9. There is a typo in the spreadsheet). We checked the original
@@ -161,7 +159,12 @@ soildata[id %in% idx_duplicated, `:=`(
   # In coord_fonte, append " + amount m jitter" to the existing text.
   coord_fonte = paste0(coord_fonte, " + ", amount, " m jitter"),
   # In coord_precisao, add 'amount' to the existing value if it a number larger than 0.
-  coord_precisao = ifelse(coord_precisao > 0, coord_precisao + amount, coord_precisao)
+  coord_precisao = ifelse(
+    !is.na(suppressWarnings(as.numeric(coord_precisao))) &
+      suppressWarnings(as.numeric(coord_precisao)) > 0,
+    as.character(suppressWarnings(as.numeric(coord_precisao)) + amount),
+    coord_precisao
+  )
 )]
 rm(ctb0029_sf, idx_duplicated, amount)
 
@@ -172,7 +175,7 @@ rm(ctb0029_sf, idx_duplicated, amount)
 # soildata[dataset_id == "ctb0029" & observacao_id %in% ctb0029_ids, `:=`(
 #   coord_x = NA_real_,
 #   coord_y = NA_real_,
-#   coord_precisao = NA_real_,
+#   coord_precisao = NA_character_,
 #   coord_fonte = NA_character_,
 #   coord_datum = NA_character_
 # )]
@@ -217,7 +220,12 @@ soildata[id %in% idx_duplicated, `:=`(
   # In coord_fonte, append " + amount m jitter" to the existing text.
   coord_fonte = paste0(coord_fonte, " + ", amount, " m jitter"),
   # In coord_precisao, add 'amount' to the existing value if it a number larger than 0.
-  coord_precisao = ifelse(coord_precisao > 0, coord_precisao + amount, coord_precisao)
+  coord_precisao = ifelse(
+    !is.na(suppressWarnings(as.numeric(coord_precisao))) &
+      suppressWarnings(as.numeric(coord_precisao)) > 0,
+    as.character(suppressWarnings(as.numeric(coord_precisao)) + amount),
+    coord_precisao
+  )
 )]
 rm(ctb0607_sf, idx_duplicated)
 
@@ -258,7 +266,12 @@ soildata[id %in% idx_duplicated, `:=`(
   # In coord_fonte, append " + amount m jitter" to the existing text.
   coord_fonte = paste0(coord_fonte, " + ", amount, " m jitter"),
   # In coord_precisao, add 'amount' to the existing value if it autor_nome a number larger than 0.
-  coord_precisao = ifelse(coord_precisao > 0, coord_precisao + amount, coord_precisao)
+  coord_precisao = ifelse(
+    !is.na(suppressWarnings(as.numeric(coord_precisao))) &
+      suppressWarnings(as.numeric(coord_precisao)) > 0,
+    as.character(suppressWarnings(as.numeric(coord_precisao)) + amount),
+    coord_precisao
+  )
 )]
 rm(ctb0631_sf, idx_duplicated, amount)
 
@@ -302,7 +315,12 @@ soildata[id %in% idx_duplicated, `:=`(
   # In coord_fonte, append " + amount m jitter" to the existing text.
   coord_fonte = paste0(coord_fonte, " + ", amount, " m jitter"),
   # In coord_precisao, add 'amount' to the existing value if it a number larger than 0.
-  coord_precisao = ifelse(coord_precisao > 0, coord_precisao + amount, coord_precisao)
+  coord_precisao = ifelse(
+    !is.na(suppressWarnings(as.numeric(coord_precisao))) &
+      suppressWarnings(as.numeric(coord_precisao)) > 0,
+    as.character(suppressWarnings(as.numeric(coord_precisao)) + amount),
+    coord_precisao
+  )
 )]
 rm(ctb0010_sf, idx_duplicated, amount)
 
@@ -344,7 +362,12 @@ soildata[id %in% idx_duplicated, `:=`(
   # In coord_fonte, append " + amount m jitter" to the existing text.
   coord_fonte = paste0(coord_fonte, " + ", amount, " m jitter"),
   # In coord_precisao, add 'amount' to the existing value if it a number larger than 0.
-  coord_precisao = ifelse(coord_precisao > 0, coord_precisao + amount, coord_precisao)
+  coord_precisao = ifelse(
+    !is.na(suppressWarnings(as.numeric(coord_precisao))) &
+      suppressWarnings(as.numeric(coord_precisao)) > 0,
+    as.character(suppressWarnings(as.numeric(coord_precisao)) + amount),
+    coord_precisao
+  )
 )]
 rm(ctb0832_sf, idx_duplicated, amount)
 
@@ -387,7 +410,12 @@ soildata[id %in% idx_duplicated, `:=`(
   # In coord_fonte, append " + amount m jitter" to the existing text.
   coord_fonte = paste0(coord_fonte, " + ", amount, " m jitter"),
   # In coord_precisao, add 'amount' to the existing value if it a number larger than 0.
-  coord_precisao = ifelse(coord_precisao > 0, coord_precisao + amount, coord_precisao)
+  coord_precisao = ifelse(
+    !is.na(suppressWarnings(as.numeric(coord_precisao))) &
+      suppressWarnings(as.numeric(coord_precisao)) > 0,
+    as.character(suppressWarnings(as.numeric(coord_precisao)) + amount),
+    coord_precisao
+  )
 )]
 rm(ctb0572_sf, idx_duplicated, amount)
 
@@ -544,7 +572,12 @@ soildata[id %in% idx_duplicated, `:=`(
   # In coord_fonte, append " + amount m jitter" to the existing text.
   coord_fonte = paste0(coord_fonte, " + ", amount, " m jitter"),
   # In coord_precisao, add 'amount' to the existing value if it a number larger than 0.
-  coord_precisao = ifelse(coord_precisao > 0, coord_precisao + amount, coord_precisao)
+  coord_precisao = ifelse(
+    !is.na(suppressWarnings(as.numeric(coord_precisao))) &
+      suppressWarnings(as.numeric(coord_precisao)) > 0,
+    as.character(suppressWarnings(as.numeric(coord_precisao)) + amount),
+    coord_precisao
+  )
 )]
 rm(ctb0683_sf, idx_duplicated, amount)
 
@@ -585,7 +618,12 @@ soildata[id %in% idx_duplicated, `:=`(
   # In coord_fonte, append " + amount m jitter" to the existing text.
   coord_fonte = paste0(coord_fonte, " + ", amount, " m jitter"),
   # In coord_precisao, add 'amount' to the existing value if it a number larger than 0.
-  coord_precisao = ifelse(coord_precisao > 0, coord_precisao + amount, coord_precisao)
+  coord_precisao = ifelse(
+    !is.na(suppressWarnings(as.numeric(coord_precisao))) &
+      suppressWarnings(as.numeric(coord_precisao)) > 0,
+    as.character(suppressWarnings(as.numeric(coord_precisao)) + amount),
+    coord_precisao
+  )
 )]
 rm(ctb0033_sf, idx_duplicated, amount)
 
@@ -625,7 +663,12 @@ soildata[id %in% idx_duplicated, `:=`(
   # In coord_fonte, append " + amount m jitter" to the existing text.
   coord_fonte = paste0(coord_fonte, " + ", amount, " m jitter"),
   # In coord_precisao, add 'amount' to the existing value if it a number larger than 0.
-  coord_precisao = ifelse(coord_precisao > 0, coord_precisao + amount, coord_precisao)
+  coord_precisao = ifelse(
+    !is.na(suppressWarnings(as.numeric(coord_precisao))) &
+      suppressWarnings(as.numeric(coord_precisao)) > 0,
+    as.character(suppressWarnings(as.numeric(coord_precisao)) + amount),
+    coord_precisao
+  )
 )]
 rm(ctb0617_sf, idx_duplicated, amount)
 
@@ -729,7 +772,12 @@ soildata[id %in% idx_duplicated, `:=`(
   # In coord_fonte, append " + amount m jitter" to the existing text.
   coord_fonte = paste0(coord_fonte, " + ", amount, " m jitter"),
   # In coord_precisao, add 'amount' to the existing value if it author_nome a number larger than 0.
-  coord_precisao = ifelse(coord_precisao > 0, coord_precisao + amount, coord_precisao)
+  coord_precisao = ifelse(
+    !is.na(suppressWarnings(as.numeric(coord_precisao))) &
+      suppressWarnings(as.numeric(coord_precisao)) > 0,
+    as.character(suppressWarnings(as.numeric(coord_precisao)) + amount),
+    coord_precisao
+  )
 )]
 rm(soildata_sf, idx_duplicated, amount)
 
