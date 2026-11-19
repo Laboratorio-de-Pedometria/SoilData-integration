@@ -21,86 +21,129 @@ if (!requireNamespace("dataverse", quietly = TRUE)) {
 # Read Brazilian state boundaries
 brazil <- read_brazil_states()
 
-# Read the Brazilian Soil Dataset v2023
-# Check if file "data/00_brazilian_soil_dataset_2023.txt" exists. If not, read the Brazilian 
-# Soil Dataset v2023 from the SoilData repository using the 'dataverse' package. Next, write the 
-# file to 'data/00_brazilian_soil_dataset_2023.txt'. The dataset is available at
-# https://doi.org/10.60502/SoilData/TUI25K. If the file already exists, read it using the
-# 'data.table' package.
-file_path <- "data/00_brazilian_soil_dataset_2023.txt"
+# Read last version ############################################################
+# Read the Brazilian Soil Dataset v2024 as a schema reference. The comparisons
+# below check which v2024 columns are retained in the current integration and
+# which columns have been added; v2024 is not used as a source for validation.
+# The dataset is available at https://doi.org/10.60502/SoilData/BCAV2B.
+file_path <- "res/tab/brazilian-soil-dataset-2024.txt"
 if (!file.exists(file_path)) {
-  br_soil2023 <- dataverse::get_dataframe_by_name("brazilian-soil-dataset-2023.txt",
-    server = "https://soildata.mapbiomas.org/dataverse/soildata",
-    dataset = "10.60502/SoilData/TUI25K", .f = data.table::fread
+  soildata_last <- dataverse::get_dataframe_by_name(
+    filename = "brazilian-soil-dataset-2024.txt",
+    server = "https://repositorio.soildata.mapbiomas.org/dataverse/soildata",
+    dataset = "10.60502/SoilData/BCAV2B",
+    .f = data.table::fread
   )
-  data.table::fwrite(br_soil2023, file_path, dec = ".", sep = ";")
+  data.table::fwrite(soildata_last, file_path, dec = ".", sep = ";")
 } else {
-  br_soil2023 <- data.table::fread(file_path, dec = ".", sep = ";")
+  soildata_last <- data.table::fread(file_path, dec = ".", sep = ";")
 }
 
+# Read the current version #####################################################
 # Read SoilData data processed in the previous script
-soildata <- data.table::fread("data/17_soildata.txt", sep = "\t", na.strings = c("NA", ""))
+soildata_current <- data.table::fread(
+  "data/17_soildata.txt",
+  sep = "\t", na.strings = c("NA", "")
+)
 
-# all columns in br_soil2023 are in soildata?
-all(colnames(br_soil2023) %in% colnames(soildata))
+# Check columns ################################################################
+# All columns in soildata_last are in soildata_current?
+all(colnames(soildata_last) %in% colnames(soildata_current))
 
-# which columns in soildata are not in br_soil2023?
-setdiff(colnames(soildata), colnames(br_soil2023))
+# Which columns in soildata_current are not in soildata_last?
+sort(setdiff(colnames(soildata_current), colnames(soildata_last)))
 
-summary_soildata(soildata)
-# Layers: 57077
-# Events: 16824
-# Georeferenced events: 14334
-# Datasets: 255
-
-# Drop unwanted columns from soildata:
-# acidez_caoac2ph7_naoh aluminio_kcl_naoh aluminio_saturacao_calc area_conhecimento autor_nome bases_saturacao_calc bases_soma_calc calcio_kcl_eaa campanha_id_febr ctce_soma_calc data_coleta_dia data_coleta_mes dataset_versao erosao_presenca erosao_tipo fosforo_mehlich1_eam magnesio_kcl_eaa palavras_chave potassio_mehlich1_eeac publicacao_data relevo_exposicao relevo_local relevo_posicao observacao_data
-soildata <- soildata[, -c(
-  "acidez_caoac2ph7_naoh", "aluminio_kcl_naoh", "aluminio_saturacao_calc", "area_conhecimento",
-  "autor_nome", "bases_saturacao_calc", "bases_soma_calc", "calcio_kcl_eaa", "campanha_id_febr",
-  "ctce_soma_calc", "data_coleta_dia", "data_coleta_mes", "dataset_versao", "erosao_presenca",
-  "erosao_presenca", "erosao_tipo", "fosforo_mehlich1_eam", "id", "magnesio_kcl_eaa",
-  "palavras_chave", "potassio_mehlich1_eeac", "publicacao_data", "relevo_exposicao",
-  "relevo_local", "relevo_posicao", "observacao_data"
+# Drop unwanted columns from current soildata ##################################
+soildata <- soildata_current[, -c(
+  "acidez_caoac2ph7_naoh", "aluminio_kcl_naoh", "aluminio_saturacao_calc",
+  "area_conhecimento", "autor_nome", "bases_saturacao_calc", "bases_soma_calc",
+  "calcio_kcl_eaa", "campanha_id_febr", "ctce_soma_calc", "data_coleta_dia",
+  "data_coleta_mes", "dataset_versao", "erosao_presenca", "erosao_presenca",
+  "erosao_tipo", "fosforo_mehlich1_eam", "id", "id_original", "magnesio_kcl_eaa",
+  "palavras_chave", "potassio_mehlich1_eeac", "publicacao_data",
+  "relevo_exposicao", "relevo_local", "relevo_posicao", "observacao_data"
 )]
 
-# Rename 'data_fonte' to 'ano_fonte' to avoid confusion with 'dados_fonte' used somewere else
-setnames(soildata, "data_fonte", "ano_fonte")
-
+# Rename columns ###############################################################
+# data_ano_fonte -> data_fonte
+setnames(soildata, "data_ano_fonte", "data_fonte")
+# dsi -> densidade
+setnames(soildata, "dsi", "densidade")
+# Check columns names
 paste(colnames(soildata), collapse = ", ")
-# dataset_id, observacao_id, dataset_titulo, organizacao_nome, dataset_licenca, sisb_id, ibge_id, coord_x, coord_y, coord_precisao, coord_fonte, pais_id, estado_id, municipio_id, amostra_tipo, amostra_quanti, amostra_area, taxon_sibcs, taxon_st, taxon_wrb, camada_id, amostra_id, camada_nome, profund_sup, profund_inf, terrafina, argila, silte, areia, carbono, ctc, ph, dsi, ce, data_ano, id, ano_fonte, coord_datum, esqueleto
-# View(soildata)
-
-# dataset_id and dataset_titulo
-# Should be consistent: the number of unique dataset_id should be equal to the number of unique
-# dataset_titulo
-if (length(unique(soildata$dataset_id)) > length(unique(soildata$dataset_titulo))) {
-  print(soildata[is.na(dataset_titulo) | dataset_titulo == "", unique(dataset_id)])
+# dataset_id, observacao_id, dataset_titulo, organizacao_nome, dataset_licenca, sisb_id, ibge_id, coord_x, coord_y, coord_precisao, coord_fonte, pais_id, estado_id, municipio_id, amostra_tipo, amostra_quanti, amostra_area, taxon_sibcs, taxon_st, taxon_wrb, camada_id, amostra_id, camada_nome, profund_sup, profund_inf, terrafina, argila, silte, areia, carbono, ctc, ph, densidade, ce, data_ano, data_ano_fonte, coord_datum, pedregosidade, rochosidade, terrafina_fonte, esqueleto, dtp_fonte
+if (FALSE) {
+  View(soildata)
 }
 
-# amostra_tipo
+# dataset_id and dataset_titulo ################################################
+# Should be consistent: the number of unique dataset_id should be equal to the
+# number of unique dataset_titulo
+if (length(unique(soildata$dataset_id)) > length(unique(soildata$dataset_titulo))) {
+  print(soildata[is.na(dataset_titulo) | dataset_titulo == "", unique(dataset_id)])
+} else {
+  message("dataset_id and dataset_titulo are consistent.")
+}
+
+# amostra_tipo #################################################################
 # If amostra_quanti == 1, then amostra_tipo should be "SIMPLES"
-soildata[amostra_quanti == 1 & (is.na(amostra_tipo) | amostra_tipo == ""), amostra_tipo := "SIMPLES"]
+soildata[
+  amostra_quanti == 1 & (is.na(amostra_tipo) | amostra_tipo == ""),
+  amostra_tipo := "SIMPLES"
+]
 # If amostra_quanti > 1 and amostra_tipo is NA, then amostra_tipo should be "COMPOSTA"
 soildata[amostra_quanti > 1 & is.na(amostra_tipo), amostra_tipo := "COMPOSTA"]
 # statistics
 soildata[, .N, by = .(amostra_tipo)][order(amostra_tipo)]
+#    amostra_tipo     N
+#          <char> <int>
+# 1:              13552
+# 2:     COMPOSTA   429
+# 3:      SIMPLES 48155
 
-# amostra_quanti
-# If amostra_tipo is "SIMPLES" and amostra_quanti is NA, then amostra_quanti should be 1
+# amostra_quanti ###############################################################
+# If amostra_tipo is "SIMPLES" and amostra_quanti is NA, then amostra_quanti 
+# should be 1
 soildata[amostra_tipo == "SIMPLES" & is.na(amostra_quanti), amostra_quanti := 1]
 # statistics
 soildata[, .N, by = .(amostra_quanti)][order(amostra_quanti)]
+#    amostra_quanti     N
+#             <int> <int>
+# 1:              1 48155
+# 2:              3   425
+# 3:             NA 13556
 # cross table between amostra_tipo and amostra_quanti
 table(soildata$amostra_tipo, soildata$amostra_quanti, useNA = "ifany")
+  #              1     3  <NA>
+  #              0     0 13552
+  # COMPOSTA     0   425     4
+  # SIMPLES  48155     0     0
 
-# dataset_licenca
+# dataset_licenca ##############################################################
 # if "CC-BY-4.0", then "CC BY 4.0"
 soildata[dataset_licenca == "CC-BY-4.0", dataset_licenca := "CC BY 4.0"]
 # if "CC BY-NC", then "CC BY-NC 4.0"
 soildata[dataset_licenca == "CC BY-NC", dataset_licenca := "CC BY-NC 4.0"]
+# if OpenData: Creative Commons Attribution 4.0 (CC BY 4.0), then "CC BY 4.0"
+soildata[dataset_licenca == "OpenData: Creative Commons Attribution 4.0 (CC BY 4.0)", dataset_licenca := "CC BY 4.0"]
+# if notOpenData: Creative Commons Attribution-NonCommercial (CC BY-NC), then
+# "CC BY-NC 4.0"
+soildata[dataset_licenca == "notOpenData: Creative Commons Attribution-NonCommercial (CC BY-NC)", dataset_licenca := "CC BY-NC 4.0"]
+# CC BY 4.0 Atribuição -> "CC BY 4.0"
+soildata[dataset_licenca == "CC BY 4.0 Atribuição", dataset_licenca := "CC BY 4.0"]
+# CC BY-NC 4.0 Atribuição-NãoComercial -> "CC BY-NC 4.0"
+soildata[dataset_licenca == "CC BY-NC 4.0 Atribuição-NãoComercial", dataset_licenca := "CC BY-NC 4.0"]
+#  CC BY-NC-SA 4.0 Atribuição-NãoComercial-CompartilhaIgual -> "CC BY-NC-SA 4.0"
+soildata[dataset_licenca == "CC BY-NC-SA 4.0 Atribuição-NãoComercial-CompartilhaIgual", dataset_licenca := "CC BY-NC-SA 4.0"]
+# CC-BY -> "CC BY 4.0"
+soildata[dataset_licenca == "CC-BY", dataset_licenca := "CC BY 4.0"]
 # statistics
 soildata[, .N, by = .(dataset_licenca)][order(dataset_licenca)]
+#    dataset_licenca     N
+#             <char> <int>
+# 1:       CC BY 4.0 31469
+# 2:    CC BY-NC 4.0 30531
+# 3: CC BY-NC-SA 4.0   136
 
 # pais_id
 # if BR, then Brasil
