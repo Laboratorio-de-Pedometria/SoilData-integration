@@ -3056,6 +3056,7 @@ soildata[
   dataset_id == "ctb0607" & observacao_id == "PERFIL-92",
   carbono := ifelse(carbono == 413, 41.3, carbono)
 ]
+
 # THIS HAS ALREADY BEEN CORRECTED IN THE ORIGINAL DATASET. WE KEEP IT HERE FOR
 # REFERENCE.
 # ctb0718-51. carbon is recorded as 145 g/kg. It is corrected to 14.5 g/kg.
