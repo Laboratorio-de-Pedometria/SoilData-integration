@@ -252,40 +252,40 @@ soildata[, .N, by = .(data_fonte)][order(data_fonte)]
 # Many datasets still have no information for data_ano (sampling year)
 soildata[, .N, by = .(data_ano)][order(data_ano)]
 
-# Minimum soil density (dsi)
+# Minimum soil density #########################################################
 dsi_min <- 0.5
 dsi_min_taxon <- "Organossolo|Húmico|ORGÂNICO|Hístico"
 dsi_min_layer <- "O|H|Bw"
-# Check if the minimum dsi is greater than or equal to 0.5
-min(soildata$dsi, na.rm = TRUE) >= dsi_min
-# Check for dsi values less than 0.5 and not in "Organossolo|Húmico" soils or in "O|H" layers
+# Check if the minimum densidade is greater than or equal to 0.5
+min(soildata$densidade, na.rm = TRUE) >= dsi_min
+# Check for densidade values less than 0.5 and not in "Organossolo|Húmico" soils or in "O|H" layers
 soildata[
-  dsi < dsi_min & !grepl(dsi_min_taxon, taxon_sibcs, ignore.case = TRUE) &
+  densidade < dsi_min & !grepl(dsi_min_taxon, taxon_sibcs, ignore.case = TRUE) &
   !grepl(dsi_min_layer, camada_nome, ignore.case = TRUE),
-  .(taxon_sibcs, camada_nome, dsi, ctc, carbono, dataset_id, observacao_id)
+  .(taxon_sibcs, camada_nome, densidade, ctc, carbono, dataset_id, observacao_id)
 ]
-# Set those dsi values to NA: we cannot find justification for such low values
+# Set those densidade values to NA: we cannot find justification for such low values
 soildata[
-  dsi < dsi_min & !grepl(dsi_min_taxon, taxon_sibcs, ignore.case = TRUE) &
+  densidade < dsi_min & !grepl(dsi_min_taxon, taxon_sibcs, ignore.case = TRUE) &
   !grepl(dsi_min_layer, camada_nome, ignore.case = TRUE),
-  dsi := NA_real_
+  densidade := NA_real_
 ]
 
-# Maximum soil density (dsi)
+# Maximum soil density #########################################################
 dsi_max <- 2L
 dsi_max_taxon <- "VERTISSOLO|vértico|FLÚVICO"
 dsi_max_layer <- "v|t|Cg|Cn"
 # Check if the maximum dsi is less than or equal to 2
-max(soildata$dsi, na.rm = TRUE) <= dsi_max
-# Check for dsi values greater than 2 and not in "VERTISSOLO" soils or in "v|t" layers
+max(soildata$densidade, na.rm = TRUE) <= dsi_max
+# Check for densidade values greater than 2 and not in "VERTISSOLO" soils or in "v|t" layers
 soildata[
-  dsi > dsi_max & !grepl(dsi_max_taxon, taxon_sibcs, ignore.case = TRUE) &
+  densidade > dsi_max & !grepl(dsi_max_taxon, taxon_sibcs, ignore.case = TRUE) &
   !grepl(dsi_max_layer, camada_nome, ignore.case = TRUE),
-  .(taxon_sibcs, camada_nome, dsi, areia, carbono, dataset_id, observacao_id)
+  .(taxon_sibcs, camada_nome, densidade, areia, carbono, dataset_id, observacao_id)
 ]
 # The values appear to be correct, so we will not change them.
 
-# Maximum pH
+# Maximum pH ###################################################################
 ph_max <- 9L
 ph_max_taxon <- "carbonático|NÁTRICO|Sódico|SOLODIZADO"
 # Check if the maximum pH is less than or equal to 9
@@ -301,7 +301,7 @@ soildata[
   ph := NA_real_
 ]
 
-# Minimum pH
+# Minimum pH ###################################################################
 ph_min <- 2L
 ph_min_taxon <- "TIOMÓRFICO|Húmico"
 # Check if the minimum pH is greater than or equal to 2
@@ -317,14 +317,14 @@ soildata[
   ph := NA_real_
 ]
 
-# Sum of terrafina and esqueleto == 1000 g/kg
+# Sum of terrafina and esqueleto == 1000 g/kg ##################################
 all((soildata$terrafina + soildata$esqueleto) == 1000, na.rm = TRUE)
 
-# Sum clay, silt and sand
+# Sum clay, silt and sand ######################################################
 # Check if the sum is 1000 g/kg
 all((soildata$argila + soildata$silte + soildata$areia) == 1000, na.rm = TRUE)
 
-# Minimum ctc
+# Minimum ctc ##################################################################
 ctc_min <- 1L
 ctc_min_taxon <- "FLÚVICO|arênico|Álic|Distrófico|ESPODOS|Aluvia|fraco|Quartzosas|PODZOL|Latos"
 ctc_min_layer <- "C|E|A2"
@@ -344,7 +344,7 @@ soildata[
   ctc := NA_real_
 ]
 
-# Maximum ctc
+# Maximum ctc ##################################################################
 ctc_max <- 100
 ctc_max_taxon <- "Organossolo|Húmico|vertiso|ORGÂNICO"
 ctc_max_layer <- "O|H|v|t"
@@ -363,13 +363,23 @@ soildata[
 ]
 # We will not change other values, as they appear to be correct.
 
-# Export
+# Export #######################################################################
 # Save data in TXT format, saving in "res/tab/"
 summary_soildata(soildata)
+# SDi2025 ---
+# Layers: 62136
+# Events: 20209
+# Georeference: 16668 (yes) / 3541 (no)
+# Date: 20057 (yes) / 152 (no)
+# Datasets: 271
+# SDi2024 ---
 # Layers: 57077
 # Events: 16824
 # Georeferenced events: 14334
 # Datasets: 255
-file_path <- "res/tab/brazilian-soil-dataset-2024.txt"
-data.table::fwrite(soildata, file = file_path, sep = "\t", dec = ".", row.names = FALSE, na = "NA")
+file_path <- "res/tab/brazilian-soil-dataset-2025.txt"
+data.table::fwrite(
+  soildata,
+  file = file_path, sep = "\t", dec = ".", row.names = FALSE, na = "NA"
+)
 # Load to SoilData repository!
