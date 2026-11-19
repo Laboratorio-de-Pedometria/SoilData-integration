@@ -3068,6 +3068,44 @@ soildata[
 # future)
 soildata[carbono < 0 & id == "ctb0037-girua-081", carbono := NA_real_]
 
+# Layers missing event-level values ###########################################
+# Previous scripts handled overlapping and missing layers, and merged layers
+# from different datasets. A layer created during this process may be missing
+# event-level values, such as coordinates, collection date, soil classification,
+# state, or municipality. For each event, fill missing values only when its
+# nonmissing values agree; preserve existing values and leave conflicting or
+# layer-specific values unchanged.
+event_fields <- c(
+  names(soildata)[seq_len(match("camada_id", names(soildata)) - 1L)],
+  "data_ano", "data_ano_fonte", "coord_datum",
+  "erosao_presenca", "erosao_tipo"
+)
+event_fields <- setdiff(event_fields, c("dataset_id", "observacao_id"))
+
+for (field in event_fields) {
+  if (is.character(soildata[[field]])) {
+    empty_values <- which(!is.na(soildata[[field]]) & !nzchar(soildata[[field]]))
+    data.table::set(soildata, i = empty_values, j = field, value = NA_character_)
+  }
+}
+
+event_values <- soildata[
+  ,
+  lapply(.SD, function(x) {
+    values <- unique(x[!is.na(x)])
+    if (length(values) == 1L) values else x[NA_integer_]
+  }),
+  by = id,
+  .SDcols = event_fields
+]
+soildata[event_values,
+  on = "id",
+  (event_fields) := lapply(event_fields, function(field) {
+    
+  data.table::fcoalesce(get(field), get(paste0("i.", field)))
+})]
+rm(event_fields, event_values)
+
 # FIGURE 15.1 ##################################################################
 # Check spatial distribution after cleaning layers
 soildata_sf <- soildata[!is.na(coord_x) & !is.na(coord_y)]
