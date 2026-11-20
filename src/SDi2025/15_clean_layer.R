@@ -1265,10 +1265,11 @@ soildata[
   )
 ]
 
-# A00 and A0 layers. Some old soil surveys use A00 for Oo and A0 for Od layers
-# and horizons. We need to make sure that the depth limits are negative. It may
-# happen, however, that the depth limits already are negative. We will check the
-# occurences and correct them manually.
+# Negative depth: A00 and A0 layers ############################################
+# Some old soil surveys use A00 for Oo and A0 for Od layers and horizons. We 
+# need to make sure that the depth limits are negative. It may happen, however,
+# that the depth limits already are negative. We will check the occurences and 
+# correct them manually.
 soildata[
   camada_nome %in% c("A00", "A0"),
   .(id, camada_nome, profund_sup, profund_inf)
@@ -1361,6 +1362,7 @@ soildata[
 soildata[camada_nome == "A00", camada_nome := "Oo"]
 soildata[camada_nome == "A0", camada_nome := "Od"]
 
+# Negative depth: Oo layers ####################################################
 # For ctb0045 and ctb0080 profiles with Oo layers, subtract the minimum
 # profund_inf from all layer depths to start the topsoil at 0 cm.
 for (dataset in c("ctb0045", "ctb0080")) {
@@ -1386,6 +1388,76 @@ for (dataset in c("ctb0045", "ctb0080")) {
   soildata[, min_depth := NULL]
 }
 rm(dataset, organic_ids)
+
+# Negative depth: Oa, Oe, and Oi layers ########################################
+# Some studies use international standards to describe soils. In these cases,
+# the organic layers are designated as Oa, Oe, and Oi. We will check these cases
+# and correct the depth limits to start at 0 cm.
+soildata[
+  grepl("O[aei]", camada_nome),
+  .(id, camada_nome, profund_sup, profund_inf)
+]
+# ctb0019
+# If a camada_nome has Oi or Oe, set is_litter == TRUE.
+soildata[
+  dataset_id == "ctb0019" & grepl("O[ei]", camada_nome),
+  is_litter := TRUE
+]
+# For each event (id), identify the lowermost depth of the litter layer
+# (profund_inf).
+organic_ids <- soildata[
+  dataset_id == "ctb0019" & is_litter == TRUE,
+  unique(id)
+]
+soildata[
+  dataset_id == "ctb0019" & id %in% organic_ids,
+  min_depth := min(profund_inf[is_litter %in% TRUE]),
+  by = id
+]
+# Subtract it from all depth limits (profund_sup and profund_inf) of all layers
+# of that event.
+soildata[
+  dataset_id == "ctb0019" & id %in% organic_ids,
+  `:=`(
+    profund_sup = profund_sup - min_depth,
+    profund_inf = profund_inf - min_depth
+  )
+]
+soildata[, min_depth := NULL]
+rm(organic_ids)
+# Rename layers: Oi -> Oo, Oe -> Ood, Oa -> Od.
+soildata[
+  dataset_id == "ctb0019",
+  camada_nome := sub("Oi", "Oo", camada_nome)
+]
+soildata[
+  dataset_id == "ctb0019",
+  camada_nome := sub("Oe", "Ood", camada_nome)
+]
+soildata[
+  dataset_id == "ctb0019",
+  camada_nome := sub("Oa", "Od", camada_nome)
+]
+
+# ctb0648
+soildata[
+  grepl("O[aei]", camada_nome),
+  .(id, camada_nome, profund_sup, profund_inf, carbono, argila, taxon_sibcs)
+]
+# These are all organic horizons. We only change the layer names and keep the
+# depth limits as they are.
+soildata[
+  dataset_id == "ctb0648" & grepl("O[aei]", camada_nome),
+  camada_nome := sub("Oi", "Oo", camada_nome)
+]
+soildata[
+  dataset_id == "ctb0648" & grepl("O[aei]", camada_nome),
+  camada_nome := sub("Oe", "Ood", camada_nome)
+]
+soildata[
+  dataset_id == "ctb0648" & grepl("O[aei]", camada_nome),
+  camada_nome := sub("Oa", "Od", camada_nome)
+]
 
 # profund_sup == profund_inf ###################################################
 
