@@ -1200,6 +1200,15 @@ nrow(soildata[profund_sup > profund_inf])
 # }
 # rm(negative_depths)
 
+# ctb0065-LGR-MS. Rename organic layers. This was not changed in the source
+# spreadsheet.
+# camada_nome == "O1" -> "Oo"
+soildata[id == "ctb0065-LGR-MS" & camada_nome == "O1", camada_nome := "Oo"]
+# camada_nome == "O2" -> "Ood"
+soildata[id == "ctb0065-LGR-MS" & camada_nome == "O2", camada_nome := "Ood"]
+# camada_nome == "O3" -> "Od"
+soildata[id == "ctb0065-LGR-MS" & camada_nome == "O3", camada_nome := "Od"]
+
 # ctb0671-13-ATM
 soildata[id == "ctb0671-13-ATM" & camada_nome == "O2", `:=`(
   profund_sup = -2,
@@ -1494,8 +1503,6 @@ soildata[
 # Identify organic layers that could be diagnostic of organic soils. Use a lower
 # bound of 20 cm deep.
 soildata[is_organic == TRUE & profund_inf >= 20, is_diagnostic := TRUE]
-
-
 if (FALSE) {
   View(soildata[
     is_organic == TRUE &
@@ -1505,6 +1512,12 @@ if (FALSE) {
     .(id, camada_nome, profund_sup, profund_inf, carbono, argila, taxon_sibcs)
   ])
 }
+
+
+
+soildata[id == "ctb0065-LGR-MS", .(id, camada_nome, profund_sup, profund_inf, carbono, argila, areia, silte, ctc, taxon_sibcs)]
+
+
 
 
 
