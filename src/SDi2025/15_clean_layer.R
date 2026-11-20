@@ -1181,7 +1181,6 @@ nrow(soildata[profund_sup > profund_inf])
 # )]
 
 # Negative depth ###############################################################
-
 # WE WILL KEEEP NEGATIVE DEPTHS TO IDENTIFY LITTER LAYERS
 # # Correct negative (profund_sup < 0) depth limit of topsoil layers
 # # Check each soil profile (id) for negative depth limits. Store the result in a
@@ -1200,6 +1199,11 @@ nrow(soildata[profund_sup > profund_inf])
 #   ]
 # }
 # rm(negative_depths)
+
+# Some old soil surveys use A00 for Oo and A0 for Od layers and horizons. We
+# change these old designations to the current designations.
+soildata[camada_nome == "A00", camada_nome := "Oo"]
+soildata[camada_nome == "A0", camada_nome := "Od"]
 
 # ctb0671-13-ATM
 soildata[id == "ctb0671-13-ATM" & camada_nome == "O2", `:=`(
