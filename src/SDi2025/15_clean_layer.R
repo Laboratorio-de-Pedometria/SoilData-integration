@@ -1432,7 +1432,9 @@ soildata[
     profund_inf = profund_inf - min_depth
   )
 ]
+# Discard temporary columns and objects
 soildata[, min_depth := NULL]
+soildata[, is_litter := NULL]
 rm(organic_ids)
 # Rename layers: Oi -> Oo, Oe -> Ood, Oa -> Od.
 soildata[
@@ -1503,6 +1505,7 @@ soildata[
 # Identify organic layers that could be diagnostic of organic soils. Use a lower
 # bound of 20 cm deep.
 soildata[is_organic == TRUE & profund_inf >= 20, is_diagnostic := TRUE]
+# Check the organic layers that meet the criteria for being litter layers
 if (FALSE) {
   View(soildata[
     is_organic == TRUE &
@@ -1512,14 +1515,54 @@ if (FALSE) {
     .(id, camada_nome, profund_sup, profund_inf, carbono, argila, taxon_sibcs)
   ])
 }
-
-
-
-soildata[id == "ctb0065-LGR-MS", .(id, camada_nome, profund_sup, profund_inf, carbono, argila, areia, silte, ctc, taxon_sibcs)]
-
-
-
-
+# Set is_litter == TRUE that meet the criteria.
+soildata[
+  is_organic == TRUE &
+    no_measurements == TRUE &
+    is.na(organic_soil) &
+    is.na(is_diagnostic),
+  is_litter := TRUE
+]
+# Check the organic layers that meet the criteria for being litter layers
+if (FALSE) {
+  View(soildata[
+    is_litter == TRUE,
+    .(id, camada_nome, profund_sup, profund_inf, carbono, argila, taxon_sibcs)
+  ])
+}
+# Litter layers should all have negative profund_sup. For each profile that
+# does not meet this condition, subtract the maximum profund_inf of its litter
+# layers from all layer depths, placing the bottom of the litter at 0 cm.
+litter_ids <- soildata[
+  is_litter %in% TRUE & !is.na(profund_sup) & profund_sup >= 0,
+  unique(id)
+]
+if (length(litter_ids) > 0L) {
+  soildata[
+    id %in% litter_ids,
+    litter_max_depth := max(profund_inf[is_litter %in% TRUE], na.rm = TRUE),
+    by = id
+  ]
+  if (any(!is.finite(soildata[id %in% litter_ids, unique(litter_max_depth)]))) {
+    stop("Could not determine a finite litter depth for every affected profile.")
+  }
+  soildata[
+    id %in% litter_ids,
+    `:=`(
+      profund_sup = profund_sup - litter_max_depth,
+      profund_inf = profund_inf - litter_max_depth
+    )
+  ]
+  soildata[, litter_max_depth := NULL]
+}
+rm(litter_ids)
+# Check the organic layers that meet the criteria for being litter layers
+if (FALSE) {
+  View(soildata[
+    is_litter == TRUE,
+    .(id, camada_nome, profund_sup, profund_inf, carbono, argila, taxon_sibcs)
+  ])
+}
 
 # profund_sup == profund_inf ###################################################
 
