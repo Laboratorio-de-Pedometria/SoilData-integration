@@ -1459,6 +1459,55 @@ soildata[
   camada_nome := sub("Oa", "Od", camada_nome)
 ]
 
+# Negative depth: general ######################################################
+# Organic layers are identified by the use of H or O (upper case) in
+# camada_nome. Those layer names, however, should not start with capital "B" or
+# capital "A". Identify these layers (is_organic == TRUE).
+soildata[
+  grepl("H|O", camada_nome, ignore.case = FALSE) &
+    !grepl("^B|^A", camada_nome, ignore.case = FALSE), 
+  is_organic := TRUE,
+  by = id
+]
+# Out of the organic layer, identify those for which there are no measurements
+# of soil properties (carbono, argila, etc.). This helps identifying litter
+# layers.
+soildata[
+  is_organic == TRUE &
+    is.na(carbono) &
+    is.na(argila) &
+    is.na(areia) &
+    is.na(silte) &
+    is.na(dsi) &
+    is.na(ph) &
+    is.na(ctc) &
+    is.na(ce),
+  no_measurements := TRUE  
+]
+# Identify the organic layers that belong to organic soils, i.e. those with
+# "ORGANOSSOLO" in the taxon_sibcs string.
+soildata[
+  is_organic == TRUE &
+    grepl("ORGANOSSOLO", taxon_sibcs, ignore.case = TRUE),
+  organic_soil := TRUE
+]
+# Identify organic layers that could be diagnostic of organic soils. Use a lower
+# bound of 20 cm deep.
+soildata[is_organic == TRUE & profund_inf >= 20, is_diagnostic := TRUE]
+
+
+if (FALSE) {
+  View(soildata[
+    is_organic == TRUE &
+      no_measurements == TRUE &
+      is.na(organic_soil) &
+      is.na(is_diagnostic), 
+    .(id, camada_nome, profund_sup, profund_inf, carbono, argila, taxon_sibcs)
+  ])
+}
+
+
+
 # profund_sup == profund_inf ###################################################
 
 # Some layers have equal values for profund_sup and profund_inf. This may occur
