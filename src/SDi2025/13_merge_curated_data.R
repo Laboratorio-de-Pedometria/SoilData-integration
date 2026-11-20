@@ -248,9 +248,9 @@ dev.off()
 # Export cleaned data ##########################################################
 summary_soildata(soildata)
 # SDi2025 ---
-# Layers: 63859
+# Layers: 63974
 # Events: 20394
-# Georeference: 16851 (yes) / 3543 (no)
+# Georeference: 16852 (yes) / 3542 (no)
 # Date: 20237 (yes) / 157 (no)
 # Datasets: 274
 # SDi2024 ---
