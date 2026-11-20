@@ -774,7 +774,7 @@ soildata[id == "ctb0636-Perfil-08", `:=`(
   profund_sup = profund_sup - 5,
   profund_inf = profund_inf - 5
 )]
-# Also, when camada_id == 3, set profund_sup == 8	and profund_inf == 22. This 
+# Also, when camada_id == 3, set profund_sup == 8	and profund_inf == 22. This
 # was already corrected in the source spreadsheet.
 soildata[id == "ctb0636-Perfil-08" & camada_id == 3, `:=`(
   profund_sup = 8,
@@ -782,10 +782,16 @@ soildata[id == "ctb0636-Perfil-08" & camada_id == 3, `:=`(
 )]
 # ctb0636-Perfil-102. When camada_nome == AB, set profund_inf == 30. This was
 # already corrected in the source spreadsheet.
-soildata[id == "ctb0636-Perfil-102" & camada_nome == "AB|A3", profund_inf := 30]
-# When camada_nome == BA|B1, set profund_inf == 50. This was already corrected 
+soildata[
+  id == "ctb0636-Perfil-102" & camada_nome %in% c("AB", "A3"),
+  profund_inf := 30
+]
+# When camada_nome == BA|B1, set profund_inf == 50. This was already corrected
 # in the source spreadsheet.
-soildata[id == "ctb0636-Perfil-102" & camada_nome == "BA|B1", profund_inf := 50]
+soildata[
+  id == "ctb0636-Perfil-102" & camada_nome %in% c("BA", "B1"),
+  profund_inf := 50
+]
 # ctb0636-Perfil-47. When camada_nome == Bw3, set profund_sup == 190. This was
 # already corrected in the source spreadsheet.
 soildata[id == "ctb0636-Perfil-47" & camada_nome == "Bw3", profund_sup := 190]
