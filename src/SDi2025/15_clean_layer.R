@@ -1770,9 +1770,9 @@ nrow(soildata[profund_sup == profund_inf])
 # 0 layers
 summary_soildata(soildata)
 # SDi2025 ---
-# Layers: 62414
+# Layers: 62527
 # Events: 20257
-# Georeference: 16715 (yes) / 3542 (no)
+# Georeference: 16716 (yes) / 3541 (no)
 # Date: 20100 (yes) / 157 (no)
 # Datasets: 271
 
@@ -1988,9 +1988,9 @@ soildata[, max_profund_inf := NULL]
 # Check data
 summary_soildata(soildata)
 # SDi2025 ---
-# Layers: 62405
+# Layers: 62519
 # Events: 20307
-# Georeference: 16723 (yes) / 3584 (no)
+# Georeference: 16724 (yes) / 3583 (no)
 # Date: 20148 (yes) / 159 (no)
 # Datasets: 271
 
@@ -2024,7 +2024,7 @@ soildata[
   .N
 ]
 # Number of layers with overlapping depth limits in this dataset
-# 7 
+# 2 
 soildata[, large_overlap := is.finite(profund_inf) &
   is.finite(profund_sup_next) &
   profund_inf - profund_sup_next > overlap_threshold]
@@ -2807,7 +2807,7 @@ soildata[!is.na(terrafina), .(terrafina, terrafina_fonte)]
 
 # Fine earth == NA_real_ #######################################################
 soildata[is.na(terrafina), .N]
-# 8807 layers with terrafina == NA_real_
+# 8783 layers with terrafina == NA_real_
 if (FALSE) {
   View(soildata[
     is.na(terrafina),
@@ -2872,7 +2872,7 @@ soildata[is.na(terrafina) & camada_nome %in% e_layers, terrafina := 1000]
 rm(a_layers, b_layers, c_layers, e_layers)
 # Check how many layers have terrafina == NA after the corrections above.
 soildata[is.na(terrafina), .N]
-# 8156 layers with terrafina == NA_real_
+# 8129 layers with terrafina == NA_real_
 if (FALSE) {
   View(soildata[
     is.na(terrafina),
@@ -2936,9 +2936,9 @@ soildata[
   terrafina_fonte := "original"
 ]
 soildata[, .N, by = terrafina_fonte]
-# 1:        original 53009
-# 2:            <NA>  8155
-# 3:    especialista  1241
+# 1:        original 53147
+# 2:            <NA>  8128
+# 3:    especialista  1244
 
 # Create "esqueleto" column ####################################################
 soildata[, esqueleto := 1000 - terrafina]
@@ -3063,7 +3063,7 @@ soildata[, areia := round(areia)]
 soildata[, psd := argila + silte + areia]
 # Check the distribution of the particle size fractions
 soildata[psd != 1000, .N]
-# 526 layers
+# 528 layers
 soildata[, .N, by = psd][order(psd)]
 # Values vary from 900 to 1090 g/kg
 
