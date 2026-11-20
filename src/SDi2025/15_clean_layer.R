@@ -767,22 +767,32 @@ soildata[id == "ctb0631-Perfil-75" & amostra_id == 19591, `:=`(
 # We drop it: amostra_id == 19744. This was already corrected in the source
 # spreadsheet.
 soildata <- soildata[!(id == "ctb0635-PERFIL-DF-25" & amostra_id == 19744)] 
-# ctb0636-Perfil-08. This profile has an organic layer of 5 cm. Subtract 5 cm 
+# ctb0636-Perfil-08. This profile has an organic layer of 5 cm. Subtract 5 cm
 # from the depth limits of all layers. This was already corrected in the source
 # spreadsheet.
-soildata[id == "ctb0636-Perfil-08", `:=` (
+soildata[id == "ctb0636-Perfil-08", `:=`(
   profund_sup = profund_sup - 5,
   profund_inf = profund_inf - 5
 )]
+# Also, when camada_id == 3, set profund_sup == 8	and profund_inf == 22. This 
+# was already corrected in the source spreadsheet.
+soildata[id == "ctb0636-Perfil-08" & camada_id == 3, `:=`(
+  profund_sup = 8,
+  profund_inf = 22
+)]
 # ctb0636-Perfil-102. When camada_nome == AB, set profund_inf == 30. This was
 # already corrected in the source spreadsheet.
-soildata[id == "ctb0636-Perfil-102" & camada_nome == "AB", profund_inf := 30]
+soildata[id == "ctb0636-Perfil-102" & camada_nome == "AB|A3", profund_inf := 30]
+# When camada_nome == BA|B1, set profund_inf == 50. This was already corrected 
+# in the source spreadsheet.
+soildata[id == "ctb0636-Perfil-102" & camada_nome == "BA|B1", profund_inf := 50]
 # ctb0636-Perfil-47. When camada_nome == Bw3, set profund_sup == 190. This was
 # already corrected in the source spreadsheet.
 soildata[id == "ctb0636-Perfil-47" & camada_nome == "Bw3", profund_sup := 190]
 # ctb0643-Perfil-01. This profile has horizons with broken transitions. To
-# facilitate, we will drop one of them: amostra_id == 21201.
+# facilitate, we will drop two of them: amostra_id == 21201 and 21198.
 soildata <- soildata[!(id == "ctb0643-Perfil-01" & amostra_id == 21201)]
+soildata <- soildata[!(id == "ctb0643-Perfil-01" & amostra_id == 21198)]
 # ctb0643-Perfil-10. This profile has horizons with broken transitions. When
 # amostra_id == 21299, set profund_sup == 198.
 soildata[id == "ctb0643-Perfil-10" & amostra_id == 21299, profund_sup := 198]
@@ -826,6 +836,12 @@ soildata <- soildata[!(id == "ctb0663-PERFIL-EX-12" & amostra_id == 23596)]
 soildata[id == "ctb0663-PERFIL-PF-3", `:=`(
   profund_sup = profund_sup - 3,
   profund_inf = profund_inf - 3
+)]
+# When camada_nome == B21t, set profund_sup == 65	and profund_inf == 87. This 
+# was already corrected in the source spreadsheet.
+soildata[id == "ctb0663-PERFIL-PF-3" & camada_nome == "B21t", `:=`(
+  profund_sup = 65,
+  profund_inf = 87
 )]
 # ctb0664-PERFIL-01. When amostra_id == 23946, set profund_sup == 20 and
 # profund_inf == 50. This was already corrected in the source spreadsheet.
@@ -1021,10 +1037,15 @@ soildata[id == "ctb0781-Perfil-4" & amostra_id == 40252, profund_sup := 182]
 # drop them: amostra_id == 40792, 40794, 40795, 40797.
 soildata <- soildata[!(id == "ctb0783-IPEAN-9194/97" &
   amostra_id %in% c(40792, 40794, 40795, 40797))]
-# ctb0785-12. When amostra_id == 40529, set profund_sup == 0. Although we do not
-# have access to the source document, this was already corrected in the source
-# spreadsheet.
-soildata[id == "ctb0785-12" & amostra_id == 40529, profund_sup := 0]
+# ctb0785-12. If for amostra_id == 40529, profund_inf == 20, reset all depth
+# values for all layers. Although we do nottem have access to the source
+# document, this was already corrected in the source spreadsheet.
+if (soildata[id == "ctb0785-12" & amostra_id == 40529 & profund_inf == 20, .N] > 0) {
+  soildata[id == "ctb0785-12", `:=`(
+    profund_sup = c(0, 6, 26, 66, 113, 180),
+    profund_inf = c(6, 26, 66, 113, 180, 200)
+  )]
+}
 # ctb0787-49. This profile has something new. For a fiven horizon, two samples
 # were collected for lab analysis. Here we organize the data. This has already
 # been corrected in the source spreadsheet.
@@ -1203,6 +1224,14 @@ soildata[
   id == "ctb0635-PERFIL-DF-23", `:=`(
     profund_sup = profund_sup + (-2),
     profund_inf = profund_inf + (-2)
+  )
+]
+# ctb0610-Perfil-45. Subtract -3 from profund_sup and profund_inf. Already 
+# corrected in the source spreadsheet.
+soildata[
+  id == "ctb0610-Perfil-45", `:=`(
+    profund_sup = profund_sup + (-3),
+    profund_inf = profund_inf + (-3)
   )
 ]
 # ctb0635-PERFIL-DF-24. When amostra_id == 19376, set O2. Then subtract -3 from
