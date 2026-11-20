@@ -1200,16 +1200,12 @@ nrow(soildata[profund_sup > profund_inf])
 # }
 # rm(negative_depths)
 
-# Some old soil surveys use A00 for Oo and A0 for Od layers and horizons. We
-# change these old designations to the current designations.
-soildata[camada_nome == "A00", camada_nome := "Oo"]
-soildata[camada_nome == "A0", camada_nome := "Od"]
-
 # ctb0671-13-ATM
 soildata[id == "ctb0671-13-ATM" & camada_nome == "O2", `:=`(
   profund_sup = -2,
   profund_inf = 0
 )]
+
 # ctb0678-88. When camada_nome == "O1", set profund_sup == -2 and
 # profund_inf == 0. This was not changed in the source spreadsheet, but we keep
 # it here to identify litter layers.
@@ -1219,6 +1215,7 @@ soildata[
     profund_inf = 0
   )
 ]
+
 # ctb0657-111. This soils profile has two organic layers. When amostra_id =
 # 25290 and 25291, set camada_nome O1 and O2 and profund_sup = -5 and -3 and
 # profund_inf = -3 and 0, respectively. This was already corrected in the source
@@ -1229,6 +1226,7 @@ soildata[dataset_id == "ctb0657" & id == "ctb0657-111" &
   profund_sup = c(-5, -3),
   profund_inf = c(-3, 0)
 )]
+
 # ctb0635-PERFIL-DF-23. Subtract -2 from profund_sup and profund_inf == 0.
 soildata[
   id == "ctb0635-PERFIL-DF-23", `:=`(
@@ -1236,6 +1234,7 @@ soildata[
     profund_inf = profund_inf + (-2)
   )
 ]
+
 # ctb0610-Perfil-45. Subtract -3 from profund_sup and profund_inf. Already 
 # corrected in the source spreadsheet.
 soildata[
@@ -1244,6 +1243,7 @@ soildata[
     profund_inf = profund_inf + (-3)
   )
 ]
+
 # ctb0635-PERFIL-DF-24. When amostra_id == 19376, set O2. Then subtract -3 from
 # all depth limits (profund_sup and profund_inf) of all layers of this profile.
 soildata[
@@ -1251,10 +1251,12 @@ soildata[
     camada_nome = "O2"
   )
 ]
+
 soildata[id == "ctb0635-PERFIL-DF-24", `:=`(
   profund_sup = profund_sup + (-3),
   profund_inf = profund_inf + (-3)
 )]
+
 # ctb0635-PERFIL-DF-24. Subtract -4 from profund_sup and profund_inf.
 soildata[
   id == "ctb0635-PERFIL-DF-8", `:=`(
@@ -1262,10 +1264,11 @@ soildata[
     profund_inf = profund_inf + (-4)
   )
 ]
-# Some old profiles use A00 and A0 for organic layers. We will keep them, but
-# need to make sure that the depth limits are negative. It may happen, however,
-# that the depth limits already are negative. We will check the occurences and
-# correct them manually.
+
+# A00 and A0 layers. Some old soil surveys use A00 for Oo and A0 for Od layers
+# and horizons. We need to make sure that the depth limits are negative. It may
+# happen, however, that the depth limits already are negative. We will check the
+# occurences and correct them manually.
 soildata[
   camada_nome %in% c("A00", "A0"),
   .(id, camada_nome, profund_sup, profund_inf)
@@ -1354,6 +1357,10 @@ soildata[
     profund_inf = profund_inf + (-2)
   )
 ]
+# Change old designations to the current designations.
+soildata[camada_nome == "A00", camada_nome := "Oo"]
+soildata[camada_nome == "A0", camada_nome := "Od"]
+
 # For ctb0045 and ctb0080 profiles with Oo layers, subtract the minimum
 # profund_inf from all layer depths to start the topsoil at 0 cm.
 for (dataset in c("ctb0045", "ctb0080")) {
