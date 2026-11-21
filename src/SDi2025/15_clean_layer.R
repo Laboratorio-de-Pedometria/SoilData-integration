@@ -35,6 +35,29 @@ summary_soildata(soildata)
 # Order layers by event (id) and layer depth (profund_sup and profund_inf)
 soildata <- soildata[order(id, profund_sup, profund_inf)]
 
+# Source columns for target variables ##########################################
+# We add one column for target variable named <target>_fonte in which we
+# describe the source of the value for each target variable. The source will be
+# called original if the value was present in the source data.
+# argila
+soildata[, argila_fonte := ifelse(!is.na(argila), "original", NA_character_)]
+# silte
+soildata[, silte_fonte := ifelse(!is.na(silte), "original", NA_character_)]
+# areia
+soildata[, areia_fonte := ifelse(!is.na(areia), "original", NA_character_)]
+# carbono
+soildata[, carbono_fonte := ifelse(!is.na(carbono), "original", NA_character_)]
+# ctc
+soildata[, ctc_fonte := ifelse(!is.na(ctc), "original", NA_character_)]
+# ph
+soildata[, ph_fonte := ifelse(!is.na(ph), "original", NA_character_)]
+# ce
+soildata[, ce_fonte := ifelse(!is.na(ce), "original", NA_character_)]
+# terrafina
+soildata[, terrafina_fonte := ifelse(!is.na(terrafina), "original", NA_character_)]
+# esqueleto
+soildata[, esqueleto_fonte := ifelse(!is.na(esqueleto), "original", NA_character_)]
+
 # ctb0025 ######################################################################
 # Correct the one-row carbon shift in ctb0025.
 # The spreadsheet values from Perfil-36 A2 through Perfil-64 BC were entered
