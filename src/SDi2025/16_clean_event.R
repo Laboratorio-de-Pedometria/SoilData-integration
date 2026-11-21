@@ -461,7 +461,8 @@ soildata <- jitter_coordinates(
 rm(idx_duplicated)
 
 # Check unique events
-soildata_events <- soildata[!is.na(coord_x) & !is.na(coord_y) & !is.na(data_ano), id[1],
+soildata_events <- soildata[
+  !is.na(coord_x) & !is.na(coord_y) & !is.na(data_ano), id[1], 
   by = c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
 ]
 # Compute duplicated events based on coordinates and year
@@ -473,12 +474,12 @@ soildata_events[
 print(soildata_events[, .N, by = duplicated])
 #    duplicated     N
 #        <lgcl> <int>
-# 1:      FALSE 17155
+# 1:      FALSE 16666
 
 # Check data
 summary_soildata(soildata)
 # SDi2025 ---
-# Layers: 62136
+# Layers: 62250
 # Events: 20259
 # Georeference: 16676 (yes) / 3583 (no)
 # Date: 20105 (yes) / 154 (no)
