@@ -180,13 +180,15 @@ nrow(eventRO[is.na(data_ano), ])
 target_year <- 1996
 eventRO[, data_ano_fonte := NA_character_]
 eventRO[!is.na(data_ano), data_ano_fonte := "original"]
-eventRO[is.na(data_ano), data_ano := target_year]
-eventRO[is.na(data_ano_fonte), data_ano_fonte := "estimativa"]
+eventRO[is.na(data_ano), `:=`(
+  data_ano = target_year,
+  data_ano_fonte = "especialista"
+)]
 eventRO[, .N, by = data_ano_fonte]
 #    data_ano_fonte     N
 #            <char> <int>
 # 1:       original  2911
-# 2:     estimativa    87
+# 2:    especialista   87
 rm(target_year)
 
 # Check spatial distribution of events in Rondônia
