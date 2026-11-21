@@ -35,7 +35,11 @@ summary_soildata(soildata)
 # Order layers by event (id) and layer depth (profund_sup and profund_inf)
 soildata <- soildata[order(id, profund_sup, profund_inf)]
 
-# Source columns for target variables ##########################################
+# Create columns for target variables ##########################################
+# esqueleto
+soildata[, esqueleto := NA_real_]
+
+# Create source columns for target variables ###################################
 # We add one column for target variable named <target>_fonte in which we
 # describe the source of the value for each target variable. The source will be
 # called original if the value was present in the source data.
@@ -53,6 +57,8 @@ soildata[, ctc_fonte := ifelse(!is.na(ctc), "original", NA_character_)]
 soildata[, ph_fonte := ifelse(!is.na(ph), "original", NA_character_)]
 # ce
 soildata[, ce_fonte := ifelse(!is.na(ce), "original", NA_character_)]
+# dsi
+soildata[, dsi_fonte := ifelse(!is.na(dsi), "original", NA_character_)]
 # terrafina
 soildata[, terrafina_fonte := ifelse(!is.na(terrafina), "original", NA_character_)]
 # esqueleto
@@ -3109,22 +3115,21 @@ if (n_psd_out > 0) {
   stop("There are layers with PSD outside the limits. Please check the data.")
 } else {
   # No layers outside the limits
-  # If the sum of the three fractions is different from 1000 g/kg, adjust their
-  # values, adding the difference to the silt fraction. We only consider layers 
-  # with psd between 900 and 1100 g/kg. We add a column dtp_fonte to 
-  # indicate that we adjusted the particle size fractions based on the sum of 
-  # the three fractions.
-  soildata[
-    !is.na(psd), 
-    dtp_fonte := ifelse(psd != 1000, "ajustada", "original")
-  ]
+  # If the sum differs from 1000 g/kg, scale clay and sand and calculate silt
+  # as the remainder. Mark all three fractions as normalized; leave the source
+  # of unchanged or incomplete distributions as it was.
+  soildata[!is.na(psd) & psd != 1000, `:=`(
+    argila_fonte = "normalização",
+    silte_fonte = "normalização",
+    areia_fonte = "normalização"
+  )]
   soildata[psd != 1000, argila := round(argila / psd * 1000)]
   soildata[psd != 1000, areia := round(areia / psd * 1000)]
   soildata[psd != 1000, silte := 1000 - argila - areia]
   soildata[, psd := round(argila + silte + areia)]
   print(soildata[psd != 1000, psd])  
   soildata[, psd := NULL]
-  print(soildata[, .N, by = dtp_fonte])
+  print(soildata[, .N, by = .(argila_fonte, silte_fonte, areia_fonte)])
 }
 
 # Correct bulk density values ##################################################
