@@ -384,7 +384,7 @@ soildata_events <- soildata[
   by = c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
 ]
 nrow(soildata_events)
-# 16939 events
+# 16670 events
 # Compute duplicated events based on coordinates and year
 soildata_events[
   !is.na(coord_x) & !is.na(coord_y) & !is.na(data_ano),
@@ -394,8 +394,8 @@ soildata_events[
 print(soildata_events[, .N, by = duplicated])
 #    duplicated     N
 #        <lgcl> <int>
-# 1:      FALSE 16851
-# 2:       TRUE   88
+# 1:      FALSE 16568
+# 2:       TRUE   102
 if (FALSE) {
   View(soildata_events[duplicated == TRUE, ])
 }
@@ -419,7 +419,7 @@ soildata <- soildata[!id == "ctb0811-67", ]
 # Check data
 summary_soildata(soildata)
 # SDi2025 ---
-# Layers: 62136
+# Layers: 62250
 # Events: 20259
 # Georeference: 16676 (yes) / 3583 (no)
 # Date: 20105 (yes) / 154 (no)
@@ -431,7 +431,7 @@ soildata_events <- soildata[
   by = c("dataset_id", "observacao_id", "coord_x", "coord_y", "data_ano")
 ]
 nrow(soildata_events)
-# 16935 events
+# 16666 events
 # Compute duplicated events based on coordinates and year
 soildata_events[
   !is.na(coord_x) & !is.na(coord_y) & !is.na(data_ano),
@@ -441,8 +441,8 @@ soildata_events[
 print(soildata_events[, .N, by = duplicated])
 #    duplicated     N
 #        <lgcl> <int>
-# 1:      FALSE 16855
-# 2:       TRUE   88
+# 1:      FALSE 16572
+# 2:       TRUE    94
 if (FALSE) {
   View(soildata_events[duplicated == TRUE, ])
 }
@@ -453,39 +453,12 @@ if (FALSE) {
 # future. Here, we simply jitter the coordinates by a small amount to pass the 
 # duplication test.
 idx_duplicated <- soildata_events[duplicated == TRUE, V1]
-# Create a spatial object for all duplicated datasets
-soildata_sf <- sf::st_as_sf(soildata[id %in% idx_duplicated],
-  coords = c("coord_x", "coord_y"), crs = 4326
+length(idx_duplicated)
+# 94 duplicated events in all other datasets
+soildata <- jitter_coordinates(
+  dt = soildata, event_id = idx_duplicated, amount = 1, seed = 1984
 )
-# Transform to UTM
-soildata_sf <- sf::st_transform(soildata_sf, crs = 32720)
-# Jitter coordinates
-amount <- 1
-set.seed(1984) # For reproducibility
-soildata_sf <- sf::st_jitter(soildata_sf, amount = amount)
-# Transform back to WGS84
-soildata_sf <- sf::st_transform(soildata_sf, crs = 4326)
-# Extract coordinates from the spatial object
-soildata_sf <- data.table(
-  observacao_id = soildata_sf$observacao_id,
-  coord_x = sf::st_coordinates(soildata_sf)[, "X"],
-  coord_y = sf::st_coordinates(soildata_sf)[, "Y"]
-)
-# Update coordinates in soildata
-soildata[id %in% idx_duplicated, `:=`(
-  coord_x = soildata_sf[, coord_x],
-  coord_y = soildata_sf[, coord_y],
-  # In coord_fonte, append " + amount m jitter" to the existing text.
-  coord_fonte = paste0(coord_fonte, " + ", amount, " m jitter"),
-  # In coord_precisao, add 'amount' to the existing value if it author_nome a number larger than 0.
-  coord_precisao = ifelse(
-    !is.na(suppressWarnings(as.numeric(coord_precisao))) &
-      suppressWarnings(as.numeric(coord_precisao)) > 0,
-    as.character(suppressWarnings(as.numeric(coord_precisao)) + amount),
-    coord_precisao
-  )
-)]
-rm(soildata_sf, idx_duplicated, amount)
+rm(idx_duplicated)
 
 # Check unique events
 soildata_events <- soildata[!is.na(coord_x) & !is.na(coord_y) & !is.na(data_ano), id[1],
