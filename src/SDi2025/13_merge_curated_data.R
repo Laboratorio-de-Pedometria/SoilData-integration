@@ -102,6 +102,16 @@ read_cols <- c(
 )
 curated_data <- data.table::rbindlist(curated_list, fill = TRUE)
 curated_data <- curated_data[, ..read_cols]
+# Standardize sampling-year sources from the curated datasets.
+curated_data[data_ano_fonte == "Original", data_ano_fonte := "original"]
+curated_data[
+  data_ano_fonte %in% c("Estimativa", "estimativa"),
+  data_ano_fonte := "especialista"
+]
+curated_data[
+  !is.na(data_ano) & is.na(data_ano_fonte),
+  data_ano_fonte := "original"
+]
 curated_data[, id := paste0(dataset_id, "-", observacao_id)]
 summary_soildata(curated_data)
 # SDi2025 ---
