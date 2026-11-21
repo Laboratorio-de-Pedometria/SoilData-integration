@@ -184,45 +184,12 @@ rm(idx_duplicated)
 idx_duplicated <- soildata_events[
   dataset_id == "ctb0010" & duplicated == TRUE, V1
 ]
-# Create a spatial object for ctb0010 dataset
-ctb0010_sf <- sf::st_as_sf(soildata[id %in% idx_duplicated],
-  coords = c("coord_x", "coord_y"), crs = 4326
+length(idx_duplicated)
+# 18 duplicated events in ctb0010
+soildata <- jitter_coordinates(
+  dt = soildata, event_id = idx_duplicated, amount = 1, seed = 1984
 )
-if (FALSE) {
-  # Check points in an interactive map
-  mapview::mapview(ctb0010_sf)
-}
-# Transform to UTM
-ctb0010_sf <- sf::st_transform(ctb0010_sf, crs = 32720)
-# Jitter coordinates by 1 meter to separate overlapping points and pass the
-# duplication test. But we should check the source document and update the 
-# coordinates if possible in the source data.
-amount <- 1
-set.seed(1984) # For reproducibility
-ctb0010_sf <- sf::st_jitter(ctb0010_sf, amount = amount)
-# Transform back to WGS84
-ctb0010_sf <- sf::st_transform(ctb0010_sf, crs = 4326)
-# Extract coordinates from the spatial object
-ctb0010_sf <- data.table(
-  observacao_id = ctb0010_sf$observacao_id,
-  coord_x = sf::st_coordinates(ctb0010_sf)[, "X"],
-  coord_y = sf::st_coordinates(ctb0010_sf)[, "Y"]
-)
-# Update coordinates in soildata
-soildata[id %in% idx_duplicated, `:=`(
-  coord_x = ctb0010_sf[, coord_x],
-  coord_y = ctb0010_sf[, coord_y],
-  # In coord_fonte, append " + amount m jitter" to the existing text.
-  coord_fonte = paste0(coord_fonte, " + ", amount, " m jitter"),
-  # In coord_precisao, add 'amount' to the existing value if it a number larger than 0.
-  coord_precisao = ifelse(
-    !is.na(suppressWarnings(as.numeric(coord_precisao))) &
-      suppressWarnings(as.numeric(coord_precisao)) > 0,
-    as.character(suppressWarnings(as.numeric(coord_precisao)) + amount),
-    coord_precisao
-  )
-)]
-rm(ctb0010_sf, idx_duplicated, amount)
+rm(idx_duplicated)
 
 # ctb0832. Dados de 'Levantamento do Estado do Rio de Janeiro'. We do not have
 # access to the source document. However, the spreadsheet data suggest that these
