@@ -10,7 +10,8 @@
 # extracts the year from the full date, recovers missing sampling years using a
 # collaborative spreadsheet, and attributes estimated years for remaining
 # missing values based on source soil survey information. It also creates a
-# variable indicating the source of the sampling year (original or estimated),
+# variable indicating the source of the sampling year (original, expert
+# judgment, or dataset average),
 # plots the temporal distribution of samples, and saves the processed dataset.
 rm(list = ls())
 
@@ -230,24 +231,25 @@ dev.off()
 br_soil2023[, na_year := NULL]
 
 # Attribute the most likely (estimate) temporal coordinate #####################
-# Create a second column "data_ano_fonte". If we the sampling date is being
-# estimated/guessed (target_year), register data_ano_fonte = "estimativa".
-# If the sampling data comes from the original data set, set 
-# data_ano_fonte = "original".
-br_soil2023[, data_ano_fonte := NA_character_]
+# Years from the original dataset or the recovery spreadsheet are original.
+# Fixed years based on expert judgment are especialista; years calculated from
+# dataset averages are média. Missing years have no source.
+br_soil2023[, data_ano_fonte := ifelse(
+  !is.na(data_ano), "original", NA_character_
+)]
 
 # Inventário das terras em microbacias hidrográficas, Santa Catarina
 # These are various datasets from the same project. We can confortably attribute
 # the same sampling year to all of them.
 target_year <- 1995
-# Set the sampling year = target_year and data_ano_fonte = "estimativa"
+# Set the sampling year = target_year and data_ano_fonte = "especialista"
 br_soil2023[
   grepl("Inventário das terras em microbacias hidrográficas",
     dataset_titulo,
     ignore.case = TRUE
   ) & 
     is.na(data_ano),
-  `:=`(data_ano = target_year, data_ano_fonte = "estimativa")
+  `:=`(data_ano = target_year, data_ano_fonte = "especialista")
 ]
 # Set data_ano_fonte = original in the remaining events
 br_soil2023[
@@ -264,10 +266,10 @@ summary_date(br_soil2023)
 
 # LEVANTAMENTO SEMIDETALHADO DOS SOLOS DA FAZENDA CANCHIM SÃO CARLOS - SP
 target_year <- 1995
-# Set sampling year to target_year and data_ano_fonte to "estimativa"
+# Set sampling year to target_year and data_ano_fonte to "especialista"
 br_soil2023[
   dataset_id == "ctb0815" & is.na(data_ano),
-  `:=`(data_ano = target_year, data_ano_fonte = "estimativa")
+  `:=`(data_ano = target_year, data_ano_fonte = "especialista")
 ]
 # Set data_ano_fonte = original in the remaining events
 br_soil2023[
@@ -282,7 +284,7 @@ summary_date(br_soil2023)
 # was published in 1977, so we set data_ano to 1976.
 br_soil2023[
   dataset_id == "ctb0664" & is.na(data_ano),
-  `:=`(data_ano = 1976, data_ano_fonte = "estimativa")
+  `:=`(data_ano = 1976, data_ano_fonte = "especialista")
 ]
 br_soil2023[
   dataset_id == "ctb0664" & !is.na(data_ano) & is.na(data_ano_fonte),
@@ -296,7 +298,7 @@ summary_date(br_soil2023)
 target_year <- 2006
 br_soil2023[
   dataset_id == "ctb0682" & is.na(data_ano),
-  `:=`(data_ano = target_year, data_ano_fonte = "estimativa")
+  `:=`(data_ano = target_year, data_ano_fonte = "especialista")
 ]
 br_soil2023[
   dataset_id == "ctb0682" & !is.na(data_ano) & is.na(data_ano_fonte),
@@ -311,7 +313,7 @@ summary_date(br_soil2023)
 target_year <- 1971
 br_soil2023[
   dataset_id == "ctb0697" & is.na(data_ano),
-  `:=`(data_ano = target_year, data_ano_fonte = "estimativa")
+  `:=`(data_ano = target_year, data_ano_fonte = "especialista")
 ]
 br_soil2023[
   dataset_id == "ctb0697" & !is.na(data_ano) & is.na(data_ano_fonte),
@@ -337,7 +339,7 @@ summary_date(br_soil2023)
 target_year <- 1972
 br_soil2023[
   dataset_id == "ctb0703" & is.na(data_ano),
-  `:=`(data_ano = target_year, data_ano_fonte = "estimativa")
+  `:=`(data_ano = target_year, data_ano_fonte = "especialista")
 ]
 br_soil2023[
   dataset_id == "ctb0703" & !is.na(data_ano) & is.na(data_ano_fonte),
@@ -352,7 +354,7 @@ summary_date(br_soil2023)
 target_year <- 1971
 br_soil2023[
   dataset_id == "ctb0704" & is.na(data_ano),
-  `:=`(data_ano = target_year, data_ano_fonte = "estimativa")
+  `:=`(data_ano = target_year, data_ano_fonte = "especialista")
 ]
 br_soil2023[
   dataset_id == "ctb0704" & !is.na(data_ano) & is.na(data_ano_fonte),
@@ -367,7 +369,7 @@ summary_date(br_soil2023)
 target_year <- 1972
 br_soil2023[
   dataset_id == "ctb0705" & is.na(data_ano),
-  `:=`(data_ano = target_year, data_ano_fonte = "estimativa")
+  `:=`(data_ano = target_year, data_ano_fonte = "especialista")
 ]
 br_soil2023[
   dataset_id == "ctb0705" & !is.na(data_ano) & is.na(data_ano_fonte),
@@ -382,7 +384,7 @@ summary_date(br_soil2023)
 target_year <- 1972
 br_soil2023[
   dataset_id == "ctb0706" & is.na(data_ano),
-  `:=`(data_ano = target_year, data_ano_fonte = "estimativa")
+  `:=`(data_ano = target_year, data_ano_fonte = "especialista")
 ]
 br_soil2023[
   dataset_id == "ctb0706" & !is.na(data_ano) & is.na(data_ano_fonte),
@@ -397,7 +399,7 @@ summary_date(br_soil2023)
 target_year <- 1973
 br_soil2023[
   dataset_id == "ctb0707" & is.na(data_ano),
-  `:=`(data_ano = target_year, data_ano_fonte = "estimativa")
+  `:=`(data_ano = target_year, data_ano_fonte = "especialista")
 ]
 br_soil2023[
   dataset_id == "ctb0707" & !is.na(data_ano) & is.na(data_ano_fonte),
@@ -412,7 +414,7 @@ summary_date(br_soil2023)
 target_year <- 1973
 br_soil2023[
   dataset_id == "ctb0709" & is.na(data_ano),
-  `:=`(data_ano = target_year, data_ano_fonte = "estimativa")
+  `:=`(data_ano = target_year, data_ano_fonte = "especialista")
 ]
 br_soil2023[
   dataset_id == "ctb0709" & !is.na(data_ano) & is.na(data_ano_fonte),
@@ -427,7 +429,7 @@ summary_date(br_soil2023)
 target_year <- 1973
 br_soil2023[
   dataset_id == "ctb0710" & is.na(data_ano),
-  `:=`(data_ano = target_year, data_ano_fonte = "estimativa")
+  `:=`(data_ano = target_year, data_ano_fonte = "especialista")
 ]
 br_soil2023[
   dataset_id == "ctb0710" & !is.na(data_ano) & is.na(data_ano_fonte),
@@ -442,7 +444,7 @@ summary_date(br_soil2023)
 target_year <- 1974
 br_soil2023[
   dataset_id == "ctb0711" & is.na(data_ano),
-  `:=`(data_ano = target_year, data_ano_fonte = "estimativa")
+  `:=`(data_ano = target_year, data_ano_fonte = "especialista")
 ]
 br_soil2023[
   dataset_id == "ctb0711" & !is.na(data_ano) & is.na(data_ano_fonte),
@@ -457,7 +459,7 @@ summary_date(br_soil2023)
 target_year <- 1974
 br_soil2023[
   dataset_id == "ctb0713" & is.na(data_ano),
-  `:=`(data_ano = target_year, data_ano_fonte = "estimativa")
+  `:=`(data_ano = target_year, data_ano_fonte = "especialista")
 ]
 br_soil2023[
   dataset_id == "ctb0713" & !is.na(data_ano) & is.na(data_ano_fonte),
@@ -472,7 +474,7 @@ summary_date(br_soil2023)
 target_year <- 1974
 br_soil2023[
   dataset_id == "ctb0714" & is.na(data_ano),
-  `:=`(data_ano = target_year, data_ano_fonte = "estimativa")
+  `:=`(data_ano = target_year, data_ano_fonte = "especialista")
 ]
 br_soil2023[
   dataset_id == "ctb0714" & !is.na(data_ano) & is.na(data_ano_fonte),
@@ -487,7 +489,7 @@ summary_date(br_soil2023)
 target_year <- 1975
 br_soil2023[
   dataset_id == "ctb0717" & is.na(data_ano),
-  `:=`(data_ano = target_year, data_ano_fonte = "estimativa")
+  `:=`(data_ano = target_year, data_ano_fonte = "especialista")
 ]
 br_soil2023[
   dataset_id == "ctb0717" & !is.na(data_ano) & is.na(data_ano_fonte),
@@ -502,7 +504,7 @@ summary_date(br_soil2023)
 target_year <- 1975
 br_soil2023[
   dataset_id == "ctb0718" & is.na(data_ano),
-  `:=`(data_ano = target_year, data_ano_fonte = "estimativa")
+  `:=`(data_ano = target_year, data_ano_fonte = "especialista")
 ]
 br_soil2023[
   dataset_id == "ctb0718" & !is.na(data_ano) & is.na(data_ano_fonte),
@@ -517,7 +519,7 @@ summary_date(br_soil2023)
 target_year <- 1976
 br_soil2023[
   dataset_id == "ctb0751" & is.na(data_ano),
-  `:=`(data_ano = target_year, data_ano_fonte = "estimativa")
+  `:=`(data_ano = target_year, data_ano_fonte = "especialista")
 ]
 br_soil2023[
   dataset_id == "ctb0751" & !is.na(data_ano) & is.na(data_ano_fonte),
@@ -532,7 +534,7 @@ summary_date(br_soil2023)
 target_year <- 1976
 br_soil2023[
   dataset_id == "ctb0752" & is.na(data_ano),
-  `:=`(data_ano = target_year, data_ano_fonte = "estimativa")
+  `:=`(data_ano = target_year, data_ano_fonte = "especialista")
 ]
 br_soil2023[
   dataset_id == "ctb0752" & !is.na(data_ano) & is.na(data_ano_fonte),
@@ -547,7 +549,7 @@ summary_date(br_soil2023)
 target_year <- 1976
 br_soil2023[
   dataset_id == "ctb0753" & is.na(data_ano),
-  `:=`(data_ano = target_year, data_ano_fonte = "estimativa")
+  `:=`(data_ano = target_year, data_ano_fonte = "especialista")
 ]
 br_soil2023[
   dataset_id == "ctb0753" & !is.na(data_ano) & is.na(data_ano_fonte),
@@ -562,7 +564,7 @@ summary_date(br_soil2023)
 target_year <- 1977
 br_soil2023[
   dataset_id == "ctb0754" & is.na(data_ano),
-  `:=`(data_ano = target_year, data_ano_fonte = "estimativa")
+  `:=`(data_ano = target_year, data_ano_fonte = "especialista")
 ]
 br_soil2023[
   dataset_id == "ctb0754" & !is.na(data_ano) & is.na(data_ano_fonte),
@@ -577,7 +579,7 @@ summary_date(br_soil2023)
 target_year <- 1978
 br_soil2023[
   dataset_id == "ctb0756" & is.na(data_ano),
-  `:=`(data_ano = target_year, data_ano_fonte = "estimativa")
+  `:=`(data_ano = target_year, data_ano_fonte = "especialista")
 ]
 br_soil2023[
   dataset_id == "ctb0756" & !is.na(data_ano) & is.na(data_ano_fonte),
@@ -592,7 +594,7 @@ summary_date(br_soil2023)
 target_year <- 1979
 br_soil2023[
   dataset_id == "ctb0757" & is.na(data_ano),
-  `:=`(data_ano = target_year, data_ano_fonte = "estimativa")
+  `:=`(data_ano = target_year, data_ano_fonte = "especialista")
 ]
 br_soil2023[
   dataset_id == "ctb0757" & !is.na(data_ano) & is.na(data_ano_fonte),
@@ -607,7 +609,7 @@ summary_date(br_soil2023)
 target_year <- 1979
 br_soil2023[
   dataset_id == "ctb0758" & is.na(data_ano),
-  `:=`(data_ano = target_year, data_ano_fonte = "estimativa")
+  `:=`(data_ano = target_year, data_ano_fonte = "especialista")
 ]
 br_soil2023[
   dataset_id == "ctb0758" & !is.na(data_ano) & is.na(data_ano_fonte),
@@ -622,7 +624,7 @@ summary_date(br_soil2023)
 target_year <- 1984
 br_soil2023[
   dataset_id == "ctb0770" & is.na(data_ano),
-  `:=`(data_ano = target_year, data_ano_fonte = "estimativa")
+  `:=`(data_ano = target_year, data_ano_fonte = "especialista")
 ]
 br_soil2023[
   dataset_id == "ctb0770" & !is.na(data_ano) & is.na(data_ano_fonte),
@@ -648,7 +650,7 @@ summary_date(br_soil2023)
 target_year <- 1979
 br_soil2023[
   dataset_id == "ctb0760" & is.na(data_ano),
-  `:=`(data_ano = target_year, data_ano_fonte = "estimativa")
+  `:=`(data_ano = target_year, data_ano_fonte = "especialista")
 ]
 br_soil2023[
   dataset_id == "ctb0760" & !is.na(data_ano) & is.na(data_ano_fonte),
@@ -663,7 +665,7 @@ summary_date(br_soil2023)
 target_year <- 1979
 br_soil2023[
   dataset_id == "ctb0761" & is.na(data_ano),
-  `:=`(data_ano = target_year, data_ano_fonte = "estimativa")
+  `:=`(data_ano = target_year, data_ano_fonte = "especialista")
 ]
 br_soil2023[
   dataset_id == "ctb0761" & !is.na(data_ano) & is.na(data_ano_fonte),
@@ -678,7 +680,7 @@ summary_date(br_soil2023)
 target_year <- 1981
 br_soil2023[
   dataset_id == "ctb0767" & is.na(data_ano),
-  `:=`(data_ano = target_year, data_ano_fonte = "estimativa")
+  `:=`(data_ano = target_year, data_ano_fonte = "especialista")
 ]
 br_soil2023[  
   dataset_id == "ctb0767" & !is.na(data_ano) & is.na(data_ano_fonte),
@@ -693,7 +695,7 @@ summary_date(br_soil2023)
 target_year <- 1981
 br_soil2023[
   dataset_id == "ctb0769" & is.na(data_ano),
-  `:=`(data_ano = target_year, data_ano_fonte = "estimativa")
+  `:=`(data_ano = target_year, data_ano_fonte = "especialista")
 ]
 br_soil2023[
   dataset_id == "ctb0769" & !is.na(data_ano) & is.na(data_ano_fonte),
@@ -708,7 +710,7 @@ summary_date(br_soil2023)
 target_year <- 1985
 br_soil2023[
   dataset_id == "ctb0771" & is.na(data_ano),
-  `:=`(data_ano = target_year, data_ano_fonte = "estimativa")
+  `:=`(data_ano = target_year, data_ano_fonte = "especialista")
 ]
 br_soil2023[
   dataset_id == "ctb0771" & !is.na(data_ano) & is.na(data_ano_fonte),
@@ -738,9 +740,9 @@ idx <- br_soil2023[
 ]
 length(unique(idx))
 # 118 events
-# Set sampling_year to year_min and data_ano_fonte to "estimativa"
+# Set sampling_year to year_min and data_ano_fonte to "especialista"
 br_soil2023[id %in% idx, data_ano := year_min]
-br_soil2023[id %in% idx, data_ano_fonte := "estimativa"]
+br_soil2023[id %in% idx, data_ano_fonte := "especialista"]
 # Check how many events remain without sampling date
 summary_date(br_soil2023)
 # Date: 12251 (yes) / 1678 (no)
@@ -759,10 +761,10 @@ nrow(unique(br_soil2023[
 # 1999, so this is a reasonable estimate)
 # ctb0801
 target_year <- 1999
-# Set sampling year to target_year and data_ano_fonte to "estimativa"
+# Set sampling year to target_year and data_ano_fonte to "especialista"
 br_soil2023[dataset_id == "ctb0801" & is.na(data_ano), `:=`(
   data_ano = target_year,
-  data_ano_fonte = "estimativa"
+  data_ano_fonte = "especialista"
 )]
 # Set data_ano_fonte = original in the remaining events
 br_soil2023[
@@ -778,10 +780,10 @@ summary_date(br_soil2023)
 # 1998, so this is a reasonable estimate)
 # ctb0807
 target_year <- 1998
-# Set sampling year to target_year and data_ano_fonte to "estimativa"
+# Set sampling year to target_year and data_ano_fonte to "especialista"
 br_soil2023[dataset_id == "ctb0807" & is.na(data_ano), `:=`(
   data_ano = target_year,
-  data_ano_fonte = "estimativa"
+  data_ano_fonte = "especialista"
 )]
 # Set data_ano_fonte = original in the remaining events
 br_soil2023[
@@ -799,7 +801,7 @@ summary_date(br_soil2023)
 target_year <- 1994
 br_soil2023[dataset_id == "ctb0779" & is.na(data_ano), `:=`(
   data_ano = target_year,
-  data_ano_fonte = "estimativa"
+  data_ano_fonte = "especialista"
 )]
 br_soil2023[
   dataset_id == "ctb0779" & !is.na(data_ano) & is.na(data_ano_fonte),
@@ -815,7 +817,7 @@ summary_date(br_soil2023)
 target_year <- 1991
 br_soil2023[dataset_id == "ctb0802" & is.na(data_ano), `:=`(
   data_ano = target_year,
-  data_ano_fonte = "estimativa"
+  data_ano_fonte = "especialista"
 )]
 br_soil2023[
   dataset_id == "ctb0802" & !is.na(data_ano) & is.na(data_ano_fonte),
@@ -831,7 +833,7 @@ summary_date(br_soil2023)
 target_year <- 1989
 br_soil2023[dataset_id == "ctb0604" & is.na(data_ano), `:=`(
   data_ano = target_year,
-  data_ano_fonte = "estimativa"
+  data_ano_fonte = "especialista"
 )]
 br_soil2023[
   dataset_id == "ctb0604" & !is.na(data_ano) & is.na(data_ano_fonte),
@@ -847,7 +849,7 @@ summary_date(br_soil2023)
 target_year <- 1983
 br_soil2023[dataset_id == "ctb0658" & is.na(data_ano), `:=`(
   data_ano = target_year,
-  data_ano_fonte = "estimativa"
+  data_ano_fonte = "especialista"
 )]
 br_soil2023[
   dataset_id == "ctb0658" & !is.na(data_ano) & is.na(data_ano_fonte),
@@ -863,7 +865,7 @@ summary_date(br_soil2023)
 target_year <- 1981
 br_soil2023[dataset_id == "ctb0655" & is.na(data_ano), `:=`(
   data_ano = target_year,
-  data_ano_fonte = "estimativa"
+  data_ano_fonte = "especialista"
 )]
 br_soil2023[
   dataset_id == "ctb0655" & !is.na(data_ano) & is.na(data_ano_fonte),
@@ -879,7 +881,7 @@ summary_date(br_soil2023)
 target_year <- 1980
 br_soil2023[dataset_id %in% c("ctb0810", "ctb0814") & is.na(data_ano), `:=`(
   data_ano = target_year,
-  data_ano_fonte = "estimativa"
+  data_ano_fonte = "especialista"
 )]
 br_soil2023[
   dataset_id %in% c("ctb0810", "ctb0814") & !is.na(data_ano) & is.na(data_ano_fonte),
@@ -895,7 +897,7 @@ summary_date(br_soil2023)
 target_year <- 1978
 br_soil2023[dataset_id %in% c("ctb0776", "ctb0819") & is.na(data_ano), `:=`(
   data_ano = target_year,
-  data_ano_fonte = "estimativa"
+  data_ano_fonte = "especialista"
 )]
 br_soil2023[
   dataset_id %in% c("ctb0776", "ctb0819") & !is.na(data_ano) & is.na(data_ano_fonte),
@@ -911,7 +913,7 @@ summary_date(br_soil2023)
 target_year <- 1977
 br_soil2023[dataset_id %in% c("ctb0660", "ctb0788") & is.na(data_ano), `:=`(
   data_ano = target_year,
-  data_ano_fonte = "estimativa"
+  data_ano_fonte = "especialista"
 )]
 br_soil2023[
   dataset_id %in% c("ctb0660", "ctb0788") & !is.na(data_ano) & is.na(data_ano_fonte),
@@ -927,7 +929,7 @@ summary_date(br_soil2023)
 target_year <- 1976
 br_soil2023[dataset_id %in% c("ctb0648", "ctb0785") & is.na(data_ano), `:=`(
   data_ano = target_year,
-  data_ano_fonte = "estimativa"
+  data_ano_fonte = "especialista"
 )]
 br_soil2023[
   dataset_id %in% c("ctb0648", "ctb0785") & !is.na(data_ano) & is.na(data_ano_fonte),
@@ -943,7 +945,7 @@ summary_date(br_soil2023)
 target_year <- 1974
 br_soil2023[dataset_id %in% c("ctb0789", "ctb0818") & is.na(data_ano), `:=`(
   data_ano = target_year,
-  data_ano_fonte = "estimativa"
+  data_ano_fonte = "especialista"
 )]
 br_soil2023[
   dataset_id %in% c("ctb0789", "ctb0818") & !is.na(data_ano) & is.na(data_ano_fonte),
@@ -959,7 +961,7 @@ summary_date(br_soil2023)
 target_year <- 1971
 br_soil2023[dataset_id %in% c("ctb0783", "ctb0827") & is.na(data_ano), `:=`(
   data_ano = target_year,
-  data_ano_fonte = "estimativa"
+  data_ano_fonte = "especialista"
 )]
 br_soil2023[
   dataset_id %in% c("ctb0783", "ctb0827") & !is.na(data_ano) & is.na(data_ano_fonte),
@@ -975,7 +977,7 @@ summary_date(br_soil2023)
 target_year <- 1970
 br_soil2023[dataset_id == "ctb0797" & is.na(data_ano), `:=`(
   data_ano = target_year,
-  data_ano_fonte = "estimativa"
+  data_ano_fonte = "especialista"
 )]
 br_soil2023[
   dataset_id == "ctb0797" & !is.na(data_ano) & is.na(data_ano_fonte),
@@ -991,7 +993,7 @@ summary_date(br_soil2023)
 target_year <- 1969
 br_soil2023[dataset_id == "ctb0798" & is.na(data_ano), `:=`(
   data_ano = target_year,
-  data_ano_fonte = "estimativa"
+  data_ano_fonte = "especialista"
 )]
 br_soil2023[
   dataset_id == "ctb0798" & !is.na(data_ano) & is.na(data_ano_fonte),
@@ -1007,7 +1009,7 @@ summary_date(br_soil2023)
 target_year <- 1967
 br_soil2023[dataset_id %in% c("ctb0693", "ctb0804") & is.na(data_ano), `:=`(
   data_ano = target_year,
-  data_ano_fonte = "estimativa"
+  data_ano_fonte = "especialista"
 )]
 br_soil2023[
   dataset_id %in% c("ctb0693", "ctb0804") & !is.na(data_ano) & is.na(data_ano_fonte),
@@ -1023,7 +1025,7 @@ summary_date(br_soil2023)
 target_year <- 1959
 br_soil2023[dataset_id == "ctb0787" & is.na(data_ano), `:=`(
   data_ano = target_year,
-  data_ano_fonte = "estimativa"
+  data_ano_fonte = "especialista"
 )]
 br_soil2023[
   dataset_id == "ctb0787" & !is.na(data_ano) & is.na(data_ano_fonte),
@@ -1043,7 +1045,7 @@ ctb <- c(
 )
 br_soil2023[dataset_id %in% ctb & is.na(data_ano), `:=`(
   data_ano = target_year,
-  data_ano_fonte = "estimativa"
+  data_ano_fonte = "especialista"
 )]
 br_soil2023[
   dataset_id %in% ctb & !is.na(data_ano) & is.na(data_ano_fonte),
@@ -1070,19 +1072,16 @@ idx_averaged <- match(
   br_soil2023[is.na(data_ano) & dataset_id %in% ctb, dataset_id],
   average_year[, dataset_id]
 )
-# Set sampling_year to the average sampling year and data_ano_fonte to 
-# "estimativa"
+# Set the sampling year to the dataset average, recording its source only when
+# the dataset has a usable average.
 br_soil2023[
   is.na(data_ano) & dataset_id %in% ctb,
   `:=`(
     data_ano = average_year[idx_averaged, data_ano],
-    data_ano_fonte = "estimativa"
+    data_ano_fonte = ifelse(
+      !is.na(average_year[idx_averaged, data_ano]), "média", NA_character_
+    )
   )
-]
-# Set data_ano_fonte = original in the remaining events
-br_soil2023[
-  is.na(data_ano) & dataset_id %in% ctb & !is.na(data_ano) & is.na(data_ano_fonte),
-  data_ano_fonte := "original"
 ]
 summary_date(br_soil2023)
 # Date: 13863 (yes) / 66 (no)
@@ -1114,7 +1113,7 @@ summary_date(br_soil2023)
 target_year <- 2009
 br_soil2023[dataset_id == ctb & is.na(data_ano), `:=`(
   data_ano = target_year,
-  data_ano_fonte = "estimativa"
+  data_ano_fonte = "especialista"
 )]
 br_soil2023[
   dataset_id == ctb & !is.na(data_ano) & is.na(data_ano_fonte),
