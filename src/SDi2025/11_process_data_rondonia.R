@@ -776,55 +776,28 @@ rondonia[
 # Set camada_nome to profund_sup-profund_inf for duplicated layers
 rondonia[EXTRA == TRUE, camada_nome := paste0(profund_sup, "-", profund_inf)]
 
-# Next we add a random perturbation to the coordinates of those extra samples 
-# only to pass checks for duplicated events. We use a small perturbation of 1 m, 
-# which is negligible for most practical purposes. The coordinates are
-# transformed to UTM zone 20S (EPSG:32720) before applying the perturbation and
-# then transformed back to WGS84 (EPSG:4326).
-# Use sf::st_jitter() with amount = 1 m, where runif(1, -amount, amount)
-amount <- 1
-extra_coords <- rondonia[
-  EXTRA == TRUE & !is.na(coord_x) & !is.na(coord_y),
-  c("id", "coord_x", "coord_y")
+# Next we add a random perturbation to the coordinates of those extra samples
+# only to pass checks for duplicated events. We use a small perturbation of 1 m,
+# which is negligible for most practical purposes. Event-level jittering ensures
+# all layers of the same event get identical coordinates.
+
+# Get event IDs marked as EXTRA (extra field collections)
+extra_event_ids <- rondonia[
+  EXTRA == TRUE & !is.na(coord_x) & !is.na(coord_y), unique(id)
 ]
-extra_coords <- sf::st_as_sf(
-  extra_coords,
-  coords = c("coord_x", "coord_y"), crs = 4326
-)
-extra_coords <- sf::st_transform(extra_coords, crs = 32720)
-set.seed(1984)
-extra_coords <- sf::st_jitter(extra_coords, amount = amount)
-extra_coords <- sf::st_transform(extra_coords, crs = 4326)
-extra_coords <- sf::st_coordinates(extra_coords)
-rondonia[
-  EXTRA == TRUE & !is.na(coord_x) & !is.na(coord_y),
-  coord_x := extra_coords[, "X"]
-]
-rondonia[
-  EXTRA == TRUE & !is.na(coord_x) & !is.na(coord_y),
-  coord_y := extra_coords[, "Y"]
-]
-# In coord_fonte, append " + amount m jitter" to the existing text.
-rondonia[
-  EXTRA == TRUE & !is.na(coord_x) & !is.na(coord_y),
-  coord_fonte := paste0(coord_fonte, " + ", amount, " m jitter")
-]
+length(extra_event_ids)
+# 47 events with extra samples and valid coordinates
+# Apply event-level jittering using new function
+rondonia <- jitter_coordinates(dt = rondonia, event_id = extra_event_ids)
 rondonia[, .N, by = coord_fonte]
 #                coord_fonte     N
 #                     <char> <int>
 # 1:                     GPS 10788
-# 2:        GPS + 1 m jitter    47
+# 2:   GPS + perturbação(1m)    47
 # 3:                    <NA>    99
 # 4: Google Maps (curadoria)     8
-# In coord_precisao, add 1 to the existing value if it a number larger than 0.
-rondonia[
-  EXTRA == TRUE & !is.na(coord_x) & !is.na(coord_y) & !is.na(coord_precisao) &
-    coord_precisao > 0, 
-  coord_precisao := coord_precisao + 1
-]
-rondonia[, summary(coord_precisao)]
 rondonia[, EXTRA := NULL]
-rm(extra_coords, amount, problem)
+rm(extra_event_ids)
 
 # Depth limits #################################################################
 # Check for missing depth limits
