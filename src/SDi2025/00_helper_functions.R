@@ -428,8 +428,7 @@ jitter_coordinates <- function(dt,
       if ("coord_fonte" %in% names(dt_copy)) {
         row_id <- match_rows$id[1]  # Use first row's fonte as reference
         row_fonte_val <- dt_copy[id == row_id, coord_fonte][[1]]
-        jittered_distance_m <- round(jitter_lookup$jitter_distance_m[i], 2)
-        new_fonte <- paste0(row_fonte_val, " + perturbação(", jittered_distance_m, "m)")
+        new_fonte <- paste0(row_fonte_val, " + perturbação(", amount, "m)")
         # Apply to ALL matching rows of this coordinate pair
         dt_copy[id %in% match_rows$id, coord_fonte := new_fonte]
       }
