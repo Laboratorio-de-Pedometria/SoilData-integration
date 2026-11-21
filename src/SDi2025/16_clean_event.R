@@ -220,7 +220,6 @@ soildata <- jitter_coordinates(
 )
 rm(idx_duplicated)
 
-
 # ctb0585. Conjunto de dados do 'Solos do Campo Experimental da Embrapa Milho e
 # Sorgo: suas características e classificação no novo sistema brasileiro. This
 # dataset (Embrapa Milho e Sorgo, Sete Lagoas, MG) contains the very same
@@ -232,6 +231,8 @@ rm(idx_duplicated)
 idx_duplicated <- soildata_events[
   dataset_id == "ctb0585" & duplicated == TRUE, V1
 ]
+length(idx_duplicated)
+# 13 duplicated events in ctb0585
 # Create a spatial object for ctb0585 dataset
 # The CRS probably is SAD69
 ctb0585_sf <- sf::st_as_sf(soildata[id %in% idx_duplicated],
@@ -343,45 +344,15 @@ rm(ctb0585_sf, idx_duplicated)
 idx_duplicated <- soildata_events[
   dataset_id == "ctb0683" & duplicated == TRUE, V1
 ]
-# Create a spatial object for ctb0683 dataset
-ctb0683_sf <- sf::st_as_sf(soildata[id %in% idx_duplicated],
-  coords = c("coord_x", "coord_y"), crs = 4326
+length(idx_duplicated)
+# 13 duplicated events in ctb0683
+soildata <- jitter_coordinates(
+  dt = soildata, event_id = idx_duplicated, amount = 1, seed = 1984
 )
-if (FALSE) {
-  # Check points in an interactive map
-  mapview::mapview(ctb0683_sf)
-}
-# Transform to UTM
-ctb0683_sf <- sf::st_transform(ctb0683_sf, crs = 32720)
-# Jitter coordinates by 1 meter to separate overlapping points and pass the
-# duplication test. But we should check the source document and update the
-# coordinates if possible in the source data.
-amount <- 1
-set.seed(1984) # For reproducibility
-ctb0683_sf <- sf::st_jitter(ctb0683_sf, amount = amount)
-# Transform back to WGS84
-ctb0683_sf <- sf::st_transform(ctb0683_sf, crs = 4326)
-# Extract coordinates from the spatial object
-ctb0683_sf <- data.table(
-  observacao_id = ctb0683_sf$observacao_id,
-  coord_x = sf::st_coordinates(ctb0683_sf)[, "X"],
-  coord_y = sf::st_coordinates(ctb0683_sf)[, "Y"]
-)
-# Update coordinates in soildata
-soildata[id %in% idx_duplicated, `:=`(
-  coord_x = ctb0683_sf[, coord_x],
-  coord_y = ctb0683_sf[, coord_y],
-  # In coord_fonte, append " + amount m jitter" to the existing text.
-  coord_fonte = paste0(coord_fonte, " + ", amount, " m jitter"),
-  # In coord_precisao, add 'amount' to the existing value if it a number larger than 0.
-  coord_precisao = ifelse(
-    !is.na(suppressWarnings(as.numeric(coord_precisao))) &
-      suppressWarnings(as.numeric(coord_precisao)) > 0,
-    as.character(suppressWarnings(as.numeric(coord_precisao)) + amount),
-    coord_precisao
-  )
-)]
-rm(ctb0683_sf, idx_duplicated, amount)
+rm(idx_duplicated)
+
+
+
 
 # ctb0033
 # We did not expect duplicated events in this dataset anymore. Need to check
