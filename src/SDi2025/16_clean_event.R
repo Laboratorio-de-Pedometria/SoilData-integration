@@ -49,9 +49,9 @@ soildata[
 # the document itself, the most likely period for the collection of the
 # profiles is between 1978 and 1979.
 soildata[
-  dataset_id == "ctb0023" & is.na(data_ano), data_ano_fonte := "estimativa"
+  dataset_id == "ctb0023" & is.na(data_ano),
+  `:=`(data_ano = 1978, data_ano_fonte = "especialista")
 ]
-soildata[dataset_id == "ctb0023" & is.na(data_ano), data_ano := 1978]
 
 # Unique events ################################################################
 # Get unique events not missing spatial and temporal coordinates 
