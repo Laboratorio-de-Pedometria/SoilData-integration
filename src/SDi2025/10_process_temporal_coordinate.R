@@ -217,8 +217,12 @@ missing_time <- is.na(br_soil2023[["data_ano"]])
 # Plot histogram
 file_path <- fig_path("102_temporal_distribution_after_rescue.png")
 png(file_path, width = 8, height = 5, units = "in", res = 300)
-hist(br_soil2023[["data_ano"]], sub = paste0("n = ", sum(!missing_time)), 
-  main = paste0("Temporal distribution of samples with known sampling date\n", "after data rescue"),
+hist(br_soil2023[["data_ano"]],
+  sub = paste0("n = ", sum(!missing_time)),
+  main = paste0(
+    "Temporal distribution of samples with known sampling date\n",
+    "after data rescue"
+  ), 
   xlab = "Year"
 )
 rug(br_soil2023[["data_ano"]])
@@ -238,13 +242,19 @@ br_soil2023[, data_ano_fonte := NA_character_]
 target_year <- 1995
 # Set the sampling year = target_year and data_ano_fonte = "estimativa"
 br_soil2023[
-  grepl("Inventário das terras em microbacias hidrográficas", dataset_titulo, ignore.case = TRUE) &
+  grepl("Inventário das terras em microbacias hidrográficas",
+    dataset_titulo,
+    ignore.case = TRUE
+  ) & 
     is.na(data_ano),
   `:=`(data_ano = target_year, data_ano_fonte = "estimativa")
 ]
 # Set data_ano_fonte = original in the remaining events
 br_soil2023[
-  grepl("Inventário das terras em microbacias hidrográficas", dataset_titulo, ignore.case = TRUE) &
+  grepl("Inventário das terras em microbacias hidrográficas",
+    dataset_titulo,
+    ignore.case = TRUE
+  ) & 
     !is.na(data_ano) & is.na(data_ano_fonte),
   data_ano_fonte := "original"
 ]
