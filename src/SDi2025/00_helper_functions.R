@@ -414,12 +414,20 @@ jitter_coordinates <- function(dt,
       # new_precision = sqrt(original_precision^2 + actual_jitter_distance^2)
       if ("coord_precisao" %in% names(dt_copy)) {
         actual_jitter_m <- jitter_lookup$jitter_distance_m[i]
+        # Determine if coord_precisao is numeric or character
+        is_numeric_col <- is.numeric(dt_copy$coord_precisao)
+        
         for (row_id in match_rows$id) {
           row_prec_val <- dt_copy[id == row_id, coord_precisao][[1]]
           orig_prec <- suppressWarnings(as.numeric(row_prec_val))
           if (!is.na(orig_prec) && orig_prec > 0) {
-            new_prec <- sqrt(orig_prec^2 + actual_jitter_m^2)
-            dt_copy[id == row_id, coord_precisao := as.character(round(new_prec, 10))]
+            new_prec <- round(sqrt(orig_prec^2 + actual_jitter_m^2), 10)
+            # Preserve original column type
+            if (is_numeric_col) {
+              dt_copy[id == row_id, coord_precisao := new_prec]
+            } else {
+              dt_copy[id == row_id, coord_precisao := as.character(new_prec)]
+            }
           }
         }
       }
