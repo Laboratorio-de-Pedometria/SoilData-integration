@@ -168,43 +168,12 @@ rm(idx_duplicated)
 idx_duplicated <- soildata_events[
   dataset_id == "ctb0631" & duplicated == TRUE, V1
 ]
-# Create a spatial object for ctb0631 dataset
-ctb0631_sf <- sf::st_as_sf(soildata[id %in% idx_duplicated],
-  coords = c("coord_x", "coord_y"), crs = 4326
+length(idx_duplicated)
+# 20 duplicated events in ctb0631
+soildata <- jitter_coordinates(
+  dt = soildata, event_id = idx_duplicated, amount = 1, seed = 1984
 )
-if (FALSE) {
-  # Check points in an interactive map
-  mapview::mapview(ctb0631_sf)
-}
-# Transform to UTM
-ctb0631_sf <- sf::st_transform(ctb0631_sf, crs = 32720)
-# Jitter coordinates
-amount <- 1
-set.seed(1984) # For reproducibility
-ctb0631_sf <- sf::st_jitter(ctb0631_sf, amount = amount)
-# Transform back to WGS84
-ctb0631_sf <- sf::st_transform(ctb0631_sf, crs = 4326)
-# Extract coordinates from the spatial object
-ctb0631_sf <- data.table(
-  observacao_id = ctb0631_sf$observacao_id,
-  coord_x = sf::st_coordinates(ctb0631_sf)[, "X"],
-  coord_y = sf::st_coordinates(ctb0631_sf)[, "Y"]
-)
-# Update coordinates in soildata
-soildata[id %in% idx_duplicated, `:=`(
-  coord_x = ctb0631_sf[, coord_x],
-  coord_y = ctb0631_sf[, coord_y],
-  # In coord_fonte, append " + amount m jitter" to the existing text.
-  coord_fonte = paste0(coord_fonte, " + ", amount, " m jitter"),
-  # In coord_precisao, add 'amount' to the existing value if it autor_nome a number larger than 0.
-  coord_precisao = ifelse(
-    !is.na(suppressWarnings(as.numeric(coord_precisao))) &
-      suppressWarnings(as.numeric(coord_precisao)) > 0,
-    as.character(suppressWarnings(as.numeric(coord_precisao)) + amount),
-    coord_precisao
-  )
-)]
-rm(ctb0631_sf, idx_duplicated, amount)
+rm(idx_duplicated)
 
 # ctb0010. Dados de 'Substâncias húmicas em solos de diferentes feições
 # geomorfológicas no rebordo do planalto do Rio Grande do Sul'
