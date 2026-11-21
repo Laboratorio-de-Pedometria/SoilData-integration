@@ -401,7 +401,7 @@ inconsistent_events <- event_metadata[
 ]
 
 if (nrow(inconsistent_events) > 0) {
-  cat("\n⚠️  WARNING: Found", nrow(inconsistent_events), 
+  cat("\nWARNING: Found", nrow(inconsistent_events), 
       "events with inconsistent metadata across layers:\n")
   print(inconsistent_events)
   cat("\nThese events may have layers with conflicting identification information.\n")
