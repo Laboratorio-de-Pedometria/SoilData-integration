@@ -67,9 +67,8 @@ soildata <- soildata_current[, -c(
 # Rename columns ###############################################################
 # data_ano_fonte -> data_fonte
 setnames(soildata, "data_ano_fonte", "data_fonte")
-# Check columns names
+# Check column names, including the soil-property source columns
 paste(colnames(soildata), collapse = ", ")
-# dataset_id, observacao_id, dataset_titulo, dataset_licenca, sisb_id, ibge_id, coord_x, coord_y, coord_precisao, coord_fonte, pais_id, estado_id, municipio_id, amostra_tipo, amostra_quanti, amostra_area, taxon_sibcs, taxon_st, taxon_wrb, camada_id, amostra_id, camada_nome, profund_sup, profund_inf, terrafina, argila, silte, areia, carbono, ctc, ph, dsi, ce, data_ano, data_ano_fonte, coord_datum, pedregosidade, rochosidade, terrafina_fonte, esqueleto, dtp_fonte
 if (FALSE) {
   View(soildata)
 }
@@ -232,19 +231,29 @@ soildata[!(is.na(coord_x) | is.na(coord_y)), .N, by = .(coord_datum)][order(coor
 # data_fonte ###################################################################
 # If data_fonte == "", set to NA
 soildata[data_fonte == "", data_fonte := NA_character_]
-# If data_fonte is NA but data_ano is not NA, set data_fonte to "original"
-soildata[is.na(data_fonte) & !is.na(data_ano), data_fonte := "original"]
 # Original -> "original"
 soildata[data_fonte == "Original", data_fonte := "original"]
-# Estimativa -> "estimativa"
-soildata[data_fonte == "Estimativa", data_fonte := "estimativa"]
+# Warn before assuming a missing source is original.
+n_missing_date_source <- soildata[is.na(data_fonte) & !is.na(data_ano), .N]
+if (n_missing_date_source > 0L) {
+  warning(
+    n_missing_date_source,
+    " row(s) have a sampling year without a source; setting the source to original."
+  )
+  soildata[is.na(data_fonte) & !is.na(data_ano), data_fonte := "original"]
+}
+rm(n_missing_date_source)
+# Reject legacy or unexpected labels rather than guessing the estimation method.
+invalid_date_sources <- soildata[
+  !is.na(data_fonte) & !data_fonte %in% c("original", "especialista", "média"),
+  unique(data_fonte)
+]
+if (length(invalid_date_sources) > 0L) {
+  stop("Unexpected sampling-year source(s): ", paste(invalid_date_sources, collapse = ", "))
+}
+rm(invalid_date_sources)
 # statistics
 soildata[, .N, by = .(data_fonte)][order(data_fonte)]
-#    data_fonte     N
-#        <char> <int>
-# 1: estimativa 12711
-# 2:   original 49117
-# 3:       <NA>   308
 
 # data_ano #####################################################################
 # Many datasets still have no information for data_ano (sampling year)
@@ -262,11 +271,11 @@ soildata[
   !grepl(dsi_min_layer, camada_nome, ignore.case = TRUE),
   .(taxon_sibcs, camada_nome, dsi, ctc, carbono, dataset_id, observacao_id)
 ]
-# Set those dsi values to NA: we cannot find justification for such low values
+# Set those dsi values and their sources to NA: such low values are unjustified
 soildata[
   dsi < dsi_min & !grepl(dsi_min_taxon, taxon_sibcs, ignore.case = TRUE) &
   !grepl(dsi_min_layer, camada_nome, ignore.case = TRUE),
-  dsi := NA_real_
+  `:=`(dsi = NA_real_, dsi_fonte = NA_character_)
 ]
 
 # Maximum soil density #########################################################
@@ -293,10 +302,10 @@ soildata[
   ph > ph_max & !grepl(ph_max_taxon, taxon_sibcs, ignore.case = TRUE),
   .(taxon_sibcs, camada_nome, ph, ctc, carbono, dataset_id, observacao_id)
 ]
-# Set those pH values to NA: we cannot find justification for such high values
+# Set those pH values and their sources to NA: such high values are unjustified
 soildata[
   ph > ph_max & !grepl(ph_max_taxon, taxon_sibcs, ignore.case = TRUE),
-  ph := NA_real_
+  `:=`(ph = NA_real_, ph_fonte = NA_character_)
 ]
 
 # Minimum pH ###################################################################
@@ -309,10 +318,10 @@ soildata[
   ph < ph_min & !grepl(ph_min_taxon, taxon_sibcs, ignore.case = TRUE),
   .(taxon_sibcs, camada_nome, ph, ctc, carbono, dataset_id, observacao_id)
 ]
-# Set those pH values to NA: we cannot find justification for such low values
+# Set those pH values and their sources to NA: such low values are unjustified
 soildata[
   ph < ph_min & !grepl(ph_min_taxon, taxon_sibcs, ignore.case = TRUE),
-  ph := NA_real_
+  `:=`(ph = NA_real_, ph_fonte = NA_character_)
 ]
 
 # Sum of terrafina and esqueleto == 1000 g/kg ##################################
@@ -335,11 +344,11 @@ soildata[
   !grepl(ctc_min_layer, soildata$camada_nome, ignore.case = FALSE) & areia < 500 & ph > 5,
   .(taxon_sibcs, camada_nome, ctc, ph, carbono, areia, dataset_id, observacao_id)
 ]
-# Set those ctc values to NA: we cannot find justification for such low values
+# Set those ctc values and their sources to NA: such low values are unjustified
 soildata[
   ctc < ctc_min & !grepl(ctc_min_taxon, soildata$taxon_sibcs, ignore.case = TRUE) &
   !grepl(ctc_min_layer, soildata$camada_nome, ignore.case = FALSE) & areia < 500 & ph > 5,
-  ctc := NA_real_
+  `:=`(ctc = NA_real_, ctc_fonte = NA_character_)
 ]
 
 # Maximum ctc ##################################################################
