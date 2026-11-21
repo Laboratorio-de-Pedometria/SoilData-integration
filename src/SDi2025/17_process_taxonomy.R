@@ -375,7 +375,7 @@ soildata[dataset_id %in% missing_taxon$dataset_id &
 # Write data to disk ###########################################################
 summary_soildata(soildata)
 # SDi2025 ---
-# Layers: 62250
+# Layers: 62247
 # Events: 20259
 # Georeference: 16676 (yes) / 3583 (no)
 # Date: 20105 (yes) / 154 (no)
