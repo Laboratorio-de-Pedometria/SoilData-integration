@@ -1564,6 +1564,15 @@ if (FALSE) {
   ])
 }
 
+# Discard temporary columns used to identify litter layers
+soildata[, `:=`(
+  is_organic = NULL,
+  no_measurements = NULL,
+  organic_soil = NULL,
+  is_diagnostic = NULL,
+  is_litter = NULL
+)]
+
 # profund_sup == profund_inf ###################################################
 
 # Some layers have equal values for profund_sup and profund_inf. This may occur
