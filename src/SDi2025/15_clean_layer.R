@@ -639,11 +639,16 @@ soildata <- soildata[
 soildata <- soildata[
   !(id == "ctb0821-P24" & amostra_id %in% c(45290, 45292, 45293))
 ]
-# ctb0821-P25. The source spreadsheet contains six incomplete layers, but the 
+# ctb0821-P25. The source spreadsheet contains six incomplete layers, but the
 # source document contains only two layers. We drop the four layers that are not
 # present in the source document: 45295 45296 45297 45299.
 soildata <- soildata[
   !(id == "ctb0821-P25" & amostra_id %in% c(45295, 45296, 45297, 45299))
+]
+# ctb0821-P26. The source spreadsheet contains four layers. However, three of 
+# them seem not to be in the source document. We drop the three layers that are not present in the source document: 45300, 45301, and 45302.
+soildata <- soildata[
+  !(id == "ctb0821-P26" & amostra_id %in% c(45300, 45301, 45302))
 ]
 # ctb0821-P27. The source spreadsheet contains six incomplete layers, but the 
 # source document contains only two layers. We drop the four layers that are not 
@@ -3438,7 +3443,7 @@ dev.off()
 # Write data to disk ###########################################################
 summary_soildata(soildata)
 # SDi2025 ---
-# Layers: 62519
+# Layers: 62516
 # Events: 20307
 # Georeference: 16724 (yes) / 3583 (no)
 # Date: 20148 (yes) / 159 (no)
