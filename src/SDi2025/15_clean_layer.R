@@ -3012,6 +3012,11 @@ soildata[!is.na(esqueleto) & esqueleto > 1000, .N]
 # Some layers have incorrect values for one or more particle size fractions. We
 # correct these layers based on visual inspection of the source documents. These
 # corrections need to be implemented in the source spreedsheet in the future.
+# ctb0066-P60_0_20: restore clay omitted during data entry.
+soildata[
+  id_original == "ctb0066-P60_0_20" & camada_nome == "0-20" & is.na(argila),
+  `:=`(argila = 120, argila_fonte = "original")
+]
 soildata[
   id_original == "ctb0591-P-13-Sao-Mateus-do-Sul" & 
   camada_nome == "BW1" & 
