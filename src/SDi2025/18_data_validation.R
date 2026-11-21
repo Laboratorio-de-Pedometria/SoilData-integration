@@ -370,7 +370,48 @@ soildata[
 ]
 # We will not change other values, as they appear to be correct.
 
+# Metadata consistency within events ##########################################
+# Check that identification/metadata variables are constant across all layers
+# of the same event (dataset_id, observacao_id, data_ano combination)
+
+metadata_vars <- c(
+  "dataset_id", "observacao_id", "data_ano", "data_fonte",
+  "coord_x", "coord_y", "coord_datum", "coord_fonte", "coord_precisao",
+  "estado_id", "municipio_id", "pais_id", "amostra_tipo", "amostra_quanti", 
+  "dataset_licenca", "dataset_titulo", "dataset_autor", "taxon_sibcs" 
+)
+
+# Check which metadata vars exist in soildata
+metadata_vars <- metadata_vars[metadata_vars %in% names(soildata)]
+
+# Identify events where metadata/identification variables vary
+event_metadata <- soildata[, .(
+  n_layers = .N,
+  n_unique_coord_x = uniqueN(coord_x),
+  n_unique_coord_y = uniqueN(coord_y),
+  n_unique_data_ano = uniqueN(data_ano),
+  n_unique_estado_id = uniqueN(estado_id),
+  n_unique_municipio_id = uniqueN(municipio_id)
+), by = c("dataset_id", "observacao_id")]
+
+# Find events with inconsistent metadata
+inconsistent_events <- event_metadata[
+  n_unique_coord_x > 1 | n_unique_coord_y > 1 | n_unique_data_ano > 1 |
+  n_unique_estado_id > 1 | n_unique_municipio_id > 1
+]
+
+if (nrow(inconsistent_events) > 0) {
+  cat("\n⚠️  WARNING: Found", nrow(inconsistent_events), 
+      "events with inconsistent metadata across layers:\n")
+  print(inconsistent_events)
+  cat("\nThese events may have layers with conflicting identification information.\n")
+  cat("Verify that jittering and coordinate updates maintain consistency.\n\n")
+} else {
+  cat("\n✓ All events have consistent metadata across layers\n\n")
+}
+
 # Export #######################################################################
+
 # Save data in TXT format, saving in "res/tab/"
 summary_soildata(soildata)
 # SDi2025 ---
