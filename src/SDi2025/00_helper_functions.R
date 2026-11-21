@@ -278,6 +278,167 @@ ctb_query <- function (ctb, doi = TRUE, per_page = 1000) {
   return(search_result)
 }
 
+# Jitter coordinates at event level ############################################
+# This function implements a self-contained wrapper that filters a full dataset,
+# applies jittering to unique coordinate pairs, and merges results back into the
+# original dataset. The design uses an intermediate lookup table (mapping original
+# coordinates to jittered coordinates) to avoid redundant jittering operations.
+#
+# ALGORITHM:
+#   1. Filter to rows matching event_id
+#   2. Extract UNIQUE coordinate combinations from filtered rows
+#   3. Create spatial object from unique coordinates (WGS84)
+#   4. Transform to UTM zone 23S for jittering (ensures distance in meters)
+#   5. Apply sf::st_jitter() with controlled seed for reproducibility
+#   6. Transform jittered coordinates back to WGS84
+#   7. Build lookup table: (dataset_id, observacao_id, data_ano, orig_x, orig_y)
+#      → (jittered_x, jittered_y)
+#   8. For each lookup entry, find all matching rows in original dataset
+#   9. Update ALL matching rows with the SAME jittered coordinates
+#   10. Return full original dataset with jittered coordinates merged back
+#
+# DESIGN PATTERN:
+#   Input DT (all rows) → [Filter + Extract Unique + Jitter + Build Lookup + 
+#                          Merge Back] → Output DT (all rows with updates)
+#
+# KEY INSIGHT (Efficiency):
+#   If N layers belong to the same event (identical original coordinates),
+#   they are only jittered ONCE via the lookup table, then applied to all N rows.
+#   This avoids N independent jitter operations and ensures N identical results.
+#
+# INTERFACE:
+#   - Input:  Full data.table + event IDs to jitter (complete dataset, not filtered)
+#   - Output: Full data.table with jittered coordinates (non-duplicate rows unchanged)
+#
+# WHY THIS DESIGN?
+#   • Atomic operation: Filter, jitter, merge all happen together
+#   • Data integrity: No risk of losing non-duplicate rows
+#   • Caller simplicity: Single function call does everything
+#   • Efficiency: Lookup table prevents redundant jittering
+#   • Robustness: Caller doesn't manage intermediate data transformations
+#
+jitter_coordinates <- function(dt,
+                               event_id,
+                               crs_from = 4326,
+                               crs_jitter = 32720,
+                               amount = 1,
+                               seed = 1984,
+                               coord_x_col = "coord_x",
+                               coord_y_col = "coord_y") {
+  
+  # Input validation
+  if (!is.data.table(dt)) {
+    stop("dt must be a data.table")
+  }
+  if (!all(c(coord_x_col, coord_y_col) %in% names(dt))) {
+    stop(paste("Coordinate columns not found:", coord_x_col, coord_y_col))
+  }
+  
+  # Work on a copy
+  dt_copy <- copy(dt)
+  
+  # Filter to specified event ID(s)
+  subset_data <- dt_copy[id %in% event_id]
+  if (nrow(subset_data) == 0) {
+    warning("No rows found matching event_id")
+    return(dt_copy)
+  }
+  
+  # Extract unique coordinate combinations within events
+  unique_coords <- unique(subset_data[
+    !is.na(get(coord_x_col)) & !is.na(get(coord_y_col)),
+    .(
+      dataset_id,
+      observacao_id,
+      data_ano,
+      orig_x = get(coord_x_col),
+      orig_y = get(coord_y_col)
+    )
+  ])
+  
+  if (nrow(unique_coords) == 0) {
+    warning("No valid coordinates found in duplicate events")
+    return(dt_copy)
+  }
+  
+  # Create spatial object from unique coordinates
+  sf_unique <- sf::st_as_sf(
+    unique_coords,
+    coords = c("orig_x", "orig_y"),
+    crs = crs_from,
+    remove = FALSE
+  )
+  
+  # Transform to target CRS, apply jittering, transform back
+  sf_unique <- sf::st_transform(sf_unique, crs = crs_jitter)
+  set.seed(seed)
+  sf_unique_jittered <- sf::st_jitter(sf_unique, amount = amount)
+  sf_unique_jittered <- sf::st_transform(sf_unique_jittered, crs = crs_from)
+  
+  # Create lookup table: original coordinates → jittered coordinates
+  jittered_coords <- sf::st_coordinates(sf_unique_jittered)
+  jitter_lookup <- data.table(
+    dataset_id = unique_coords$dataset_id,
+    observacao_id = unique_coords$observacao_id,
+    data_ano = unique_coords$data_ano,
+    orig_x = unique_coords$orig_x,
+    orig_y = unique_coords$orig_y,
+    jittered_x = jittered_coords[, "X"],
+    jittered_y = jittered_coords[, "Y"]
+  )
+  
+  # Calculate actual jitter distance for each coordinate pair (in meters)
+  # Using approximate conversion: 1° lat ≈ 111 km, 1° lon ≈ 71 km (at this latitude)
+  jitter_lookup[, jitter_distance_m := sqrt(
+    ((jittered_x - orig_x) * 71000)^2 + 
+    ((jittered_y - orig_y) * 111000)^2
+  )]
+  
+  # Apply jittered coordinates to all matching rows
+  for (i in seq_len(nrow(jitter_lookup))) {
+    match_rows <- subset_data[
+      dataset_id == jitter_lookup$dataset_id[i] &
+        observacao_id == jitter_lookup$observacao_id[i] &
+        data_ano == jitter_lookup$data_ano[i] &
+        get(coord_x_col) == jitter_lookup$orig_x[i] &
+        get(coord_y_col) == jitter_lookup$orig_y[i]
+    ]
+    
+    if (nrow(match_rows) > 0) {
+      # Update coordinates
+      dt_copy[id %in% match_rows$id, (coord_x_col) := jitter_lookup$jittered_x[i]]
+      dt_copy[id %in% match_rows$id, (coord_y_col) := jitter_lookup$jittered_y[i]]
+      
+      # Update precision using sum of squares (combining uncertainties)
+      # If original precision can be converted to numeric and is > 0:
+      # new_precision = sqrt(original_precision^2 + actual_jitter_distance^2)
+      if ("coord_precisao" %in% names(dt_copy)) {
+        actual_jitter_m <- jitter_lookup$jitter_distance_m[i]
+        for (row_id in match_rows$id) {
+          row_prec_val <- dt_copy[id == row_id, coord_precisao][[1]]
+          orig_prec <- suppressWarnings(as.numeric(row_prec_val))
+          if (!is.na(orig_prec) && orig_prec > 0) {
+            new_prec <- sqrt(orig_prec^2 + actual_jitter_m^2)
+            dt_copy[id == row_id, coord_precisao := as.character(round(new_prec, 10))]
+          }
+        }
+      }
+      
+      # Update coordinate source to document jittering operation (once per coordinate pair)
+      if ("coord_fonte" %in% names(dt_copy)) {
+        row_id <- match_rows$id[1]  # Use first row's fonte as reference
+        row_fonte_val <- dt_copy[id == row_id, coord_fonte][[1]]
+        jittered_distance_m <- round(jitter_lookup$jitter_distance_m[i], 2)
+        new_fonte <- paste0(row_fonte_val, " + perturbação(", jittered_distance_m, "m)")
+        # Apply to ALL matching rows of this coordinate pair
+        dt_copy[id %in% match_rows$id, coord_fonte := new_fonte]
+      }
+    }
+  }
+  
+  dt_copy
+}
+
 # Query SoilData API endpoint by global_id (DOI) ###################################################
 # Function to query SoilData API by global_id (DOI)
 # doi_query <- function(doi) {
