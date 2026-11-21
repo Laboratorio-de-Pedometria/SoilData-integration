@@ -155,43 +155,10 @@ rm(idx_duplicated)
 idx_duplicated <- soildata_events[
   dataset_id == "ctb0607" & duplicated == TRUE, V1
 ]
-# Create a spatial object for ctb0607 dataset
-ctb0607_sf <- sf::st_as_sf(soildata[id %in% idx_duplicated],
-  coords = c("coord_x", "coord_y"), crs = 4326
+soildata <- jitter_coordinates(
+  dt = soildata, event_id = idx_duplicated, amount = 1, seed = 1984
 )
-# mapview::mapview(ctb0607_sf)  # Check points in an interactive map
-# Transform to UTM
-ctb0607_sf <- sf::st_transform(ctb0607_sf, crs = 32720)
-# Jitter coordinates
-# We jitter the coordinates by a random amount between -1 and 1 meter to separate overlapping
-# points and pass the duplication test. But we should check the source document and update the
-# coordinates if possible in the source data.
-amount <- 1
-set.seed(1984) # For reproducibility
-ctb0607_sf <- sf::st_jitter(ctb0607_sf, amount = amount)
-# Transform back to WGS84
-ctb0607_sf <- sf::st_transform(ctb0607_sf, crs = 4326)
-# Extract coordinates from the spatial object
-ctb0607_sf <- data.table(
-  observacao_id = ctb0607_sf$observacao_id,
-  coord_x = sf::st_coordinates(ctb0607_sf)[, "X"],
-  coord_y = sf::st_coordinates(ctb0607_sf)[, "Y"]
-)
-# Update coordinates in soildata
-soildata[id %in% idx_duplicated, `:=`(
-  coord_x = ctb0607_sf[, coord_x],
-  coord_y = ctb0607_sf[, coord_y],
-  # In coord_fonte, append " + amount m jitter" to the existing text.
-  coord_fonte = paste0(coord_fonte, " + ", amount, " m jitter"),
-  # In coord_precisao, add 'amount' to the existing value if it a number larger than 0.
-  coord_precisao = ifelse(
-    !is.na(suppressWarnings(as.numeric(coord_precisao))) &
-      suppressWarnings(as.numeric(coord_precisao)) > 0,
-    as.character(suppressWarnings(as.numeric(coord_precisao)) + amount),
-    coord_precisao
-  )
-)]
-rm(ctb0607_sf, idx_duplicated)
+rm(idx_duplicated)
 
 # ctb0631. Levantamento de reconhecimento dos solos do Estado do Paraná - Tomos
 # I e II. It is not clear why there are duplicated events in this dataset. We
