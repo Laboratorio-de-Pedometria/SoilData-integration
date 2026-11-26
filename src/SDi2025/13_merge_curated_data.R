@@ -269,3 +269,4 @@ summary_soildata(soildata)
 # Georeferenced events: 14995
 # Datasets: 263
 data.table::fwrite(soildata, "data/13_soildata.txt", sep = "\t")
+
