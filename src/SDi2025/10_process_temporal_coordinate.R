@@ -1167,4 +1167,9 @@ summary_soildata(br_soil2023)
 # Georeference: 10859 (yes) / 3000 (no)
 # Date: 13707 (yes) / 152 (no)
 # Datasets: 235
+# SDi2024 ---
+# Layers: 50400
+# Events: 13973
+# Georeferenced events: 10942
+# Datasets: 235
 data.table::fwrite(br_soil2023, "data/10_soildata.txt", sep = "\t")
