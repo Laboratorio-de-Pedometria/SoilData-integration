@@ -431,3 +431,18 @@ data.table::fwrite(
   file = file_path, sep = "\t", dec = ".", row.names = FALSE, na = "NA"
 )
 # Load to SoilData repository!
+
+# Test data proecesses in UTFPR computer
+# soildata_utfpr <- data.table::fread(
+#   "/home/alessandrorosa/ownCloud/tmp/00_brazilian_soil_dataset_2025.txt",
+#   sep = "\t", dec = ".", na.strings = c("NA", "")
+# )
+# summary_soildata(soildata_utfpr)
+# # Layers: 62247
+# # Events: 20259
+# # Georeference: 16675 (yes) / 3584 (no)
+# # Date: 20105 (yes) / 154 (no)
+# # Datasets: 271
+
+# idx <- which(soildata[, .(coord_x, coord_y)] != soildata_utfpr[, .(coord_x, coord_y)])
+# View(cbind(soildata[idx, .(dataset_id, observacao_id, coord_x, coord_y)], soildata_utfpr[idx, .(coord_x, coord_y)]))
